@@ -1,9 +1,9 @@
 sudo: required
 
 language: go
-go_import_path: github.com/pravega/pravega-operator
+go_import_path: github.com/pravega/bookkeeper-operator
 go:
-  - '1.11'
+  - '1.12'
 
 env:
   global:
@@ -47,7 +47,7 @@ jobs:
         - OPERATOR_SDK_VERSION=v0.4.0
         - HELM_VERSION=v2.12.0
         - DEP_VERSION=v0.5.0
-        - CLUSTER_NAME="pravega-operator-travis-$(date +'%Y%m%d%H%M%S')"
+        - CLUSTER_NAME="bookkeeper-operator-travis-$(date +'%Y%m%d%H%M%S')"
         - CLUSTER_ZONE=us-west-2
         - CLUSTER_SIZE=3
         - CLUSTER_NODE_TYPE=m5.xlarge

@@ -13,7 +13,6 @@ package main
 import (
 	"context"
 	"flag"
-	"github.com/pravega/pravega-operator/pkg/webhook"
 	"os"
 	"runtime"
 
@@ -21,17 +20,17 @@ import (
 	"github.com/operator-framework/operator-sdk/pkg/leader"
 	"github.com/operator-framework/operator-sdk/pkg/ready"
 	sdkVersion "github.com/operator-framework/operator-sdk/version"
-	"github.com/pravega/pravega-operator/pkg/apis"
-	"github.com/pravega/pravega-operator/pkg/controller"
-	controllerconfig "github.com/pravega/pravega-operator/pkg/controller/config"
-	"github.com/pravega/pravega-operator/pkg/version"
+	"github.com/pravega/bookkeeper-operator/pkg/apis"
+	"github.com/pravega/bookkeeper-operator/pkg/controller"
+	controllerconfig "github.com/pravega/bookkeeper-operator/pkg/controller/config"
+	"github.com/pravega/bookkeeper-operator/pkg/version"
+	"github.com/pravega/bookkeeper-operator/pkg/webhook"
+	log "github.com/sirupsen/logrus"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/oidc"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/runtime/signals"
-
-	log "github.com/sirupsen/logrus"
 )
 
 var (
@@ -46,7 +45,7 @@ func init() {
 }
 
 func printVersion() {
-	log.Printf("pravega-operator Version: %v", version.Version)
+	log.Printf("bookkeeper-operator Version: %v", version.Version)
 	log.Printf("Git SHA: %s", version.GitSHA)
 	log.Printf("Go Version: %s", runtime.Version())
 	log.Printf("Go OS/Arch: %s/%s", runtime.GOOS, runtime.GOARCH)
@@ -78,7 +77,7 @@ func main() {
 	}
 
 	// Become the leader before proceeding
-	leader.Become(context.TODO(), "pravega-operator-lock")
+	leader.Become(context.TODO(), "bookkeeper-operator-lock")
 
 	r := ready.NewFileReady()
 	err = r.Set()

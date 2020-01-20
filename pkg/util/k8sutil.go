@@ -82,7 +82,7 @@ func PodAntiAffinity(component string, clusterName string) *corev1.Affinity {
 // Wait for pods in cluster to be terminated
 func WaitForClusterToTerminate(kubeClient client.Client, p *v1alpha1.PravegaCluster) (err error) {
 	listOptions := &client.ListOptions{
-		LabelSelector: labels.SelectorFromSet(LabelsForPravegaCluster(p)),
+		LabelSelector: labels.SelectorFromSet(LabelsForBookkeeperCluster(p)),
 	}
 
 	err = wait.Poll(5*time.Second, 2*time.Minute, func() (done bool, err error) {
@@ -131,7 +131,7 @@ func NewEvent(name string, p *v1alpha1.PravegaCluster, reason string, message st
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: p.Namespace,
-			Labels:    LabelsForPravegaCluster(p),
+			Labels:    LabelsForBookkeeperCluster(p),
 		},
 		InvolvedObject: corev1.ObjectReference{
 			APIVersion:      "pravega.pravega.io/v1alpha1",

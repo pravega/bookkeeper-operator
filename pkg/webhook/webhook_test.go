@@ -14,7 +14,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/pravega/pravega-operator/pkg/apis/pravega/v1alpha1"
+	"github.com/pravega/bookkeeper-operator/pkg/apis/bookkeeper/v1alpha1"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -41,12 +41,12 @@ var _ = Describe("Admission webhook", func() {
 
 	Context("Version", func() {
 		var (
-			p   *v1alpha1.PravegaCluster
-			pwh *pravegaWebhookHandler
+			p   *v1alpha1.BookkeeperCluster
+			pwh *bookkeeperWebhookHandler
 		)
 
 		BeforeEach(func() {
-			p = &v1alpha1.PravegaCluster{
+			p = &v1alpha1.BookkeeperCluster{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      Name,
 					Namespace: Namespace,
@@ -63,12 +63,12 @@ var _ = Describe("Admission webhook", func() {
 
 			BeforeEach(func() {
 				client = fake.NewFakeClient()
-				pwh = &pravegaWebhookHandler{client: client}
+				pwh = &bookkeeperWebhookHandler{client: client}
 			})
 			Context("Version only in .spec", func() {
 				BeforeEach(func() {
 					p.Spec.Version = "0.3.2-rc3"
-					err = pwh.mutatePravegaManifest(context.TODO(), p)
+					err = pwh.mutateBookkeeperManifest(context.TODO(), p)
 				})
 
 				It("Shoud not have error", func() {
@@ -80,17 +80,17 @@ var _ = Describe("Admission webhook", func() {
 				})
 			})
 
-			Context("Version only in .spec.Pravega.Image.Tag", func() {
+			Context("Version only in .spec.Bookkeeper.Image.Tag", func() {
 
 				BeforeEach(func() {
-					p.Spec.Pravega = &v1alpha1.PravegaSpec{
-						Image: &v1alpha1.PravegaImageSpec{
+					p.Spec.Bookkeeper = &v1alpha1.BookkeeperSpec{
+						Image: &v1alpha1.BookkeeperImageSpec{
 							ImageSpec: v1alpha1.ImageSpec{
 								Tag: "0.3.2-rc3",
 							},
 						},
 					}
-					err = pwh.mutatePravegaManifest(context.TODO(), p)
+					err = pwh.mutateBookkeeperManifest(context.TODO(), p)
 				})
 
 				It("Shoud not have error", func() {
@@ -102,22 +102,22 @@ var _ = Describe("Admission webhook", func() {
 				})
 
 				It("Image tags should be nil", func() {
-					Ω(p.Spec.Pravega.Image.Tag).Should(Equal(""))
+					Ω(p.Spec.Bookkeeper.Image.Tag).Should(Equal(""))
 				})
 			})
 
-			Context("Version in .spec.Version and .spec.Pravega.Image.Tag", func() {
+			Context("Version in .spec.Version and .spec.Bookkeeper.Image.Tag", func() {
 
 				BeforeEach(func() {
-					p.Spec.Pravega = &v1alpha1.PravegaSpec{
-						Image: &v1alpha1.PravegaImageSpec{
+					p.Spec.Bookkeeper = &v1alpha1.BookkeeperSpec{
+						Image: &v1alpha1.BookkeeperImageSpec{
 							ImageSpec: v1alpha1.ImageSpec{
 								Tag: "0.3.2-rc3",
 							},
 						},
 					}
 					p.Spec.Version = "0.1.0"
-					err = pwh.mutatePravegaManifest(context.TODO(), p)
+					err = pwh.mutateBookkeeperManifest(context.TODO(), p)
 				})
 
 				It("Shoud not have error", func() {
@@ -126,7 +126,7 @@ var _ = Describe("Admission webhook", func() {
 
 				It("Version on .spec.Version should prevail", func() {
 					Ω(p.Spec.Version).Should(Equal("0.1.0"))
-					Ω(p.Spec.Pravega.Image.Tag).Should(Equal(""))
+					Ω(p.Spec.Bookkeeper.Image.Tag).Should(Equal(""))
 				})
 			})
 		})
@@ -139,7 +139,7 @@ var _ = Describe("Admission webhook", func() {
 
 			BeforeEach(func() {
 				client = fake.NewFakeClient()
-				pwh = &pravegaWebhookHandler{client: client}
+				pwh = &bookkeeperWebhookHandler{client: client}
 			})
 
 			Context("Standard version", func() {
@@ -147,7 +147,7 @@ var _ = Describe("Admission webhook", func() {
 					p.Spec = v1alpha1.ClusterSpec{
 						Version: "0.4.0",
 					}
-					err = pwh.mutatePravegaManifest(context.TODO(), p)
+					err = pwh.mutateBookkeeperManifest(context.TODO(), p)
 					Ω(err).Should(BeNil())
 				})
 			})
@@ -157,33 +157,33 @@ var _ = Describe("Admission webhook", func() {
 					p.Spec = v1alpha1.ClusterSpec{
 						Version: "0.3.2-rc2",
 					}
-					err = pwh.mutatePravegaManifest(context.TODO(), p)
+					err = pwh.mutateBookkeeperManifest(context.TODO(), p)
 					Ω(err).Should(BeNil())
 				})
 			})
 
 			Context("Empty version field", func() {
-				Context("Empty pravega tag field", func() {
+				Context("Empty bookkeeper tag field", func() {
 					It("should pass", func() {
 						p.Spec = v1alpha1.ClusterSpec{}
-						err = pwh.mutatePravegaManifest(context.TODO(), p)
+						err = pwh.mutateBookkeeperManifest(context.TODO(), p)
 						Ω(err).Should(BeNil())
 					})
 				})
 
-				Context("Pravega tag field specified", func() {
+				Context("Bookkeeper tag field specified", func() {
 					It("should pass", func() {
 						p.Spec = v1alpha1.ClusterSpec{
-							Pravega: &v1alpha1.PravegaSpec{
-								Image: &v1alpha1.PravegaImageSpec{
+							Bookkeeper: &v1alpha1.BookkeeperSpec{
+								Image: &v1alpha1.BookkeeperImageSpec{
 									ImageSpec: v1alpha1.ImageSpec{
-										Repository: "pravega/pravega",
+										Repository: "pravega/bookkeeper",
 										Tag:        "0.4.0",
 									},
 								},
 							},
 						}
-						err = pwh.mutatePravegaManifest(context.TODO(), p)
+						err = pwh.mutateBookkeeperManifest(context.TODO(), p)
 						Ω(err).Should(BeNil())
 					})
 				})
@@ -198,7 +198,7 @@ var _ = Describe("Admission webhook", func() {
 
 			BeforeEach(func() {
 				client = fake.NewFakeClient()
-				pwh = &pravegaWebhookHandler{client: client}
+				pwh = &bookkeeperWebhookHandler{client: client}
 			})
 
 			Context("Version not compatible", func() {
@@ -206,9 +206,9 @@ var _ = Describe("Admission webhook", func() {
 					p.Spec = v1alpha1.ClusterSpec{
 						Version: "99.0.0",
 					}
-					err = pwh.mutatePravegaManifest(context.TODO(), p)
+					err = pwh.mutateBookkeeperManifest(context.TODO(), p)
 					Ω(err).ShouldNot(BeNil())
-					Ω(err.Error()).To(Equal("unsupported Pravega cluster version 99.0.0"))
+					Ω(err.Error()).To(Equal("unsupported Bookkeeper cluster version 99.0.0"))
 				})
 			})
 
@@ -217,7 +217,7 @@ var _ = Describe("Admission webhook", func() {
 					p.Spec = v1alpha1.ClusterSpec{
 						Version: "hahahaha",
 					}
-					err := pwh.mutatePravegaManifest(context.TODO(), p)
+					err := pwh.mutateBookkeeperManifest(context.TODO(), p)
 					Ω(err).ShouldNot(BeNil())
 					Ω(err.Error()).To(Equal("request version is not in valid format: failed to parse version hahahaha"))
 				})
@@ -235,7 +235,7 @@ var _ = Describe("Admission webhook", func() {
 					Version: "0.5.0-001",
 				}
 				client = fake.NewFakeClient(p)
-				pwh = &pravegaWebhookHandler{client: client}
+				pwh = &bookkeeperWebhookHandler{client: client}
 			})
 
 			Context("Supported and in upgrade path", func() {
@@ -243,7 +243,7 @@ var _ = Describe("Admission webhook", func() {
 					p.Spec = v1alpha1.ClusterSpec{
 						Version: "0.5.0-002",
 					}
-					err = pwh.mutatePravegaManifest(context.TODO(), p)
+					err = pwh.mutateBookkeeperManifest(context.TODO(), p)
 					Ω(err).Should(BeNil())
 				})
 			})
@@ -253,9 +253,9 @@ var _ = Describe("Admission webhook", func() {
 					p.Spec = v1alpha1.ClusterSpec{
 						Version: "99.0.0-001",
 					}
-					err = pwh.mutatePravegaManifest(context.TODO(), p)
+					err = pwh.mutateBookkeeperManifest(context.TODO(), p)
 					Ω(err).ShouldNot(BeNil())
-					Ω(err.Error()).To(Equal("unsupported Pravega cluster version 99.0.0-001"))
+					Ω(err.Error()).To(Equal("unsupported Bookkeeper cluster version 99.0.0-001"))
 				})
 			})
 
@@ -264,7 +264,7 @@ var _ = Describe("Admission webhook", func() {
 					p.Spec = v1alpha1.ClusterSpec{
 						Version: "0.4.0-001",
 					}
-					err = pwh.mutatePravegaManifest(context.TODO(), p)
+					err = pwh.mutateBookkeeperManifest(context.TODO(), p)
 					Ω(err).ShouldNot(BeNil())
 					Ω(err.Error()).To(Equal("unsupported upgrade from version 0.5.0-001 to 0.4.0-001"))
 				})
@@ -283,7 +283,7 @@ var _ = Describe("Admission webhook", func() {
 				}
 				p.Status.SetUpgradingConditionTrue("", "")
 				client = fake.NewFakeClient(p)
-				pwh = &pravegaWebhookHandler{client: client}
+				pwh = &bookkeeperWebhookHandler{client: client}
 			})
 
 			Context("Sending request when upgrading", func() {
@@ -310,7 +310,7 @@ var _ = Describe("Admission webhook", func() {
 				p.Status.SetPodsReadyConditionFalse()
 				p.Status.SetRollbackConditionTrue("", "")
 				client = fake.NewFakeClient(p)
-				pwh = &pravegaWebhookHandler{client: client}
+				pwh = &bookkeeperWebhookHandler{client: client}
 			})
 
 			Context("Sending request when rolling back", func() {
@@ -339,7 +339,7 @@ var _ = Describe("Admission webhook", func() {
 				p.Status.SetErrorConditionTrue("UpgradeFailed", "some error message")
 
 				client = fake.NewFakeClient(p)
-				pwh = &pravegaWebhookHandler{client: client}
+				pwh = &bookkeeperWebhookHandler{client: client}
 			})
 
 			Context("Sending request when upgrade failed", func() {
@@ -349,7 +349,7 @@ var _ = Describe("Admission webhook", func() {
 					}
 					err = pwh.clusterIsAvailable(context.TODO(), p)
 					Ω(err).Should(BeNil())
-					err = pwh.mutatePravegaManifest(context.TODO(), p)
+					err = pwh.mutateBookkeeperManifest(context.TODO(), p)
 					Ω(err).Should(MatchError("Rollback to version 0.5.0-003 not supported. Only rollback to version 0.5.0-001 is supported."))
 				})
 
@@ -359,7 +359,7 @@ var _ = Describe("Admission webhook", func() {
 					}
 					err = pwh.clusterIsAvailable(context.TODO(), p)
 					Ω(err).Should(BeNil())
-					err = pwh.mutatePravegaManifest(context.TODO(), p)
+					err = pwh.mutateBookkeeperManifest(context.TODO(), p)
 					Ω(err).Should(BeNil())
 				})
 			})
@@ -380,7 +380,7 @@ var _ = Describe("Admission webhook", func() {
 				p.Status.SetErrorConditionTrue("Some strange reason", "some error message")
 
 				client = fake.NewFakeClient(p)
-				pwh = &pravegaWebhookHandler{client: client}
+				pwh = &bookkeeperWebhookHandler{client: client}
 			})
 
 			Context("Sending request when cluster in error state", func() {

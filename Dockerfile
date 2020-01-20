@@ -9,7 +9,7 @@
 #
 FROM golang:1.10.1-alpine3.7 as go-builder
 
-ARG PROJECT_NAME=pravega-operator
+ARG PROJECT_NAME=bookkeeper-operator
 ARG REPO_PATH=github.com/pravega/${PROJECT_NAME}
 ARG BUILD_PATH=${REPO_PATH}/cmd/manager
 
@@ -32,7 +32,7 @@ RUN apk add --update \
     sudo \
     libcap
 
-ARG PROJECT_NAME=pravega-operator
+ARG PROJECT_NAME=bookkeeper-operator
 ARG REPO_PATH=github.com/pravega/$PROJECT_NAME
 
 COPY --from=go-builder ${GOBIN}/${PROJECT_NAME} /usr/local/bin/${PROJECT_NAME}
@@ -41,4 +41,4 @@ RUN sudo setcap CAP_NET_BIND_SERVICE=+eip /usr/local/bin/${PROJECT_NAME}
 RUN adduser -D ${PROJECT_NAME}
 USER ${PROJECT_NAME}
 
-ENTRYPOINT ["/usr/local/bin/pravega-operator"]
+ENTRYPOINT ["/usr/local/bin/bookkeeper-operator"]

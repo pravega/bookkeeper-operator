@@ -11,7 +11,7 @@
 package apis
 
 import (
-	"github.com/pravega/pravega-operator/pkg/apis/pravega/v1alpha1"
+	"github.com/pravega/bookkeeper-operator/pkg/apis/bookkeeper/v1alpha1"
 )
 
 func init() {

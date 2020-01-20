@@ -1,25 +1,9 @@
-kind: PersistentVolumeClaim
-apiVersion: v1
+apiVersion: "bookkeeper.pravega.io/v1alpha1"
+kind: "BookkeeperCluster"
 metadata:
-  name: pravega-tier2
-spec:
-  storageClassName: "nfs"
-  accessModes:
-    - ReadWriteMany
-  resources:
-    requests:
-      storage: 50Gi
----
-apiVersion: "pravega.pravega.io/v1alpha1"
-kind: "PravegaCluster"
-metadata:
-  name: "pravega"
+  name: "bookkeeper"
 spec:
   zookeeperUri: zk-client:2181
-
-  externalAccess:
-    enabled: true
-    type: LoadBalancer
 
   bookkeeper:
     image:
@@ -45,24 +29,3 @@ spec:
             storage: 10Gi
 
     autoRecovery: true
-
-  pravega:
-    controllerReplicas: 1
-    segmentStoreReplicas: 3
-
-    cacheVolumeClaimTemplate:
-      accessModes: [ "ReadWriteOnce" ]
-      storageClassName: "standard"
-      resources:
-        requests:
-          storage: 20Gi
-
-    image:
-      repository: pravega/pravega
-      tag: latest
-      pullPolicy: IfNotPresent
-
-    tier2:
-      filesystem:
-        persistentVolumeClaim:
-          claimName: pravega-tier2

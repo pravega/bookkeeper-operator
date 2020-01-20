@@ -2,7 +2,7 @@
 
 Requirements:
   - Go 1.10+
-  
+
 ### Install Go
 
 You can install go directly or use gvm ( go version manager)
@@ -24,13 +24,13 @@ gvm listall
 ```
 
 Install a new go version:
-``` 
-gvm install go1.4 -B 
-gvm use go1.4
-gvm install go1.11 --binary
-gvm use go1.11 --default
 ```
-Your GOPATH should be be set by now, check using 
+gvm install go1.4 -B
+gvm use go1.4
+gvm install go1.12 --binary
+gvm use go1.12 --default
+```
+Your GOPATH should be be set by now, check using
 ```
 echo $GOPATH
 ```

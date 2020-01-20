@@ -16,7 +16,7 @@ import (
 	"log"
 
 	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
-	pravegav1alpha1 "github.com/pravega/pravega-operator/pkg/apis/pravega/v1alpha1"
+	bookkeeperv1alpha1 "github.com/pravega/bookkeeper-operator/pkg/apis/bookkeeper/v1alpha1"
 	admissionregistrationv1beta1 "k8s.io/api/admissionregistration/v1beta1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -32,9 +32,9 @@ import (
 
 const (
 	CertDir           = "/tmp"
-	WebhookConfigName = "pravega-webhook-config"
-	WebhookName       = "pravegawebhook.pravega.io"
-	WebhookSvcName    = "pravega-webhook-svc"
+	WebhookConfigName = "bookkeeper-webhook-config"
+	WebhookName       = "bookkeeper-webhook.pravega.io"
+	WebhookSvcName    = "bookkeeper-webhook-svc"
 )
 
 // AddToManagerFuncs is a list of functions to add all Webhooks to the Manager
@@ -85,8 +85,8 @@ func newMutatingWebhook(mgr manager.Manager) (*admission.Webhook, error) {
 		Name(WebhookName).
 		Mutating().
 		Operations(admissionregistrationv1beta1.Create, admissionregistrationv1beta1.Update).
-		ForType(&pravegav1alpha1.PravegaCluster{}).
-		Handlers(&pravegaWebhookHandler{}).
+		ForType(&bookkeeperv1alpha1.BookkeeperCluster{}).
+		Handlers(&bookkeeperWebhookHandler{}).
 		WithManager(mgr).
 		Build()
 }
@@ -104,7 +104,7 @@ func newWebhookServer(mgr manager.Manager) (*webhook.Server, error) {
 				Namespace: namespace,
 				Name:      WebhookSvcName,
 				Selectors: map[string]string{
-					"component": "pravega-operator",
+					"component": "bookkeeper-operator",
 				},
 			},
 		},
