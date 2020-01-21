@@ -52,8 +52,8 @@ var _ = Describe("BookkeeperCluster Types Spec", func() {
 			Ω(bk.Spec.ZookeeperUri).Should(Equal("zk-client:2181"))
 		})
 
-		It("should set version to 0.4.0", func() {
-			Ω(bk.Spec.Version).Should(Equal("0.4.0"))
+		It("should set version to 0.6.1", func() {
+			Ω(bk.Spec.Version).Should(Equal("0.6.1"))
 		})
 
 	})
