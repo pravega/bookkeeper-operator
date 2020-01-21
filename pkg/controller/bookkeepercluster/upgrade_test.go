@@ -103,7 +103,7 @@ var _ = Describe("Bookkeeper Cluster Version Sync", func() {
 				})
 
 				It("should set upgrade condition and status to be false", func() {
-					_, upgradeCondition := foundBookkeeper.Status.GetClusterCondition(Bookkeeperv1alpha1.ClusterConditionUpgrading)
+					_, upgradeCondition := foundBookkeeper.Status.GetClusterCondition(bookkeeperv1alpha1.ClusterConditionUpgrading)
 					Ω(upgradeCondition.Status).Should(Equal(corev1.ConditionFalse))
 				})
 			})
@@ -115,7 +115,7 @@ var _ = Describe("Bookkeeper Cluster Version Sync", func() {
 			)
 
 			BeforeEach(func() {
-				p.Spec = v1alpha1.ClusterSpec{
+				p.Spec = v1alpha1.BookkeeperClusterSpec{
 					Version: "0.5.0",
 				}
 				p.WithDefaults()
@@ -145,7 +145,7 @@ var _ = Describe("Bookkeeper Cluster Version Sync", func() {
 				})
 
 				It("should set upgrade condition to be true", func() {
-					_, upgradeCondition := foundBookkeeper.Status.GetClusterCondition(Bookkeeperv1alpha1.ClusterConditionUpgrading)
+					_, upgradeCondition := foundBookkeeper.Status.GetClusterCondition(bookkeeperv1alpha1.ClusterConditionUpgrading)
 					Ω(upgradeCondition.Status).Should(Equal(corev1.ConditionTrue))
 				})
 			})
@@ -219,13 +219,6 @@ var _ = Describe("Bookkeeper Cluster Version Sync", func() {
 					name := util.StatefulSetNameForBookie(p.Name)
 					_ = r.client.Get(context.TODO(), types.NamespacedName{Name: name, Namespace: p.Namespace}, sts)
 					targetImage, _ := util.BookkeeperTargetImage(foundBookkeeper)
-					sts.Spec.Template.Spec.Containers[0].Image = targetImage
-					r.client.Update(context.TODO(), sts)
-
-					// Segmentstore
-					name = util.StatefulSetNameForSegmentstore(p.Name)
-					_ = r.client.Get(context.TODO(), types.NamespacedName{Name: name, Namespace: p.Namespace}, sts)
-					targetImage, _ = util.BookkeeperTargetImage(foundBookkeeper)
 					sts.Spec.Template.Spec.Containers[0].Image = targetImage
 					r.client.Update(context.TODO(), sts)
 
@@ -318,7 +311,7 @@ var _ = Describe("Bookkeeper Cluster Version Sync", func() {
 			)
 
 			BeforeEach(func() {
-				p.Spec = v1alpha1.ClusterSpec{
+				p.Spec = v1alpha1.BookkeeperClusterSpec{
 					Version: "0.6.0",
 				}
 				p.WithDefaults()

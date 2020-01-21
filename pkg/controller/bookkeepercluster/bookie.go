@@ -27,6 +27,8 @@ const (
 	LedgerDiskName  = "ledger"
 	JournalDiskName = "journal"
 	IndexDiskName   = "index"
+	heapDumpName    = "heap-dump"
+	heapDumpDir     = "/tmp/dumpfile/heap"
 )
 
 func MakeBookieHeadlessService(bookkeeperCluster *v1alpha1.BookkeeperCluster) *corev1.Service {
@@ -66,7 +68,7 @@ func MakeBookieStatefulSet(bookkeeperCluster *v1alpha1.BookkeeperCluster) *appsv
 		},
 		Spec: appsv1.StatefulSetSpec{
 			ServiceName:         util.HeadlessServiceNameForBookie(bookkeeperCluster.Name),
-			Replicas:            &bookkeeperCluster.Spec.Bookkeeper.Replicas,
+			Replicas:            &bookkeeperCluster.Spec.Replicas,
 			PodManagementPolicy: appsv1.ParallelPodManagement,
 			UpdateStrategy: appsv1.StatefulSetUpdateStrategy{
 				Type: appsv1.OnDeleteStatefulSetStrategyType,
@@ -75,7 +77,7 @@ func MakeBookieStatefulSet(bookkeeperCluster *v1alpha1.BookkeeperCluster) *appsv
 			Selector: &metav1.LabelSelector{
 				MatchLabels: util.LabelsForBookie(bookkeeperCluster),
 			},
-			VolumeClaimTemplates: makeBookieVolumeClaimTemplates(bookkeeperCluster.Spec.Bookkeeper),
+			VolumeClaimTemplates: makeBookieVolumeClaimTemplates(bookkeeperCluster.Spec.Storage),
 		},
 	}
 }
@@ -90,13 +92,13 @@ func MakeBookiePodTemplate(p *v1alpha1.BookkeeperCluster) corev1.PodTemplateSpec
 	}
 }
 
-func makeBookiePodSpec(p *v1alpha1.BookkeeperCluster) *corev1.PodSpec {
+func makeBookiePodSpec(bk *v1alpha1.BookkeeperCluster) *corev1.PodSpec {
 	podSpec := &corev1.PodSpec{
 		Containers: []corev1.Container{
 			{
 				Name:            "bookie",
-				Image:           util.BookkeeperImage(p),
-				ImagePullPolicy: p.Spec.Bookkeeper.Image.PullPolicy,
+				Image:           util.BookkeeperImage(bk),
+				ImagePullPolicy: bk.Spec.Image.PullPolicy,
 				Ports: []corev1.ContainerPort{
 					{
 						Name:          "bookie",
@@ -107,7 +109,7 @@ func makeBookiePodSpec(p *v1alpha1.BookkeeperCluster) *corev1.PodSpec {
 					{
 						ConfigMapRef: &corev1.ConfigMapEnvSource{
 							LocalObjectReference: corev1.LocalObjectReference{
-								Name: util.ConfigMapNameForBookie(p.Name),
+								Name: util.ConfigMapNameForBookie(bk.Name),
 							},
 						},
 					},
@@ -130,7 +132,7 @@ func makeBookiePodSpec(p *v1alpha1.BookkeeperCluster) *corev1.PodSpec {
 						MountPath: heapDumpDir,
 					},
 				},
-				Resources: *p.Spec.Bookkeeper.Resources,
+				Resources: *bk.Spec.Resources,
 				ReadinessProbe: &corev1.Probe{
 					Handler: corev1.Handler{
 						Exec: &corev1.ExecAction{
@@ -158,7 +160,7 @@ func makeBookiePodSpec(p *v1alpha1.BookkeeperCluster) *corev1.PodSpec {
 				},
 			},
 		},
-		Affinity: util.PodAntiAffinity("bookie", p.Name),
+		Affinity: util.PodAntiAffinity("bookie", bk.Name),
 		Volumes: []corev1.Volume{
 			{
 				Name: heapDumpName,
@@ -169,32 +171,32 @@ func makeBookiePodSpec(p *v1alpha1.BookkeeperCluster) *corev1.PodSpec {
 		},
 	}
 
-	if p.Spec.Bookkeeper.ServiceAccountName != "" {
-		podSpec.ServiceAccountName = p.Spec.Bookkeeper.ServiceAccountName
+	if bk.Spec.ServiceAccountName != "" {
+		podSpec.ServiceAccountName = bk.Spec.ServiceAccountName
 	}
 
 	return podSpec
 }
 
-func makeBookieVolumeClaimTemplates(spec *v1alpha1.BookkeeperSpec) []corev1.PersistentVolumeClaim {
+func makeBookieVolumeClaimTemplates(spec *v1alpha1.BookkeeperStorageSpec) []corev1.PersistentVolumeClaim {
 	return []corev1.PersistentVolumeClaim{
 		{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: JournalDiskName,
 			},
-			Spec: *spec.Storage.JournalVolumeClaimTemplate,
+			Spec: *spec.JournalVolumeClaimTemplate,
 		},
 		{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: LedgerDiskName,
 			},
-			Spec: *spec.Storage.LedgerVolumeClaimTemplate,
+			Spec: *spec.LedgerVolumeClaimTemplate,
 		},
 		{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: IndexDiskName,
 			},
-			Spec: *spec.Storage.IndexVolumeClaimTemplate,
+			Spec: *spec.IndexVolumeClaimTemplate,
 		},
 	}
 }
@@ -217,7 +219,7 @@ func MakeBookieConfigMap(bookkeeperCluster *v1alpha1.BookkeeperCluster) *corev1.
 			"-XX:MaxRAMFraction=2",
 		)
 	}
-	memoryOpts = util.OverrideDefaultJVMOptions(memoryOpts, bookkeeperCluster.Spec.Bookkeeper.BookkeeperJVMOptions.MemoryOpts)
+	memoryOpts = util.OverrideDefaultJVMOptions(memoryOpts, bookkeeperCluster.Spec.JVMOptions.MemoryOpts)
 
 	gcOpts := []string{
 		"-XX:+UseG1GC",
@@ -231,7 +233,7 @@ func MakeBookieConfigMap(bookkeeperCluster *v1alpha1.BookkeeperCluster) *corev1.
 		"-XX:+DisableExplicitGC",
 		"-XX:-ResizePLAB",
 	}
-	gcOpts = util.OverrideDefaultJVMOptions(gcOpts, bookkeeperCluster.Spec.Bookkeeper.BookkeeperJVMOptions.GcOpts)
+	gcOpts = util.OverrideDefaultJVMOptions(gcOpts, bookkeeperCluster.Spec.JVMOptions.GcOpts)
 
 	gcLoggingOpts := []string{
 		"-XX:+PrintGCDetails",
@@ -241,11 +243,11 @@ func MakeBookieConfigMap(bookkeeperCluster *v1alpha1.BookkeeperCluster) *corev1.
 		"-XX:NumberOfGCLogFiles=5",
 		"-XX:GCLogFileSize=64m",
 	}
-	gcLoggingOpts = util.OverrideDefaultJVMOptions(gcLoggingOpts, bookkeeperCluster.Spec.Bookkeeper.BookkeeperJVMOptions.GcLoggingOpts)
+	gcLoggingOpts = util.OverrideDefaultJVMOptions(gcLoggingOpts, bookkeeperCluster.Spec.JVMOptions.GcLoggingOpts)
 
 	extraOpts := []string{}
-	if bookkeeperCluster.Spec.Bookkeeper.BookkeeperJVMOptions.ExtraOpts != nil {
-		extraOpts = bookkeeperCluster.Spec.Bookkeeper.BookkeeperJVMOptions.ExtraOpts
+	if bookkeeperCluster.Spec.JVMOptions.ExtraOpts != nil {
+		extraOpts = bookkeeperCluster.Spec.JVMOptions.ExtraOpts
 	}
 
 	configData := map[string]string{
@@ -265,14 +267,14 @@ func MakeBookieConfigMap(bookkeeperCluster *v1alpha1.BookkeeperCluster) *corev1.
 		configData["BK_useHostNameAsBookieID"] = "false"
 	}
 
-	if *bookkeeperCluster.Spec.Bookkeeper.AutoRecovery {
+	if *bookkeeperCluster.Spec.AutoRecovery {
 		configData["BK_AUTORECOVERY"] = "true"
 		// Wait one minute before starting autorecovery. This will give
 		// pods some time to come up after being updated or migrated
 		configData["BK_lostBookieRecoveryDelay"] = "60"
 	}
 
-	for k, v := range bookkeeperCluster.Spec.Bookkeeper.Options {
+	for k, v := range bookkeeperCluster.Spec.Options {
 		prefixKey := fmt.Sprintf("BK_%s", k)
 		configData[prefixKey] = v
 	}

@@ -16,7 +16,6 @@ import (
 	"time"
 
 	bookkeeperv1alpha1 "github.com/pravega/bookkeeper-operator/pkg/apis/bookkeeper/v1alpha1"
-	"github.com/pravega/bookkeeper-operator/pkg/controller/bookkeeper"
 	"github.com/pravega/bookkeeper-operator/pkg/util"
 
 	appsv1 "k8s.io/api/apps/v1"
@@ -162,46 +161,33 @@ func (r *ReconcileBookkeeperCluster) deployCluster(p *bookkeeperv1alpha1.Bookkee
 		log.Printf("failed to deploy bookie: %v", err)
 		return err
 	}
-
-	err = r.deployController(p)
-	if err != nil {
-		log.Printf("failed to deploy controller: %v", err)
-		return err
-	}
-
-	err = r.deploySegmentStore(p)
-	if err != nil {
-		log.Printf("failed to deploy segment store: %v", err)
-		return err
-	}
-
 	return nil
 }
 
 func (r *ReconcileBookkeeperCluster) deployBookie(p *bookkeeperv1alpha1.BookkeeperCluster) (err error) {
 
-	headlessService := bookkeeper.MakeBookieHeadlessService(p)
+	headlessService := MakeBookieHeadlessService(p)
 	controllerutil.SetControllerReference(p, headlessService, r.scheme)
 	err = r.client.Create(context.TODO(), headlessService)
 	if err != nil && !errors.IsAlreadyExists(err) {
 		return err
 	}
 
-	pdb := bookkeeper.MakeBookiePodDisruptionBudget(p)
+	pdb := MakeBookiePodDisruptionBudget(p)
 	controllerutil.SetControllerReference(p, pdb, r.scheme)
 	err = r.client.Create(context.TODO(), pdb)
 	if err != nil && !errors.IsAlreadyExists(err) {
 		return err
 	}
 
-	configMap := bookkeeper.MakeBookieConfigMap(p)
+	configMap := MakeBookieConfigMap(p)
 	controllerutil.SetControllerReference(p, configMap, r.scheme)
 	err = r.client.Create(context.TODO(), configMap)
 	if err != nil && !errors.IsAlreadyExists(err) {
 		return err
 	}
 
-	statefulSet := bookkeeper.MakeBookieStatefulSet(p)
+	statefulSet := MakeBookieStatefulSet(p)
 	controllerutil.SetControllerReference(p, statefulSet, r.scheme)
 	for i := range statefulSet.Spec.VolumeClaimTemplates {
 		controllerutil.SetControllerReference(p, &statefulSet.Spec.VolumeClaimTemplates[i], r.scheme)
@@ -219,30 +205,19 @@ func (r *ReconcileBookkeeperCluster) syncClusterSize(p *bookkeeperv1alpha1.Bookk
 	if err != nil {
 		return err
 	}
-
-	err = r.syncSegmentStoreSize(p)
-	if err != nil {
-		return err
-	}
-
-	err = r.syncControllerSize(p)
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 
-func (r *ReconcileBookkeeperCluster) syncBookieSize(p *bookkeeperv1alpha1.BookkeeperCluster) (err error) {
+func (r *ReconcileBookkeeperCluster) syncBookieSize(bk *bookkeeperv1alpha1.BookkeeperCluster) (err error) {
 	sts := &appsv1.StatefulSet{}
-	name := util.StatefulSetNameForBookie(p.Name)
-	err = r.client.Get(context.TODO(), types.NamespacedName{Name: name, Namespace: p.Namespace}, sts)
+	name := util.StatefulSetNameForBookie(bk.Name)
+	err = r.client.Get(context.TODO(), types.NamespacedName{Name: name, Namespace: bk.Namespace}, sts)
 	if err != nil {
 		return fmt.Errorf("failed to get stateful-set (%s): %v", sts.Name, err)
 	}
 
-	if *sts.Spec.Replicas != p.Spec.Bookkeeper.Replicas {
-		sts.Spec.Replicas = &(p.Spec.Bookkeeper.Replicas)
+	if *sts.Spec.Replicas != bk.Spec.Replicas {
+		sts.Spec.Replicas = &(bk.Spec.Replicas)
 		err = r.client.Update(context.TODO(), sts)
 		if err != nil {
 			return fmt.Errorf("failed to update size of stateful-set (%s): %v", sts.Name, err)
@@ -256,35 +231,37 @@ func (r *ReconcileBookkeeperCluster) syncBookieSize(p *bookkeeperv1alpha1.Bookke
 	return nil
 }
 
-func (r *ReconcileBookkeeperCluster) reconcileFinalizers(p *bookkeeperv1alpha1.BookkeeperCluster) (err error) {
-	if p.DeletionTimestamp.IsZero() {
-		if !util.ContainsString(p.ObjectMeta.Finalizers, util.ZkFinalizer) {
-			p.ObjectMeta.Finalizers = append(p.ObjectMeta.Finalizers, util.ZkFinalizer)
-			if err = r.client.Update(context.TODO(), p); err != nil {
-				return fmt.Errorf("failed to add the finalizer (%s): %v", p.Name, err)
+func (r *ReconcileBookkeeperCluster) reconcileFinalizers(bk *bookkeeperv1alpha1.BookkeeperCluster) (err error) {
+	/*
+		if bk.DeletionTimestamp.IsZero() {
+			if !util.ContainsString(bk.ObjectMeta.Finalizers, util.ZkFinalizer) {
+				bk.ObjectMeta.Finalizers = append(bk.ObjectMeta.Finalizers, util.ZkFinalizer)
+				if err = r.client.Update(context.TODO(), bk); err != nil {
+					return fmt.Errorf("failed to add the finalizer (%s): %v", bk.Name, err)
+				}
+			}
+		} else {
+			if util.ContainsString(bk.ObjectMeta.Finalizers, util.ZkFinalizer) {
+				bk.ObjectMeta.Finalizers = util.RemoveString(bk.ObjectMeta.Finalizers, util.ZkFinalizer)
+				if err = r.client.Update(context.TODO(), bk); err != nil {
+					return fmt.Errorf("failed to update Bookkeeper object (%s): %v", bk.Name, err)
+				}
+				if err = r.cleanUpZookeeperMeta(bk); err != nil {
+					return fmt.Errorf("failed to clean up metadata (%s): %v", bk.Name, err)
+				}
 			}
 		}
-	} else {
-		if util.ContainsString(p.ObjectMeta.Finalizers, util.ZkFinalizer) {
-			p.ObjectMeta.Finalizers = util.RemoveString(p.ObjectMeta.Finalizers, util.ZkFinalizer)
-			if err = r.client.Update(context.TODO(), p); err != nil {
-				return fmt.Errorf("failed to update Bookkeeper object (%s): %v", p.Name, err)
-			}
-			if err = r.cleanUpZookeeperMeta(p); err != nil {
-				return fmt.Errorf("failed to clean up metadata (%s): %v", p.Name, err)
-			}
-		}
-	}
+	*/
 	return nil
 }
 
-func (r *ReconcileBookkeeperCluster) cleanUpZookeeperMeta(p *bookkeeperv1alpha1.BookkeeperCluster) (err error) {
-	if err = util.WaitForClusterToTerminate(r.client, p); err != nil {
-		return fmt.Errorf("failed to wait for cluster pods termination (%s): %v", p.Name, err)
+func (r *ReconcileBookkeeperCluster) cleanUpZookeeperMeta(bk *bookkeeperv1alpha1.BookkeeperCluster) (err error) {
+	if err = util.WaitForClusterToTerminate(r.client, bk); err != nil {
+		return fmt.Errorf("failed to wait for cluster pods termination (%s): %v", bk.Name, err)
 	}
 
-	if err = util.DeleteAllZnodes(p); err != nil {
-		return fmt.Errorf("failed to delete zookeeper znodes for (%s): %v", p.Name, err)
+	if err = util.DeleteAllZnodes(bk); err != nil {
+		return fmt.Errorf("failed to delete zookeeper znodes for (%s): %v", bk.Name, err)
 	}
 	fmt.Println("zookeeper metadata deleted")
 	return nil
@@ -362,14 +339,14 @@ func (r *ReconcileBookkeeperCluster) syncStatefulSetExternalServices(sts *appsv1
 	return nil
 }
 
-func (r *ReconcileBookkeeperCluster) reconcileClusterStatus(p *bookkeeperv1alpha1.BookkeeperCluster) error {
+func (r *ReconcileBookkeeperCluster) reconcileClusterStatus(bk *bookkeeperv1alpha1.BookkeeperCluster) error {
 
-	p.Status.Init()
+	bk.Status.Init()
 
-	expectedSize := util.GetClusterExpectedSize(p)
+	expectedSize := util.GetClusterExpectedSize(bk)
 	listOps := &client.ListOptions{
-		Namespace:     p.Namespace,
-		LabelSelector: labels.SelectorFromSet(util.LabelsForBookkeeperCluster(p)),
+		Namespace:     bk.Namespace,
+		LabelSelector: labels.SelectorFromSet(util.LabelsForBookkeeperCluster(bk)),
 	}
 	podList := &corev1.PodList{}
 	err := r.client.List(context.TODO(), listOps, podList)
@@ -384,44 +361,44 @@ func (r *ReconcileBookkeeperCluster) reconcileClusterStatus(p *bookkeeperv1alpha
 
 	for _, p := range podList.Items {
 		if util.IsPodReady(&p) {
-			readyMembers = append(readyMembers, p.Name)
+			readyMembers = append(readyMembers, bk.Name)
 		} else {
-			unreadyMembers = append(unreadyMembers, p.Name)
+			unreadyMembers = append(unreadyMembers, bk.Name)
 		}
 	}
 
 	if len(readyMembers) == expectedSize {
-		p.Status.SetPodsReadyConditionTrue()
+		bk.Status.SetPodsReadyConditionTrue()
 	} else {
-		p.Status.SetPodsReadyConditionFalse()
+		bk.Status.SetPodsReadyConditionFalse()
 	}
 
-	p.Status.Replicas = int32(expectedSize)
-	p.Status.CurrentReplicas = int32(len(podList.Items))
-	p.Status.ReadyReplicas = int32(len(readyMembers))
-	p.Status.Members.Ready = readyMembers
-	p.Status.Members.Unready = unreadyMembers
+	bk.Status.Replicas = int32(expectedSize)
+	bk.Status.CurrentReplicas = int32(len(podList.Items))
+	bk.Status.ReadyReplicas = int32(len(readyMembers))
+	bk.Status.Members.Ready = readyMembers
+	bk.Status.Members.Unready = unreadyMembers
 
-	err = r.client.Status().Update(context.TODO(), p)
+	err = r.client.Status().Update(context.TODO(), bk)
 	if err != nil {
 		return fmt.Errorf("failed to update cluster status: %v", err)
 	}
 	return nil
 }
 
-func (r *ReconcileBookkeeperCluster) rollbackFailedUpgrade(p *bookkeeperv1alpha1.BookkeeperCluster) error {
-	if r.isRollbackTriggered(p) {
+func (r *ReconcileBookkeeperCluster) rollbackFailedUpgrade(bk *bookkeeperv1alpha1.BookkeeperCluster) error {
+	if r.isRollbackTriggered(bk) {
 		// start rollback to previous version
-		previousVersion := p.Status.GetLastVersion()
+		previousVersion := bk.Status.GetLastVersion()
 		log.Printf("Rolling back to last cluster version  %v", previousVersion)
 		//Rollback cluster to previous version
-		return r.rollbackClusterVersion(p, previousVersion)
+		return r.rollbackClusterVersion(bk, previousVersion)
 	}
 	return nil
 }
 
-func (r *ReconcileBookkeeperCluster) isRollbackTriggered(p *bookkeeperv1alpha1.BookkeeperCluster) bool {
-	if p.Status.IsClusterInUpgradeFailedState() && p.Spec.Version == p.Status.GetLastVersion() {
+func (r *ReconcileBookkeeperCluster) isRollbackTriggered(bk *bookkeeperv1alpha1.BookkeeperCluster) bool {
+	if bk.Status.IsClusterInUpgradeFailedState() && bk.Spec.Version == bk.Status.GetLastVersion() {
 		return true
 	}
 	return false

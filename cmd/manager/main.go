@@ -98,11 +98,13 @@ func main() {
 	if err := apis.AddToScheme(mgr.GetScheme()); err != nil {
 		log.Fatal(err)
 	}
+	log.Print("Scheme Setup completed")
 
 	// Setup all Controllers
 	if err := controller.AddToManager(mgr); err != nil {
 		log.Fatal(err)
 	}
+	log.Print("Controller Setup completed")
 
 	if webhookFlag {
 		// Setup webhook
@@ -111,6 +113,7 @@ func main() {
 		}
 	}
 
+	log.Print("Webhook Setup completed")
 	log.Print("Starting the Cmd")
 
 	// Start the Cmd

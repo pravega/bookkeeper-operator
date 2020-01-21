@@ -16,7 +16,6 @@ import (
 	"time"
 
 	bookkeeperv1alpha1 "github.com/pravega/bookkeeper-operator/pkg/apis/bookkeeper/v1alpha1"
-	"github.com/pravega/bookkeeper-operator/pkg/controller/bookkeeper"
 	"github.com/pravega/bookkeeper-operator/pkg/util"
 	log "github.com/sirupsen/logrus"
 	appsv1 "k8s.io/api/apps/v1"
@@ -199,28 +198,28 @@ func (r *ReconcileBookkeeperCluster) clearRollbackStatus(p *bookkeeperv1alpha1.B
 	return nil
 }
 
-func (r *ReconcileBookkeeperCluster) syncComponentsVersion(p *bookkeeperv1alpha1.BookkeeperCluster) (synced bool, err error) {
+func (r *ReconcileBookkeeperCluster) syncComponentsVersion(bk *bookkeeperv1alpha1.BookkeeperCluster) (synced bool, err error) {
 	componentSyncFuncs := []componentSyncVersionFun{
 		componentSyncVersionFun{
 			name: "bookkeeper",
 			fun:  r.syncBookkeeperVersion,
-		}
+		},
 	}
 
-	if p.Status.IsClusterInRollbackState() {
+	if bk.Status.IsClusterInRollbackState() {
 		startIndex := len(componentSyncFuncs) - 1
 		// update components in reverse order
 		for i := startIndex; i >= 0; i-- {
 			log.Printf("Rollback: syncing component %v", i)
 			component := componentSyncFuncs[i]
-			synced, err := r.syncComponent(component, p)
+			synced, err := r.syncComponent(component, bk)
 			if !synced {
 				return synced, err
 			}
 		}
 	} else {
 		for _, component := range componentSyncFuncs {
-			synced, err := r.syncComponent(component, p)
+			synced, err := r.syncComponent(component, bk)
 			if !synced {
 				return synced, err
 			}
@@ -229,9 +228,8 @@ func (r *ReconcileBookkeeperCluster) syncComponentsVersion(p *bookkeeperv1alpha1
 	log.Printf("Version sync completed for all components.")
 	return true, nil
 }
-
-func (r *ReconcileBookkeeperCluster) syncComponent(component componentSyncVersionFun, p *bookkeeperv1alpha1.BookkeeperCluster) (synced bool, err error) {
-	isSyncComplete, err := component.fun(p)
+func (r *ReconcileBookkeeperCluster) syncComponent(component componentSyncVersionFun, bk *bookkeeperv1alpha1.BookkeeperCluster) (synced bool, err error) {
+	isSyncComplete, err := component.fun(bk)
 	if err != nil {
 		return false, fmt.Errorf("failed to sync %s version. %s", component.name, err)
 	}
@@ -245,33 +243,33 @@ func (r *ReconcileBookkeeperCluster) syncComponent(component componentSyncVersio
 	return true, nil
 }
 
-func (r *ReconcileBookkeeperCluster) syncBookkeeperVersion(p *bookkeeperv1alpha1.BookkeeperCluster) (synced bool, err error) {
+func (r *ReconcileBookkeeperCluster) syncBookkeeperVersion(bk *bookkeeperv1alpha1.BookkeeperCluster) (synced bool, err error) {
 	sts := &appsv1.StatefulSet{}
-	name := util.StatefulSetNameForBookie(p.Name)
-	err = r.client.Get(context.TODO(), types.NamespacedName{Name: name, Namespace: p.Namespace}, sts)
+	name := util.StatefulSetNameForBookie(bk.Name)
+	err = r.client.Get(context.TODO(), types.NamespacedName{Name: name, Namespace: bk.Namespace}, sts)
 	if err != nil {
 		return false, fmt.Errorf("failed to get statefulset (%s): %v", sts.Name, err)
 	}
 
-	targetImage, err := util.BookkeeperTargetImage(p)
+	targetImage, err := util.BookkeeperTargetImage(bk)
 	if err != nil {
 		return false, err
 	}
 
 	if sts.Spec.Template.Spec.Containers[0].Image != targetImage {
-		p.Status.UpdateProgress(bookkeeperv1alpha1.UpdatingBookkeeperReason, "0")
+		bk.Status.UpdateProgress(bookkeeperv1alpha1.UpdatingBookkeeperReason, "0")
 		// Need to update pod template
 		// This will trigger the rolling upgrade process
 		log.Printf("updating statefulset (%s) template image to '%s'", sts.Name, targetImage)
 
-		configMap := bookkeeper.MakeBookieConfigMap(p)
-		controllerutil.SetControllerReference(p, configMap, r.scheme)
+		configMap := MakeBookieConfigMap(bk)
+		controllerutil.SetControllerReference(bk, configMap, r.scheme)
 		err = r.client.Update(context.TODO(), configMap)
 		if err != nil {
 			return false, err
 		}
 
-		sts.Spec.Template = bookkeeper.MakeBookiePodTemplate(p)
+		sts.Spec.Template = MakeBookiePodTemplate(bk)
 		err = r.client.Update(context.TODO(), sts)
 		if err != nil {
 			return false, err
@@ -295,24 +293,24 @@ func (r *ReconcileBookkeeperCluster) syncBookkeeperVersion(p *bookkeeperv1alpha1
 	// Upgrade still in progress
 
 	// Check if bookkeeper fail to have progress
-	err = checkSyncTimeout(p, bookkeeperv1alpha1.UpdatingBookkeeperReason, sts.Status.UpdatedReplicas)
+	err = checkSyncTimeout(bk, bookkeeperv1alpha1.UpdatingBookkeeperReason, sts.Status.UpdatedReplicas)
 	if err != nil {
 		return false, fmt.Errorf("updating statefulset (%s) failed due to %v", sts.Name, err)
 	}
 
 	// If all replicas are ready, upgrade an old pod
-	pods, err := r.getStsPodsWithVersion(sts, p.Status.TargetVersion)
+	pods, err := r.getStsPodsWithVersion(sts, bk.Status.TargetVersion)
 	if err != nil {
 		return false, err
 	}
-	ready, err := r.checkUpdatedPods(pods, p.Status.TargetVersion)
+	ready, err := r.checkUpdatedPods(pods, bk.Status.TargetVersion)
 	if err != nil {
 		// Abort if there is any errors with the updated pods
 		return false, err
 	}
 
 	if ready {
-		pod, err := r.getOneOutdatedPod(sts, p.Status.TargetVersion)
+		pod, err := r.getOneOutdatedPod(sts, bk.Status.TargetVersion)
 		if err != nil {
 			return false, err
 		}

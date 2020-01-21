@@ -3,17 +3,16 @@ kind: "BookkeeperCluster"
 metadata:
   name: "bookkeeper"
 spec:
-  zookeeperUri: zk-client:2181
+  zookeeperUri: example-client:2181
 
-  bookkeeper:
-    image:
+  image:
       repository: pravega/bookkeeper
       tag: latest
       pullPolicy: IfNotPresent
 
-    replicas: 3
+  replicas: 3
 
-    storage:
+  storage:
       ledgerVolumeClaimTemplate:
         accessModes: [ "ReadWriteOnce" ]
         storageClassName: "standard"
@@ -28,4 +27,5 @@ spec:
           requests:
             storage: 10Gi
 
-    autoRecovery: true
+  autoRecovery: true
+  version: latest

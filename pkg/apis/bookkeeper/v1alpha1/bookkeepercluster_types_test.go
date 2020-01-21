@@ -27,10 +27,10 @@ func TestV1alpha1(t *testing.T) {
 
 var _ = Describe("BookkeeperCluster Types Spec", func() {
 
-	var p v1alpha1.BookkeeperCluster
+	var bk v1alpha1.BookkeeperCluster
 
 	BeforeEach(func() {
-		p = v1alpha1.BookkeeperCluster{
+		bk = v1alpha1.BookkeeperCluster{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: "default",
 			},
@@ -41,7 +41,7 @@ var _ = Describe("BookkeeperCluster Types Spec", func() {
 		var changed bool
 
 		BeforeEach(func() {
-			changed = p.WithDefaults()
+			changed = bk.WithDefaults()
 		})
 
 		It("should return as changed", func() {
@@ -49,11 +49,11 @@ var _ = Describe("BookkeeperCluster Types Spec", func() {
 		})
 
 		It("should set zookeeper uri", func() {
-			Ω(p.Spec.ZookeeperUri).Should(Equal("zk-client:2181"))
+			Ω(bk.Spec.ZookeeperUri).Should(Equal("zk-client:2181"))
 		})
 
 		It("should set version to 0.4.0", func() {
-			Ω(p.Spec.Version).Should(Equal("0.4.0"))
+			Ω(bk.Spec.Version).Should(Equal("0.4.0"))
 		})
 
 	})

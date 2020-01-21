@@ -17,7 +17,7 @@ import (
 	"strings"
 
 	v "github.com/hashicorp/go-version"
-	"github.com/pravega/pravega-operator/pkg/apis/pravega/v1alpha1"
+	"github.com/pravega/bookkeeper-operator/pkg/apis/bookkeeper/v1alpha1"
 	"k8s.io/api/core/v1"
 )
 
@@ -49,16 +49,16 @@ func HeadlessServiceNameForBookie(clusterName string) string {
 	return fmt.Sprintf("%s-bookie-headless", clusterName)
 }
 
-func LabelsForBookie(pravegaCluster *v1alpha1.PravegaCluster) map[string]string {
-	labels := LabelsForBookkeeperCluster(pravegaCluster)
+func LabelsForBookie(bookkeeperCluster *v1alpha1.BookkeeperCluster) map[string]string {
+	labels := LabelsForBookkeeperCluster(bookkeeperCluster)
 	labels["component"] = "bookie"
 	return labels
 }
 
-func LabelsForBookkeeperCluster(pravegaCluster *v1alpha1.PravegaCluster) map[string]string {
+func LabelsForBookkeeperCluster(bookkeeperCluster *v1alpha1.BookkeeperCluster) map[string]string {
 	return map[string]string{
-		"app":             "pravega-cluster",
-		"pravega_cluster": pravegaCluster.Name,
+		"app":                "bookkeeper-cluster",
+		"bookkeeper_cluster": bookkeeperCluster.Name,
 	}
 }
 
@@ -107,23 +107,23 @@ func RemoveString(slice []string, str string) (result []string) {
 	return result
 }
 
-func GetClusterExpectedSize(p *v1alpha1.PravegaCluster) (size int) {
-	return int(p.Spec.Bookkeeper.Replicas)
+func GetClusterExpectedSize(p *v1alpha1.BookkeeperCluster) (size int) {
+	return int(p.Spec.Replicas)
 }
 
-func BookkeeperImage(p *v1alpha1.PravegaCluster) (image string) {
-	return fmt.Sprintf("%s:%s", p.Spec.Bookkeeper.Image.Repository, p.Spec.Version)
+func BookkeeperImage(p *v1alpha1.BookkeeperCluster) (image string) {
+	return fmt.Sprintf("%s:%s", p.Spec.Image.Repository, p.Spec.Version)
 }
 
-func BookkeeperTargetImage(p *v1alpha1.PravegaCluster) (string, error) {
+func BookkeeperTargetImage(p *v1alpha1.BookkeeperCluster) (string, error) {
 	if p.Status.TargetVersion == "" {
 		return "", fmt.Errorf("target version is not set")
 	}
-	return fmt.Sprintf("%s:%s", p.Spec.Bookkeeper.Image.Repository, p.Status.TargetVersion), nil
+	return fmt.Sprintf("%s:%s", p.Spec.Image.Repository, p.Status.TargetVersion), nil
 }
 
 func GetPodVersion(pod *v1.Pod) string {
-	return pod.GetAnnotations()["pravega.version"]
+	return pod.GetAnnotations()["bookkeeper.version"]
 }
 
 func CompareVersions(v1, v2, operator string) (bool, error) {

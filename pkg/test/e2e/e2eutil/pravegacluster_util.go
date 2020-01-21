@@ -156,7 +156,7 @@ func WaitForClusterToTerminate(t *testing.T, f *framework.Framework, ctx *framew
 	t.Logf("waiting for pravega cluster to terminate: %s", p.Name)
 
 	listOptions := metav1.ListOptions{
-		LabelSelector: labels.SelectorFromSet(util.LabelsForPravegaCluster(p)).String(),
+		LabelSelector: labels.SelectorFromSet(util.LabelsForBookkeeperCluster(p)).String(),
 	}
 
 	// Wait for Pods to terminate
