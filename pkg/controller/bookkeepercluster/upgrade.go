@@ -33,138 +33,139 @@ type componentSyncVersionFun struct {
 }
 
 // upgrade
-func (r *ReconcileBookkeeperCluster) syncClusterVersion(p *bookkeeperv1alpha1.BookkeeperCluster) (err error) {
+func (r *ReconcileBookkeeperCluster) syncClusterVersion(bk *bookkeeperv1alpha1.BookkeeperCluster) (err error) {
 	defer func() {
-		r.client.Status().Update(context.TODO(), p)
+		r.client.Status().Update(context.TODO(), bk)
 	}()
 
 	// we cannot upgrade if cluster is in UpgradeFailed or Rollback state
-	if p.Status.IsClusterInUpgradeFailedOrRollbackState() {
+	if bk.Status.IsClusterInUpgradeFailedOrRollbackState() {
 		return nil
 	}
 
-	_, upgradeCondition := p.Status.GetClusterCondition(bookkeeperv1alpha1.ClusterConditionUpgrading)
-	_, readyCondition := p.Status.GetClusterCondition(bookkeeperv1alpha1.ClusterConditionPodsReady)
+	_, upgradeCondition := bk.Status.GetClusterCondition(bookkeeperv1alpha1.ClusterConditionUpgrading)
+	_, readyCondition := bk.Status.GetClusterCondition(bookkeeperv1alpha1.ClusterConditionPodsReady)
 
 	if upgradeCondition == nil {
 		// Initially set upgrading condition to false and
 		// the current version to the version in the spec
-		p.Status.SetUpgradingConditionFalse()
-		p.Status.CurrentVersion = p.Spec.Version
+		bk.Status.SetUpgradingConditionFalse()
+		bk.Status.CurrentVersion = bk.Spec.Version
 		return nil
 	}
 
 	if upgradeCondition.Status == corev1.ConditionTrue {
 		// Upgrade process already in progress
-		if p.Status.TargetVersion == "" {
+		if bk.Status.TargetVersion == "" {
 			log.Println("syncing to an unknown version: cancelling upgrade process")
-			return r.clearUpgradeStatus(p)
+			return r.clearUpgradeStatus(bk)
 		}
 
-		if p.Status.TargetVersion == p.Status.CurrentVersion {
-			log.Printf("syncing to version '%s' completed", p.Status.TargetVersion)
-			return r.clearUpgradeStatus(p)
+		if bk.Status.TargetVersion == bk.Status.CurrentVersion {
+			log.Printf("syncing to version '%s' completed", bk.Status.TargetVersion)
+			return r.clearUpgradeStatus(bk)
 		}
 
-		syncCompleted, err := r.syncComponentsVersion(p)
+		//syncCompleted, err := r.syncComponentsVersion(p)
+		syncCompleted, err := r.syncBookkeeperVersion(bk)
 		if err != nil {
 			log.Printf("error syncing cluster version, upgrade failed. %v", err)
-			p.Status.SetErrorConditionTrue("UpgradeFailed", err.Error())
+			bk.Status.SetErrorConditionTrue("UpgradeFailed", err.Error())
 			// emit an event for Upgrade Failure
-			message := fmt.Sprintf("Error Upgrading from version %v to %v. %v", p.Status.CurrentVersion, p.Status.TargetVersion, err.Error())
-			event := util.NewEvent("UPGRADE_ERROR", p, bookkeeperv1alpha1.UpgradeErrorReason, message, "Error")
+			message := fmt.Sprintf("Error Upgrading from version %v to %v. %v", bk.Status.CurrentVersion, bk.Status.TargetVersion, err.Error())
+			event := util.NewEvent("UPGRADE_ERROR", bk, bookkeeperv1alpha1.UpgradeErrorReason, message, "Error")
 			pubErr := r.client.Create(context.TODO(), event)
 			if pubErr != nil {
 				log.Printf("Error publishing Upgrade Failure event to k8s. %v", pubErr)
 			}
-			r.clearUpgradeStatus(p)
+			r.clearUpgradeStatus(bk)
 			return err
 		}
 
 		if syncCompleted {
 			// All component versions have been synced
-			p.Status.AddToVersionHistory(p.Status.TargetVersion)
-			p.Status.CurrentVersion = p.Status.TargetVersion
+			bk.Status.AddToVersionHistory(bk.Status.TargetVersion)
+			bk.Status.CurrentVersion = bk.Status.TargetVersion
 			log.Printf("Upgrade completed for all bookkeeper components.")
 		}
 		return nil
 	}
 
 	// No upgrade in progress
-	if p.Spec.Version == p.Status.CurrentVersion {
+	if bk.Spec.Version == bk.Status.CurrentVersion {
 		// No intention to upgrade
 		return nil
 	}
 
-	if !p.Status.IsClusterInRollbackFailedState() {
+	if !bk.Status.IsClusterInRollbackFailedState() {
 		// skip this check when cluster is in RollbackFailed state
 		if readyCondition == nil || readyCondition.Status != corev1.ConditionTrue {
-			r.clearUpgradeStatus(p)
+			r.clearUpgradeStatus(bk)
 			log.Print("cannot trigger upgrade if there are unready pods")
 			return nil
 		}
 	} else {
 		// We are upgrading after a rollback failure, reset Error Status
-		p.Status.SetErrorConditionFalse()
+		bk.Status.SetErrorConditionFalse()
 	}
 
 	// Need to sync cluster versions
-	log.Printf("syncing cluster version from %s to %s", p.Status.CurrentVersion, p.Spec.Version)
+	log.Printf("syncing cluster version from %s to %s", bk.Status.CurrentVersion, bk.Spec.Version)
 	// Setting target version and condition.
 	// The upgrade process will start on the next reconciliation
-	p.Status.TargetVersion = p.Spec.Version
-	p.Status.SetUpgradingConditionTrue("", "")
+	bk.Status.TargetVersion = bk.Spec.Version
+	bk.Status.SetUpgradingConditionTrue("", "")
 
 	return nil
 }
 
-func (r *ReconcileBookkeeperCluster) clearUpgradeStatus(p *bookkeeperv1alpha1.BookkeeperCluster) (err error) {
-	p.Status.SetUpgradingConditionFalse()
-	p.Status.TargetVersion = ""
+func (r *ReconcileBookkeeperCluster) clearUpgradeStatus(bk *bookkeeperv1alpha1.BookkeeperCluster) (err error) {
+	bk.Status.SetUpgradingConditionFalse()
+	bk.Status.TargetVersion = ""
 	// need to deep copy the status struct, otherwise it will be overwritten
 	// when updating the CR below
-	status := p.Status.DeepCopy()
+	status := bk.Status.DeepCopy()
 
-	if err := r.client.Update(context.TODO(), p); err != nil {
+	if err := r.client.Update(context.TODO(), bk); err != nil {
 		return err
 	}
 
-	p.Status = *status
+	bk.Status = *status
 	return nil
 }
 
-func (r *ReconcileBookkeeperCluster) rollbackClusterVersion(p *bookkeeperv1alpha1.BookkeeperCluster, version string) (err error) {
+func (r *ReconcileBookkeeperCluster) rollbackClusterVersion(bk *bookkeeperv1alpha1.BookkeeperCluster, version string) (err error) {
 	defer func() {
-		r.client.Status().Update(context.TODO(), p)
+		r.client.Status().Update(context.TODO(), bk)
 	}()
-	_, rollbackCondition := p.Status.GetClusterCondition(bookkeeperv1alpha1.ClusterConditionRollback)
+	_, rollbackCondition := bk.Status.GetClusterCondition(bookkeeperv1alpha1.ClusterConditionRollback)
 	if rollbackCondition == nil || rollbackCondition.Status != corev1.ConditionTrue {
 		// We're in the first iteration for Rollback
 		// Add Rollback Condition to Cluster Status
 		log.Printf("Updating Target Version to  %v", version)
-		p.Status.TargetVersion = version
-		p.Status.SetRollbackConditionTrue("", "")
-		updateErr := r.client.Status().Update(context.TODO(), p)
+		bk.Status.TargetVersion = version
+		bk.Status.SetRollbackConditionTrue("", "")
+		updateErr := r.client.Status().Update(context.TODO(), bk)
 		if updateErr != nil {
-			p.Status.SetRollbackConditionFalse()
+			bk.Status.SetRollbackConditionFalse()
 			log.Printf("Error updating cluster: %v", updateErr.Error())
 			return fmt.Errorf("Error updating cluster status. %v", updateErr)
 		}
 		return nil
 	}
 
-	syncCompleted, err := r.syncComponentsVersion(p)
+	syncCompleted, err := r.syncBookkeeperVersion(bk)
 	if err != nil {
 		// Error rolling back, set appropriate status and ask for manual intervention
-		p.Status.SetErrorConditionTrue("RollbackFailed", err.Error())
+		bk.Status.SetErrorConditionTrue("RollbackFailed", err.Error())
 		// emit an event for Rollback Failure
-		message := fmt.Sprintf("Error Rollingback from version %v to %v. %v", p.Status.CurrentVersion, p.Status.TargetVersion, err.Error())
-		event := util.NewEvent("ROLLBACK_ERROR", p, bookkeeperv1alpha1.RollbackErrorReason, message, "Error")
+		message := fmt.Sprintf("Error Rollingback from version %v to %v. %v", bk.Status.CurrentVersion, bk.Status.TargetVersion, err.Error())
+		event := util.NewEvent("ROLLBACK_ERROR", bk, bookkeeperv1alpha1.RollbackErrorReason, message, "Error")
 		pubErr := r.client.Create(context.TODO(), event)
 		if pubErr != nil {
 			log.Printf("Error publishing ROLLBACK_ERROR event to k8s. %v", pubErr)
 		}
-		r.clearRollbackStatus(p)
+		r.clearRollbackStatus(bk)
 		log.Printf("Error rolling back to cluster version %v. Reason: %v", version, err)
 		//r.client.Status().Update(context.TODO(), p)
 		return err
@@ -172,75 +173,30 @@ func (r *ReconcileBookkeeperCluster) rollbackClusterVersion(p *bookkeeperv1alpha
 
 	if syncCompleted {
 		// All component versions have been synced
-		p.Status.CurrentVersion = p.Status.TargetVersion
+		bk.Status.CurrentVersion = bk.Status.TargetVersion
 		// Set Error/UpgradeFailed Condition to 'false', so rollback is not triggered again
-		p.Status.SetErrorConditionFalse()
-		r.clearRollbackStatus(p)
+		bk.Status.SetErrorConditionFalse()
+		r.clearRollbackStatus(bk)
 		log.Printf("Rollback to version %v completed for all bookkeeper components.", version)
 	}
 	//r.client.Status().Update(context.TODO(), p)
 	return nil
 }
 
-func (r *ReconcileBookkeeperCluster) clearRollbackStatus(p *bookkeeperv1alpha1.BookkeeperCluster) (err error) {
+func (r *ReconcileBookkeeperCluster) clearRollbackStatus(bk *bookkeeperv1alpha1.BookkeeperCluster) (err error) {
 	log.Printf("clearRollbackStatus")
-	p.Status.SetRollbackConditionFalse()
-	p.Status.TargetVersion = ""
+	bk.Status.SetRollbackConditionFalse()
+	bk.Status.TargetVersion = ""
 	// need to deep copy the status struct, otherwise it will be overwritten
 	// when updating the CR below
-	status := p.Status.DeepCopy()
+	status := bk.Status.DeepCopy()
 
-	if err := r.client.Update(context.TODO(), p); err != nil {
+	if err := r.client.Update(context.TODO(), bk); err != nil {
 		return err
 	}
 
-	p.Status = *status
+	bk.Status = *status
 	return nil
-}
-
-func (r *ReconcileBookkeeperCluster) syncComponentsVersion(bk *bookkeeperv1alpha1.BookkeeperCluster) (synced bool, err error) {
-	componentSyncFuncs := []componentSyncVersionFun{
-		componentSyncVersionFun{
-			name: "bookkeeper",
-			fun:  r.syncBookkeeperVersion,
-		},
-	}
-
-	if bk.Status.IsClusterInRollbackState() {
-		startIndex := len(componentSyncFuncs) - 1
-		// update components in reverse order
-		for i := startIndex; i >= 0; i-- {
-			log.Printf("Rollback: syncing component %v", i)
-			component := componentSyncFuncs[i]
-			synced, err := r.syncComponent(component, bk)
-			if !synced {
-				return synced, err
-			}
-		}
-	} else {
-		for _, component := range componentSyncFuncs {
-			synced, err := r.syncComponent(component, bk)
-			if !synced {
-				return synced, err
-			}
-		}
-	}
-	log.Printf("Version sync completed for all components.")
-	return true, nil
-}
-func (r *ReconcileBookkeeperCluster) syncComponent(component componentSyncVersionFun, bk *bookkeeperv1alpha1.BookkeeperCluster) (synced bool, err error) {
-	isSyncComplete, err := component.fun(bk)
-	if err != nil {
-		return false, fmt.Errorf("failed to sync %s version. %s", component.name, err)
-	}
-
-	if !isSyncComplete {
-		// component version sync is still in progress
-		// Do not continue with the next component until this one is done
-		return false, nil
-	}
-	log.Printf("%s version sync has been completed", component.name)
-	return true, nil
 }
 
 func (r *ReconcileBookkeeperCluster) syncBookkeeperVersion(bk *bookkeeperv1alpha1.BookkeeperCluster) (synced bool, err error) {
@@ -291,7 +247,6 @@ func (r *ReconcileBookkeeperCluster) syncBookkeeperVersion(bk *bookkeeperv1alpha
 	}
 
 	// Upgrade still in progress
-
 	// Check if bookkeeper fail to have progress
 	err = checkSyncTimeout(bk, bookkeeperv1alpha1.UpdatingBookkeeperReason, sts.Status.UpdatedReplicas)
 	if err != nil {
@@ -381,17 +336,6 @@ func (r *ReconcileBookkeeperCluster) getStsPodsWithVersion(sts *appsv1.StatefulS
 	return r.getPodsWithVersion(selector, sts.Namespace, version)
 }
 
-func (r *ReconcileBookkeeperCluster) getDeployPodsWithVersion(deploy *appsv1.Deployment, version string) ([]*corev1.Pod, error) {
-	selector, err := metav1.LabelSelectorAsSelector(&metav1.LabelSelector{
-		MatchLabels: deploy.Spec.Template.Labels,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to convert label selector: %v", err)
-	}
-
-	return r.getPodsWithVersion(selector, deploy.Namespace, version)
-}
-
 func (r *ReconcileBookkeeperCluster) getPodsWithVersion(selector labels.Selector, namespace string, version string) ([]*corev1.Pod, error) {
 	podList := &corev1.PodList{}
 	podlistOps := &client.ListOptions{
@@ -413,8 +357,8 @@ func (r *ReconcileBookkeeperCluster) getPodsWithVersion(selector labels.Selector
 	return pods, nil
 }
 
-func checkSyncTimeout(p *bookkeeperv1alpha1.BookkeeperCluster, reason string, updatedReplicas int32) error {
-	lastCondition := p.Status.GetLastCondition()
+func checkSyncTimeout(bk *bookkeeperv1alpha1.BookkeeperCluster, reason string, updatedReplicas int32) error {
+	lastCondition := bk.Status.GetLastCondition()
 	if lastCondition == nil {
 		return nil
 	}
@@ -429,6 +373,6 @@ func checkSyncTimeout(p *bookkeeperv1alpha1.BookkeeperCluster, reason string, up
 		// it hasn't reached timeout
 		return nil
 	}
-	p.Status.UpdateProgress(reason, fmt.Sprint(updatedReplicas))
+	bk.Status.UpdateProgress(reason, fmt.Sprint(updatedReplicas))
 	return nil
 }

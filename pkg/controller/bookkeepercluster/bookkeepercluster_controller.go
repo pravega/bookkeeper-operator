@@ -232,26 +232,24 @@ func (r *ReconcileBookkeeperCluster) syncBookieSize(bk *bookkeeperv1alpha1.Bookk
 }
 
 func (r *ReconcileBookkeeperCluster) reconcileFinalizers(bk *bookkeeperv1alpha1.BookkeeperCluster) (err error) {
-	/*
-		if bk.DeletionTimestamp.IsZero() {
-			if !util.ContainsString(bk.ObjectMeta.Finalizers, util.ZkFinalizer) {
-				bk.ObjectMeta.Finalizers = append(bk.ObjectMeta.Finalizers, util.ZkFinalizer)
-				if err = r.client.Update(context.TODO(), bk); err != nil {
-					return fmt.Errorf("failed to add the finalizer (%s): %v", bk.Name, err)
-				}
-			}
-		} else {
-			if util.ContainsString(bk.ObjectMeta.Finalizers, util.ZkFinalizer) {
-				bk.ObjectMeta.Finalizers = util.RemoveString(bk.ObjectMeta.Finalizers, util.ZkFinalizer)
-				if err = r.client.Update(context.TODO(), bk); err != nil {
-					return fmt.Errorf("failed to update Bookkeeper object (%s): %v", bk.Name, err)
-				}
-				if err = r.cleanUpZookeeperMeta(bk); err != nil {
-					return fmt.Errorf("failed to clean up metadata (%s): %v", bk.Name, err)
-				}
+	if bk.DeletionTimestamp.IsZero() {
+		if !util.ContainsString(bk.ObjectMeta.Finalizers, util.ZkFinalizer) {
+			bk.ObjectMeta.Finalizers = append(bk.ObjectMeta.Finalizers, util.ZkFinalizer)
+			if err = r.client.Update(context.TODO(), bk); err != nil {
+				return fmt.Errorf("failed to add the finalizer (%s): %v", bk.Name, err)
 			}
 		}
-	*/
+	} else {
+		if util.ContainsString(bk.ObjectMeta.Finalizers, util.ZkFinalizer) {
+			bk.ObjectMeta.Finalizers = util.RemoveString(bk.ObjectMeta.Finalizers, util.ZkFinalizer)
+			if err = r.client.Update(context.TODO(), bk); err != nil {
+				return fmt.Errorf("failed to update Bookkeeper object (%s): %v", bk.Name, err)
+			}
+			if err = r.cleanUpZookeeperMeta(bk); err != nil {
+				return fmt.Errorf("failed to clean up metadata (%s): %v", bk.Name, err)
+			}
+		}
+	}
 	return nil
 }
 
@@ -359,11 +357,11 @@ func (r *ReconcileBookkeeperCluster) reconcileClusterStatus(bk *bookkeeperv1alph
 		unreadyMembers []string
 	)
 
-	for _, p := range podList.Items {
-		if util.IsPodReady(&p) {
-			readyMembers = append(readyMembers, bk.Name)
+	for _, pod := range podList.Items {
+		if util.IsPodReady(&pod) {
+			readyMembers = append(readyMembers, pod.Name)
 		} else {
-			unreadyMembers = append(unreadyMembers, bk.Name)
+			unreadyMembers = append(unreadyMembers, pod.Name)
 		}
 	}
 
