@@ -6,7 +6,7 @@ There are  two webhooks [ValidatingAdmissionWebhook](https://kubernetes.io/docs/
 doing the same thing except MutatingAdmissionWebhook can modify the requests. In our case, we use MutatingAdmissionWebhook because it can validate requests as well as mutating them. E.g. clear the image tag 
 if version is specified.
 
-In the Pravega operator repo, we are leveraging the webhook implementation from controller-runtime package, here is the [GoDoc](https://godoc.org/sigs.k8s.io/controller-runtime/pkg/webhook). 
+In the Bookkeeper operator repo, we are leveraging the webhook implementation from controller-runtime package, here is the [GoDoc](https://godoc.org/sigs.k8s.io/controller-runtime/pkg/webhook). 
 In detail, there are two steps that developers need to do 1) create webhook server and 2) implement the handler.
 The webhook server registers webhook configuration with the apiserver and creates an HTTP server to route requests to the handlers.
 The server is behind a Kubernetes Service and provides a certificate to the apiserver when serving requests. The kubebuilder has a detailed instruction of 
@@ -17,7 +17,7 @@ operator locally using `operator-sdk up local`. E.g. ` operator-sdk up local --o
 disabled when developing the operator locally since webhook can only be deployed in Kubernetes environment. 
 
 ### How to deploy
-The webhook is deployed along with the Pravega operator, thus there is no extra steps needed. However, there are some configurations that are necessary to make webhook work.
+The webhook is deployed along with the Bookkeeper operator, thus there is no extra steps needed. However, there are some configurations that are necessary to make webhook work.
 
 1. Permission
 
@@ -35,12 +35,10 @@ an example of the additional permission
 2. Webhook service label selector
 
 The webhook will deploy a Kubernetes service. This service will need to select the operator pod as its backend.
-The way to select is using Kubernetes label selector and user will need to specify `"component": "pravega-operator"` as the label
-when deploying the Pravega operator deployment. 
+The way to select is using Kubernetes label selector and user will need to specify `"component": "bookkeeper-operator"` as the label
+when deploying the Bookkeeper operator deployment. 
 ```
 
 ### What it does
-The webhook maintains a compatibility matrix of the Pravega versions. Reuqests will be rejected if the version is not valid or not upgrade compatible 
+The webhook maintains a compatibility matrix of the Bookkeeper versions. Reuqests will be rejected if the version is not valid or not upgrade compatible 
 with the current running version. Also, all the upgrade requests will be rejected if the current cluster is in upgrade status.  
-
-

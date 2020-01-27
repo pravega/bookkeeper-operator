@@ -1,7 +1,7 @@
 ## Development
 
 Requirements:
-  - Go 1.10+
+  - Go 1.12+
 
 ### Install Go
 
@@ -51,10 +51,10 @@ This may prompt for creation of `GOBIN` directory. Please create it and then iss
 
 ### Build the operator image
 
-Use the `make` command to build the Pravega operator image.
+Use the `make` command to build the Bookkeeper operator image.
 
 ```
-$ cd $GOPATH/src/github.com/pravega/pravega-operator
+$ cd $GOPATH/src/github.com/pravega/bookkeeper-operator
 $ make dep
 $ make build
 ```
@@ -66,21 +66,21 @@ Example image after running `make build`.
 The Pravega Operator image will be available in your Docker environment.
 
 ```
-$ docker images pravega/pravega-operator
+$ docker images pravega/bookkeeper-operator
 
 REPOSITORY                  TAG            IMAGE ID      CREATED          SIZE        
 
-pravega/pravega-operator    0.1.1-3-dirty  2b2d5bcbedf5  10 minutes ago   41.7MB    
+pravega/bookkeeper-operator    0.1.1-3-dirty  2b2d5bcbedf5  10 minutes ago   41.7MB    
 
-pravega/pravega-operator    latest         2b2d5bcbedf5  10 minutes ago   41.7MB
+pravega/bookkeeper-operator    latest         2b2d5bcbedf5  10 minutes ago   41.7MB
 
 ```
 
 Optionally push it to a Docker registry.
 
 ```
-docker tag pravega/pravega-operator [REGISTRY_HOST]:[REGISTRY_PORT]/pravega/pravega-operator
-docker push [REGISTRY_HOST]:[REGISTRY_PORT]/pravega/pravega-operator
+docker tag pravega/bookkeeper-operator [REGISTRY_HOST]:[REGISTRY_PORT]/pravega/bookkeeper-operator
+docker push [REGISTRY_HOST]:[REGISTRY_PORT]/pravega/bookkeeper-operator
 ```
 
 where:
