@@ -48,7 +48,7 @@ The Bookkeeper Operator manages Bookkeeper clusters deployed to Kubernetes and a
 Use Helm to quickly deploy a Bookkeeper operator with the release name `pravega-bk`.
 
 ```
-$ helm install charts/bookkeeper-operator --name pravega-bk
+$ helm install charts/bookkeeper-operator --name pr
 ```
 
 Verify that the Bookkeeper Operator is running.
@@ -56,7 +56,7 @@ Verify that the Bookkeeper Operator is running.
 ```
 $ kubectl get deploy
 NAME                          DESIRED   CURRENT   UP-TO-DATE   AVAILABLE     AGE
-pravega-bk-bookkeeper-operator     1         1         1            1           17s
+pr-bookkeeper-operator          1         1         1            1           17s
 ```
 
 ### Install a sample Bookkeeper cluster
@@ -64,7 +64,7 @@ pravega-bk-bookkeeper-operator     1         1         1            1           
 Use Helm to install a sample Bookkeeper cluster with release name `pravega`.
 
 ```
-$ helm install charts/bookkeeper --name pravega --set zookeeperUri=[ZOOKEEPER_HOST]
+$ helm install charts/bookkeeper --name pravega-bk --set zookeeperUri=[ZOOKEEPER_HOST]
 ```
 
 where:
@@ -78,45 +78,45 @@ Verify that the cluster instances and its components are being created.
 
 ```
 $ kubectl get bk
-NAME                VERSION   DESIRED MEMBERS   READY MEMBERS      AGE
-pravega-bookkeeper   0.6.1       3                 1               25s
+NAME                   VERSION   DESIRED MEMBERS   READY MEMBERS      AGE
+pravega-bk             0.6.1       3                 1                25s
 ```
 
 After a couple of minutes, all cluster members should become ready.
 
 ```
 $ kubectl get bk
-NAME                VERSION   DESIRED MEMBERS   READY MEMBERS     AGE
-pravega-bookkeeper    0.6.1     3                 3               2m
+NAME                   VERSION   DESIRED MEMBERS   READY MEMBERS     AGE
+pravega-bk              0.6.1     3                 3               2m
 ```
 
 ```
-$ kubectl get all -l bookkeeper_cluster=pravega-bookkeeper
+$ kubectl get all -l bookkeeper_cluster=pravega-bk
 NAME                                              READY   STATUS    RESTARTS   AGE
-pod/pravega-bookie-0                              1/1     Running   0          2m
-pod/pravega-bookie-1                              1/1     Running   0          2m
-pod/pravega-bookie-2                              1/1     Running   0          2m
+pod/pravega-bk-bookie-0                              1/1     Running   0          2m
+pod/pravega-bk-bookie-1                              1/1     Running   0          2m
+pod/pravega-bk-bookie-2                              1/1     Running   0          2m
 
 NAME                                            TYPE        CLUSTER-IP    EXTERNAL-IP   PORT(S)              AGE
-service/pravega-bookie-headless                 ClusterIP   None          <none>        3181/TCP             2m
+service/pravega-bk-bookie-headless              ClusterIP   None          <none>        3181/TCP             2m
 
-NAME                                            DESIRED   CURRENT   AGE
-statefulset.apps/pravega-bookie                 3         3         2m
+NAME                                            DESIRED   CURRENT     AGE
+statefulset.apps/pravega-bk-bookie                 3         3         2m
 ```
 
 By default, a `BookkeeperCluster` is reachable using this kind of headless service URL for each pod:
 ```
-http://pravega-bookie-0.pravega-bookie-headless.pravega-bookie:3181
+http://pravega-bk-bookie-0.pravega-bk-bookie-headless.pravega-bk-bookie:3181
 ```
 
 ### Scale a Bookkeeper cluster
 
 You can scale Bookkeeper cluster by updating the `replicas` field in the BookkeeperCluster Spec.
 
-Example of patching the Bookkeeper Cluster resource to scale the SegmentStore instances to 4.
+Example of patching the Bookkeeper Cluster resource to scale the server instances to 4.
 
 ```
-kubectl patch bk pravega-bookkeeper --type='json' -p='[{"op": "replace", "path": "/spec/replicas", "value": 4}]'
+kubectl patch bk pravega-bk --type='json' -p='[{"op": "replace", "path": "/spec/replicas", "value": 4}]'
 ```
 
 ### Upgrade a Bookkeeper cluster
@@ -126,16 +126,16 @@ Check out the [upgrade guide](doc/upgrade-cluster.md).
 ### Uninstall the Bookkeeper cluster
 
 ```
-$ helm delete pravega --purge
+$ helm delete pravega-bk --purge
 ```
 
 ### Uninstall the Operator
 > Note that the Bookkeeper clusters managed by the Bookkeeper operator will NOT be deleted even if the operator is uninstalled.
 
 ```
-$ helm delete pravega-bk --purge
+$ helm delete pr --purge
 ```
-If you want to delete the Bookkeeper clusters, make sure to do it before uninstalling the operator. Also, once the Bookkeeper cluster has been deleted, make sure to check that the zookeeper metadata has been cleaned up before proceeding with the deletion of the operator. This can be confirmed with the presence of the following log message in the operator logs.
+If you want to delete the Bookkeeper cluster, make sure to do it before uninstalling the operator. Also, once the Bookkeeper cluster has been deleted, make sure to check that the zookeeper metadata has been cleaned up before proceeding with the deletion of the operator. This can be confirmed with the presence of the following log message in the operator logs.
 ```
 zookeeper metadata deleted
 ```
