@@ -209,16 +209,11 @@ func MakeBookieConfigMap(bookkeeperCluster *v1alpha1.BookkeeperCluster) *corev1.
 		"-XX:+CrashOnOutOfMemoryError",
 		"-XX:+HeapDumpOnOutOfMemoryError",
 		"-XX:HeapDumpPath=" + heapDumpDir,
+		"-XX:+UnlockExperimentalVMOptions",
+		"-XX:+UseCGroupMemoryLimitForHeap",
+		"-XX:MaxRAMFraction=2",
 	}
 
-	if match, _ := util.CompareVersions(bookkeeperCluster.Spec.Version, "0.4.0", ">="); match {
-		// Bookkeeper < 0.4 uses a Java version that does not support the options below
-		memoryOpts = append(memoryOpts,
-			"-XX:+UnlockExperimentalVMOptions",
-			"-XX:+UseCGroupMemoryLimitForHeap",
-			"-XX:MaxRAMFraction=2",
-		)
-	}
 	memoryOpts = util.OverrideDefaultJVMOptions(memoryOpts, bookkeeperCluster.Spec.JVMOptions.MemoryOpts)
 
 	gcOpts := []string{
