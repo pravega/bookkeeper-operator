@@ -1,0 +1,31 @@
+apiVersion: "bookkeeper.pravega.io/v1alpha1"
+kind: "BookkeeperCluster"
+metadata:
+  name: "pravega"
+spec:
+  zookeeperUri: example-client:2181
+
+  image:
+      repository: pravega/bookkeeper
+      tag: 0.6.1
+      pullPolicy: IfNotPresent
+
+  replicas: 3
+
+  storage:
+      ledgerVolumeClaimTemplate:
+        accessModes: [ "ReadWriteOnce" ]
+        storageClassName: "standard"
+        resources:
+          requests:
+            storage: 10Gi
+
+      journalVolumeClaimTemplate:
+        accessModes: [ "ReadWriteOnce" ]
+        storageClassName: "standard"
+        resources:
+          requests:
+            storage: 10Gi
+
+  autoRecovery: true
+  version: 0.6.1

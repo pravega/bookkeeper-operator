@@ -16,15 +16,15 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/pravega/pravega-operator/pkg/apis/pravega/v1alpha1"
+	"github.com/pravega/bookkeeper-operator/pkg/apis/bookkeeper/v1alpha1"
 )
 
-var _ = Describe("PravegaCluster Status", func() {
+var _ = Describe("BookkeeperCluster Status", func() {
 
-	var p v1alpha1.PravegaCluster
+	var bk v1alpha1.BookkeeperCluster
 
 	BeforeEach(func() {
-		p = v1alpha1.PravegaCluster{
+		bk = v1alpha1.BookkeeperCluster{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: "default",
 			},
@@ -41,11 +41,11 @@ var _ = Describe("PravegaCluster Status", func() {
 				LastUpdateTime:     "",
 				LastTransitionTime: "",
 			}
-			p.Status.Conditions = append(p.Status.Conditions, condition)
+			bk.Status.Conditions = append(bk.Status.Conditions, condition)
 		})
 
 		It("should contains pods ready condition and it is true status", func() {
-			_, condition := p.Status.GetClusterCondition(v1alpha1.ClusterConditionPodsReady)
+			_, condition := bk.Status.GetClusterCondition(v1alpha1.ClusterConditionPodsReady)
 			Ω(condition.Status).To(Equal(corev1.ConditionTrue))
 		})
 	})
@@ -53,28 +53,28 @@ var _ = Describe("PravegaCluster Status", func() {
 	Context("set conditions", func() {
 		Context("set pods ready condition to be true", func() {
 			BeforeEach(func() {
-				p.Status.SetPodsReadyConditionFalse()
-				p.Status.SetPodsReadyConditionTrue()
+				bk.Status.SetPodsReadyConditionFalse()
+				bk.Status.SetPodsReadyConditionTrue()
 			})
 			It("should have pods ready condition with true status", func() {
-				_, condition := p.Status.GetClusterCondition(v1alpha1.ClusterConditionPodsReady)
+				_, condition := bk.Status.GetClusterCondition(v1alpha1.ClusterConditionPodsReady)
 				Ω(condition.Status).To(Equal(corev1.ConditionTrue))
 			})
 		})
 
 		Context("set pod ready condition to be false", func() {
 			BeforeEach(func() {
-				p.Status.SetPodsReadyConditionTrue()
-				p.Status.SetPodsReadyConditionFalse()
+				bk.Status.SetPodsReadyConditionTrue()
+				bk.Status.SetPodsReadyConditionFalse()
 			})
 
 			It("should have ready condition with false status", func() {
-				_, condition := p.Status.GetClusterCondition(v1alpha1.ClusterConditionPodsReady)
+				_, condition := bk.Status.GetClusterCondition(v1alpha1.ClusterConditionPodsReady)
 				Ω(condition.Status).To(Equal(corev1.ConditionFalse))
 			})
 
 			It("should have updated timestamps", func() {
-				_, condition := p.Status.GetClusterCondition(v1alpha1.ClusterConditionPodsReady)
+				_, condition := bk.Status.GetClusterCondition(v1alpha1.ClusterConditionPodsReady)
 				// TODO: check the timestamps
 				Ω(condition.LastUpdateTime).NotTo(Equal(""))
 				Ω(condition.LastTransitionTime).NotTo(Equal(""))

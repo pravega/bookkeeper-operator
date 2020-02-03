@@ -1,27 +1,27 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: pravega-operator
+  name: bookkeeper-operator
 spec:
   replicas: 1
   selector:
     matchLabels:
-      name: pravega-operator
+      name: bookkeeper-operator
   template:
     metadata:
       labels:
-        name: pravega-operator
-        component: pravega-operator
+        name: bookkeeper-operator
+        component: bookkeeper-operator
     spec:
-      serviceAccountName: pravega-operator
+      serviceAccountName: bookkeeper-operator
       containers:
-        - name: pravega-operator
-          image: pravega/pravega-operator:latest
+        - name: bookkeeper-operator
+          image: pravega/bookkeeper-operator:latest
           ports:
           - containerPort: 60000
             name: metrics
           command:
-          - pravega-operator
+          - bookkeeper-operator
           imagePullPolicy: Always
           env:
             - name: WATCH_NAMESPACE
@@ -33,4 +33,4 @@ spec:
                 fieldRef:
                   fieldPath: metadata.name
             - name: OPERATOR_NAME
-              value: "pravega-operator"
+              value: "bookkeeper-operator"

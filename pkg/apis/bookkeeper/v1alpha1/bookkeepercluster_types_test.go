@@ -17,20 +17,20 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/pravega/pravega-operator/pkg/apis/pravega/v1alpha1"
+	"github.com/pravega/bookkeeper-operator/pkg/apis/bookkeeper/v1alpha1"
 )
 
 func TestV1alpha1(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "PravegaCluster API")
+	RunSpecs(t, "BookkeeperCluster API")
 }
 
-var _ = Describe("PravegaCluster Types Spec", func() {
+var _ = Describe("BookkeeperCluster Types Spec", func() {
 
-	var p v1alpha1.PravegaCluster
+	var bk v1alpha1.BookkeeperCluster
 
 	BeforeEach(func() {
-		p = v1alpha1.PravegaCluster{
+		bk = v1alpha1.BookkeeperCluster{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: "default",
 			},
@@ -41,7 +41,7 @@ var _ = Describe("PravegaCluster Types Spec", func() {
 		var changed bool
 
 		BeforeEach(func() {
-			changed = p.WithDefaults()
+			changed = bk.WithDefaults()
 		})
 
 		It("should return as changed", func() {
@@ -49,23 +49,12 @@ var _ = Describe("PravegaCluster Types Spec", func() {
 		})
 
 		It("should set zookeeper uri", func() {
-			Ω(p.Spec.ZookeeperUri).Should(Equal("zk-client:2181"))
+			Ω(bk.Spec.ZookeeperUri).Should(Equal("zk-client:2181"))
 		})
 
-		It("should set external access", func() {
-			Ω(p.Spec.ExternalAccess).ShouldNot(BeNil())
+		It("should set version to 0.6.1", func() {
+			Ω(bk.Spec.Version).Should(Equal("0.6.1"))
 		})
 
-		It("should set version to 0.4.0", func() {
-			Ω(p.Spec.Version).Should(Equal("0.4.0"))
-		})
-
-		It("should set pravega spec", func() {
-			Ω(p.Spec.Pravega).ShouldNot(BeNil())
-		})
-
-		It("should set bookkeeper spec", func() {
-			Ω(p.Spec.Bookkeeper).ShouldNot(BeNil())
-		})
 	})
 })

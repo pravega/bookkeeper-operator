@@ -16,7 +16,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/pravega/pravega-operator/pkg/apis/pravega/v1alpha1"
+	"github.com/pravega/bookkeeper-operator/pkg/apis/bookkeeper/v1alpha1"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -65,7 +65,7 @@ func PodAntiAffinity(component string, clusterName string) *corev1.Affinity {
 									Values:   []string{component},
 								},
 								{
-									Key:      "pravega_cluster",
+									Key:      "bookkeeper_cluster",
 									Operator: metav1.LabelSelectorOpIn,
 									Values:   []string{clusterName},
 								},
@@ -80,9 +80,9 @@ func PodAntiAffinity(component string, clusterName string) *corev1.Affinity {
 }
 
 // Wait for pods in cluster to be terminated
-func WaitForClusterToTerminate(kubeClient client.Client, p *v1alpha1.PravegaCluster) (err error) {
+func WaitForClusterToTerminate(kubeClient client.Client, p *v1alpha1.BookkeeperCluster) (err error) {
 	listOptions := &client.ListOptions{
-		LabelSelector: labels.SelectorFromSet(LabelsForPravegaCluster(p)),
+		LabelSelector: labels.SelectorFromSet(LabelsForBookkeeperCluster(p)),
 	}
 
 	err = wait.Poll(5*time.Second, 2*time.Minute, func() (done bool, err error) {
@@ -124,18 +124,18 @@ func IsPodFaulty(pod *corev1.Pod) (bool, error) {
 	return false, nil
 }
 
-func NewEvent(name string, p *v1alpha1.PravegaCluster, reason string, message string, eventType string) *corev1.Event {
+func NewEvent(name string, p *v1alpha1.BookkeeperCluster, reason string, message string, eventType string) *corev1.Event {
 	now := metav1.Now()
 	operatorName, _ := k8s.GetOperatorName()
 	event := corev1.Event{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: p.Namespace,
-			Labels:    LabelsForPravegaCluster(p),
+			Labels:    LabelsForBookkeeperCluster(p),
 		},
 		InvolvedObject: corev1.ObjectReference{
-			APIVersion:      "pravega.pravega.io/v1alpha1",
-			Kind:            "PravegaCluster",
+			APIVersion:      "bookkeeper.pravega.io/v1alpha1",
+			Kind:            "BookkeeperCluster",
 			Name:            p.GetName(),
 			Namespace:       p.GetNamespace(),
 			ResourceVersion: p.GetResourceVersion(),

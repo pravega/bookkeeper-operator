@@ -15,26 +15,26 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/pravega/pravega-operator/pkg/apis/pravega/v1alpha1"
+	"github.com/pravega/bookkeeper-operator/pkg/apis/bookkeeper/v1alpha1"
 	"github.com/samuel/go-zookeeper/zk"
 )
 
 const (
-	// Set in https://github.com/pravega/pravega/blob/master/docker/bookkeeper/entrypoint.sh#L21
+	// Set in https://github.com/pravega/bookkeeper/blob/master/docker/bookkeeper/entrypoint.sh#L21
 	PravegaPath = "pravega"
 	ZkFinalizer = "cleanUpZookeeper"
 )
 
-// Delete all znodes related to a specific Pravega cluster
-func DeleteAllZnodes(p *v1alpha1.PravegaCluster) (err error) {
-	host := []string{p.Spec.ZookeeperUri}
+// Delete all znodes related to a specific Bookkeeper cluster
+func DeleteAllZnodes(bk *v1alpha1.BookkeeperCluster) (err error) {
+	host := []string{bk.Spec.ZookeeperUri}
 	conn, _, err := zk.Connect(host, time.Second*5)
 	if err != nil {
 		return fmt.Errorf("failed to connect to zookeeper: %v", err)
 	}
 	defer conn.Close()
 
-	root := fmt.Sprintf("/%s/%s", PravegaPath, p.Name)
+	root := fmt.Sprintf("/%s/%s", PravegaPath, bk.Name)
 	exist, _, err := conn.Exists(root)
 	if err != nil {
 		return fmt.Errorf("failed to check if zookeeper path exists: %v", err)

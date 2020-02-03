@@ -1,6 +1,6 @@
-# Pravega Cluster Rollback
+# Bookkeeper Cluster Rollback
 
-This document details how manual rollback can be triggered after a Pravega cluster upgrade fails.
+This document details how manual rollback can be triggered after a Bookkeeper cluster upgrade fails.
 Note that a rollback can be triggered only on Upgrade Failure.
 
 ## Upgrade Failure
@@ -13,10 +13,10 @@ An Upgrade can fail because of following reasons:
 4. Application issues (Application runtime misconfiguration or code bugs)
 
 An upgrade failure can manifest through a Pod staying in `Pending` state forever or continuously restarting or crashing (CrashLoopBackOff).
-A component deployment failure needs to be tracked and mapped to "Upgrade Failure" for Pravega Cluster.
+A component deployment failure needs to be tracked and mapped to "Upgrade Failure" for Bookkeeper Cluster.
 Here we try to fail-fast by explicitly checking for some common causes for deployment failure like image pull errors or  CrashLoopBackOff State and failing the upgrade if any pod runs into this state during upgrade.
 
-The following Pravega Cluster Status Condition indicates a Failed Upgrade:
+The following Bookkeeper Cluster Status Condition indicates a Failed Upgrade:
 
 ```
 ClusterConditionType: Error
@@ -27,7 +27,7 @@ Message: <Details of exception/cause of failure>
 After an Upgrade Failure the output of `kubectl describe pravegacluster pravega` would look like this:
 
 ```
-$> kubectl describe pravegacluster pravega
+$> kubectl describe  bk pravega-bk
 . . .
 Spec:
 . . .
@@ -60,7 +60,7 @@ where `0.6.0-2252.b6f6512` is the version we tried upgrading to and `0.6.0-2239.
 
 ## Manual Rollback Trigger
 
-A Rollback is triggered when a Pravega Cluster is in `UpgradeFailed` Error State and a user manually updates version feild in the PravegaCluster spec to point to the last stable cluster version.
+A Rollback is triggered when a Bookkeeper Cluster is in `UpgradeFailed` Error State and a user manually updates version feild in the BookkeeperCluster spec to point to the last stable cluster version.
 
 A Rollback involves moving all components in the cluster back to the last stable cluster version. As with upgrades, the operator rolls back one component at a time and one pod at a time to preserve high-availability.
 
@@ -75,7 +75,7 @@ Once the Rollback completes, this condition is set to false.
 
 During a Rollback, the Cluster Status should look something like:
 ```
-$> kubectl describe pravegacluster pravega
+$> kubectl describe bk pravega-bk
 . . .
 Status:
   Conditions:
@@ -103,13 +103,7 @@ Status:
 Here the `RollbackInProgress` condition being `true` indicates that a Rollback is in Progress.
 Also `Reason` and `Message` feilds of this condition indicate the component being rolled back and number of updated replicas respectively.
 
-The operator rolls back components following the reverse upgrade order :
-
-1. Pravega Controller
-2. Pravega Segment Store
-3. BookKeeper
-
-A `versionHistory` field in the PravegaClusterSpec maintains the history of upgrades.
+A `versionHistory` field in the BookkeeperClusterSpec maintains the history of upgrades.
 
 ## Rollback Outcome
 

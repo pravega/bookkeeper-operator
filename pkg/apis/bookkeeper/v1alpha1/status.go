@@ -33,8 +33,8 @@ const (
 	RollbackErrorReason        = "Rollback Error"
 )
 
-// ClusterStatus defines the observed state of PravegaCluster
-type ClusterStatus struct {
+// BookkeeperClusterStatus defines the observed state of BookkeeperCluster
+type BookkeeperClusterStatus struct {
 	// Conditions list all the applied conditions
 	Conditions []ClusterCondition `json:"conditions,omitempty"`
 
@@ -56,7 +56,7 @@ type ClusterStatus struct {
 	// ReadyReplicas is the number of ready replicas in the cluster
 	ReadyReplicas int32 `json:"readyReplicas"`
 
-	// Members is the Pravega members in the cluster
+	// Members is the Bookkeeper members in the cluster
 	Members MembersStatus `json:"members"`
 }
 
@@ -67,10 +67,10 @@ type MembersStatus struct {
 	Unready []string `json:"unready"`
 }
 
-// ClusterCondition shows the current condition of a Pravega cluster.
+// ClusterCondition shows the current condition of a Bookkeeper cluster.
 // Comply with k8s API conventions
 type ClusterCondition struct {
-	// Type of Pravega cluster condition.
+	// Type of Bookkeeper cluster condition.
 	Type ClusterConditionType `json:"type"`
 
 	// Status of the condition, one of True, False, Unknown.
@@ -89,7 +89,7 @@ type ClusterCondition struct {
 	LastTransitionTime string `json:"lastTransitionTime,omitempty"`
 }
 
-func (ps *ClusterStatus) Init() {
+func (ps *BookkeeperClusterStatus) Init() {
 	// Initialise conditions
 	conditionTypes := []ClusterConditionType{
 		ClusterConditionPodsReady,
@@ -110,41 +110,41 @@ func (ps *ClusterStatus) Init() {
 	}
 }
 
-func (ps *ClusterStatus) SetPodsReadyConditionTrue() {
+func (ps *BookkeeperClusterStatus) SetPodsReadyConditionTrue() {
 	c := newClusterCondition(ClusterConditionPodsReady, corev1.ConditionTrue, "", "")
 	ps.setClusterCondition(*c)
 }
 
-func (ps *ClusterStatus) SetPodsReadyConditionFalse() {
+func (ps *BookkeeperClusterStatus) SetPodsReadyConditionFalse() {
 	c := newClusterCondition(ClusterConditionPodsReady, corev1.ConditionFalse, "", "")
 	ps.setClusterCondition(*c)
 }
 
-func (ps *ClusterStatus) SetUpgradingConditionTrue(reason, message string) {
+func (ps *BookkeeperClusterStatus) SetUpgradingConditionTrue(reason, message string) {
 	c := newClusterCondition(ClusterConditionUpgrading, corev1.ConditionTrue, reason, message)
 	ps.setClusterCondition(*c)
 }
 
-func (ps *ClusterStatus) SetUpgradingConditionFalse() {
+func (ps *BookkeeperClusterStatus) SetUpgradingConditionFalse() {
 	c := newClusterCondition(ClusterConditionUpgrading, corev1.ConditionFalse, "", "")
 	ps.setClusterCondition(*c)
 }
 
-func (ps *ClusterStatus) SetErrorConditionTrue(reason, message string) {
+func (ps *BookkeeperClusterStatus) SetErrorConditionTrue(reason, message string) {
 	c := newClusterCondition(ClusterConditionError, corev1.ConditionTrue, reason, message)
 	ps.setClusterCondition(*c)
 }
 
-func (ps *ClusterStatus) SetErrorConditionFalse() {
+func (ps *BookkeeperClusterStatus) SetErrorConditionFalse() {
 	c := newClusterCondition(ClusterConditionError, corev1.ConditionFalse, "", "")
 	ps.setClusterCondition(*c)
 }
 
-func (ps *ClusterStatus) SetRollbackConditionTrue(reason, message string) {
+func (ps *BookkeeperClusterStatus) SetRollbackConditionTrue(reason, message string) {
 	c := newClusterCondition(ClusterConditionRollback, corev1.ConditionTrue, reason, message)
 	ps.setClusterCondition(*c)
 }
-func (ps *ClusterStatus) SetRollbackConditionFalse() {
+func (ps *BookkeeperClusterStatus) SetRollbackConditionFalse() {
 	c := newClusterCondition(ClusterConditionRollback, corev1.ConditionFalse, "", "")
 	ps.setClusterCondition(*c)
 }
@@ -160,7 +160,7 @@ func newClusterCondition(condType ClusterConditionType, status corev1.ConditionS
 	}
 }
 
-func (ps *ClusterStatus) GetClusterCondition(t ClusterConditionType) (int, *ClusterCondition) {
+func (ps *BookkeeperClusterStatus) GetClusterCondition(t ClusterConditionType) (int, *ClusterCondition) {
 	for i, c := range ps.Conditions {
 		if t == c.Type {
 			return i, &c
@@ -169,7 +169,7 @@ func (ps *ClusterStatus) GetClusterCondition(t ClusterConditionType) (int, *Clus
 	return -1, nil
 }
 
-func (ps *ClusterStatus) setClusterCondition(newCondition ClusterCondition) {
+func (ps *BookkeeperClusterStatus) setClusterCondition(newCondition ClusterCondition) {
 	now := time.Now().Format(time.RFC3339)
 	position, existingCondition := ps.GetClusterCondition(newCondition.Type)
 
@@ -193,7 +193,7 @@ func (ps *ClusterStatus) setClusterCondition(newCondition ClusterCondition) {
 	ps.Conditions[position] = *existingCondition
 }
 
-func (ps *ClusterStatus) AddToVersionHistory(version string) {
+func (ps *BookkeeperClusterStatus) AddToVersionHistory(version string) {
 	lastIndex := len(ps.VersionHistory) - 1
 	if version != "" && ps.VersionHistory[lastIndex] != version {
 		ps.VersionHistory = append(ps.VersionHistory, version)
@@ -201,12 +201,12 @@ func (ps *ClusterStatus) AddToVersionHistory(version string) {
 	}
 }
 
-func (ps *ClusterStatus) GetLastVersion() (previousVersion string) {
+func (ps *BookkeeperClusterStatus) GetLastVersion() (previousVersion string) {
 	len := len(ps.VersionHistory)
 	return ps.VersionHistory[len-1]
 }
 
-func (ps *ClusterStatus) IsClusterInErrorState() bool {
+func (ps *BookkeeperClusterStatus) IsClusterInErrorState() bool {
 	_, errorCondition := ps.GetClusterCondition(ClusterConditionError)
 	if errorCondition != nil && errorCondition.Status == corev1.ConditionTrue {
 		return true
@@ -214,7 +214,7 @@ func (ps *ClusterStatus) IsClusterInErrorState() bool {
 	return false
 }
 
-func (ps *ClusterStatus) IsClusterInUpgradeFailedState() bool {
+func (ps *BookkeeperClusterStatus) IsClusterInUpgradeFailedState() bool {
 	_, errorCondition := ps.GetClusterCondition(ClusterConditionError)
 	if errorCondition == nil {
 		return false
@@ -225,14 +225,14 @@ func (ps *ClusterStatus) IsClusterInUpgradeFailedState() bool {
 	return false
 }
 
-func (ps *ClusterStatus) IsClusterInUpgradeFailedOrRollbackState() bool {
+func (ps *BookkeeperClusterStatus) IsClusterInUpgradeFailedOrRollbackState() bool {
 	if ps.IsClusterInUpgradeFailedState() || ps.IsClusterInRollbackState() {
 		return true
 	}
 	return false
 }
 
-func (ps *ClusterStatus) IsClusterInRollbackState() bool {
+func (ps *BookkeeperClusterStatus) IsClusterInRollbackState() bool {
 	_, rollbackCondition := ps.GetClusterCondition(ClusterConditionRollback)
 	if rollbackCondition == nil {
 		return false
@@ -243,7 +243,7 @@ func (ps *ClusterStatus) IsClusterInRollbackState() bool {
 	return false
 }
 
-func (ps *ClusterStatus) IsClusterInUpgradingState() bool {
+func (ps *BookkeeperClusterStatus) IsClusterInUpgradingState() bool {
 	_, upgradeCondition := ps.GetClusterCondition(ClusterConditionUpgrading)
 	if upgradeCondition == nil {
 		return false
@@ -254,7 +254,7 @@ func (ps *ClusterStatus) IsClusterInUpgradingState() bool {
 	return false
 }
 
-func (ps *ClusterStatus) IsClusterInRollbackFailedState() bool {
+func (ps *BookkeeperClusterStatus) IsClusterInRollbackFailedState() bool {
 	_, errorCondition := ps.GetClusterCondition(ClusterConditionError)
 	if errorCondition == nil {
 		return false
@@ -265,7 +265,7 @@ func (ps *ClusterStatus) IsClusterInRollbackFailedState() bool {
 	return false
 }
 
-func (ps *ClusterStatus) IsClusterInReadyState() bool {
+func (ps *BookkeeperClusterStatus) IsClusterInReadyState() bool {
 	_, readyCondition := ps.GetClusterCondition(ClusterConditionPodsReady)
 	if readyCondition != nil && readyCondition.Status == corev1.ConditionTrue {
 		return true
@@ -273,7 +273,7 @@ func (ps *ClusterStatus) IsClusterInReadyState() bool {
 	return false
 }
 
-func (ps *ClusterStatus) UpdateProgress(reason, updatedReplicas string) {
+func (ps *BookkeeperClusterStatus) UpdateProgress(reason, updatedReplicas string) {
 	if ps.IsClusterInUpgradingState() {
 		// Set the upgrade condition reason to be UpgradingBookkeeperReason, message to be 0
 		ps.SetUpgradingConditionTrue(reason, updatedReplicas)
@@ -282,7 +282,7 @@ func (ps *ClusterStatus) UpdateProgress(reason, updatedReplicas string) {
 	}
 }
 
-func (ps *ClusterStatus) GetLastCondition() (lastCondition *ClusterCondition) {
+func (ps *BookkeeperClusterStatus) GetLastCondition() (lastCondition *ClusterCondition) {
 	if ps.IsClusterInUpgradingState() {
 		_, lastCondition := ps.GetClusterCondition(ClusterConditionUpgrading)
 		return lastCondition

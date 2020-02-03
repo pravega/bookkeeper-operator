@@ -1,9 +1,8 @@
 ## Manual installation
 
 * [Install the Operator manually](#install-the-operator-manually)
-* [Set up Tier 2 Storage](#set-up-tier-2-storage)
-* [Install the Pravega cluster manually](#install-the-pravega-cluster-manually)
-* [Uninstall the Pravega Cluster manually](#uninstall-the-pravega-cluster-manually)
+* [Install the Pravega cluster manually](#install-the-bookkeeper-cluster-manually)
+* [Uninstall the Pravega Cluster manually](#uninstall-the-bookkeeper-cluster-manually)
 * [Uninstall the Operator manually](#uninstall-the-operator-manually)
 
 ### Install the Operator manually
@@ -30,25 +29,17 @@ Install the operator.
 $ kubectl create -f deploy/operator.yaml
 ```
 
-### Set up Tier 2 Storage
+### Install the Bookkeeper cluster manually
 
-Pravega requires a long term storage provider known as Tier 2 storage.
-
-Check out the available [options for Tier 2](tier2.md) and how to configure it.
-
-In this example we are going to use a `pravega-tier2` PVC using [NFS as the storage backend](tier2.md#use-nfs-as-tier-2).
-
-### Install the Pravega cluster manually
-
-Once the operator is installed, you can use the following YAML template to install a small development Pravega Cluster (3 Bookies, 1 Controller, 3 Segment Stores). Create a `pravega.yaml` file with the following content.
+Once the operator is installed, you can use the following YAML template to install a small development Bookkeeper Cluster. Create a `bookkeeper.yaml` file with the following content.
 
 ```yaml
-apiVersion: "pravega.pravega.io/v1alpha1"
-kind: "PravegaCluster"
+apiVersion: "bookkeeper.pravega.io/v1alpha1"
+kind: "BookkeeperCluster"
 metadata:
-  name: "example"
+  name: "pravega-bk"
 spec:
-  version: 0.4.0
+  version: 0.6.1
   zookeeperUri: [ZOOKEEPER_HOST]:2181
 
   bookkeeper:
@@ -57,15 +48,6 @@ spec:
       repository: pravega/bookkeeper
     autoRecovery: true
 
-  pravega:
-    controllerReplicas: 1
-    segmentStoreReplicas: 3
-    image:
-      repository: pravega/pravega
-    tier2:
-      filesystem:
-        persistentVolumeClaim:
-          claimName: pravega-tier2
 ```
 
 where:
@@ -74,30 +56,29 @@ where:
 
 Check out other sample CR files in the [`example`](../example) directory.
 
-Deploy the Pravega cluster.
+Deploy the Bookkeeper cluster.
 
 ```
-$ kubectl create -f pravega.yaml
+$ kubectl create -f bookkeeper.yaml
 ```
 
 Verify that the cluster instances and its components are being created.
 
 ```
 $ kubectl get PravegaCluster
-NAME      VERSION   DESIRED MEMBERS   READY MEMBERS   AGE
-example   0.4.0     7                 0               25s
+NAME         VERSION   DESIRED MEMBERS    READY MEMBERS      AGE
+pravega-bk   0.6.1      3                    0               25s
 ```
 
-### Uninstall the Pravega cluster manually
+### Uninstall the Bookkeeper cluster manually
 
 ```
-$ kubectl delete -f pravega.yaml
-$ kubectl delete pvc pravega-tier2
+$ kubectl delete -f bookkeeper.yaml
 ```
 
 ### Uninstall the Operator manually
 
-> Note that the Pravega clusters managed by the Pravega operator will NOT be deleted even if the operator is uninstalled.
+> Note that the Bookkeeper cluster managed by the Bookkeeper operator will NOT be deleted even if the operator is uninstalled.
 
 To delete all clusters, delete all cluster CR objects before uninstalling the operator.
 

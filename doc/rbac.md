@@ -1,54 +1,16 @@
-## Setting up RBAC for Pravega operator
+## Setting up RBAC for Bookkeeper operator
 
 ### Use non-default service accounts
 
-You can optionally configure non-default service accounts for the Bookkeeper, Pravega Controller, and Pravega Segment Store pods.
+You can optionally configure non-default service accounts for the Bookkeeper.
 
-For BookKeeper, set the `serviceAccountName` field under the `bookkeeper` block.
+For BookKeeper, set the `serviceAccountName` field under the `spec` block.
 
 ```
 ...
 spec:
-  bookkeeper:
     serviceAccountName: bk-service-account
 ...
-```
-
-For Pravega, set the `controllerServiceAccountName` and `segmentStoreServiceAccountName` fields under the `pravega` block.
-
-```
-...
-spec:
-  pravega:
-    controllerServiceAccountName: ctrl-service-account
-    segmentStoreServiceAccountName: ss-service-account
-...
-```
-
-If external access is enabled in your Pravega cluster, Segment Store pods will require access to some Kubernetes API endpoints to obtain the external IP and port. Make sure that the service account you are using for the Segment Store has, at least, the following permissions.
-
-```
-kind: Role
-apiVersion: rbac.authorization.k8s.io/v1
-metadata:
-  name: pravega-components
-  namespace: "pravega-namespace"
-rules:
-- apiGroups: ["pravega.pravega.io"]
-  resources: ["*"]
-  verbs: ["get"]
-- apiGroups: [""]
-  resources: ["pods", "services"]
-  verbs: ["get"]
----
-kind: ClusterRole
-apiVersion: rbac.authorization.k8s.io/v1
-metadata:
-  name: pravega-components
-rules:
-- apiGroups: [""]
-  resources: ["nodes"]
-  verbs: ["get"]
 ```
 
 Replace the `namespace` with your own namespace.
@@ -73,14 +35,14 @@ Apply the changes.
 $ kubectl -n pravega-io apply -f deploy
 ```
 
-Note that the Pravega operator only monitors the `PravegaCluster` resources which are created in the same namespace, `pravega-io` in this example. Therefore, before creating a `PravegaCluster` resource, make sure an operator exists in that namespace.
+Note that the Pravega operator only monitors the `BookkeeperCluster` resources which are created in the same namespace, `pravega-io` in this example. Therefore, before creating a `BookkeeperCluster` resource, make sure an operator exists in that namespace.
 
 ```
 $ kubectl -n pravega-io create -f example/cr.yaml
 ```
 
 ```
-$ kubectl -n pravega-io get pravegaclusters
+$ kubectl -n pravega-io get bookkeeperclusters
 NAME      AGE
 pravega   28m
 ```
@@ -91,8 +53,4 @@ NAME                                          READY     STATUS    RESTARTS   AGE
 pravega-bookie-0                              1/1       Running   0          29m
 pravega-bookie-1                              1/1       Running   0          29m
 pravega-bookie-2                              1/1       Running   0          29m
-pravega-pravega-controller-6c54fdcdf5-947nw   1/1       Running   0          29m
-pravega-pravega-segmentstore-0                1/1       Running   0          29m
-pravega-pravega-segmentstore-1                1/1       Running   0          29m
-pravega-pravega-segmentstore-2                1/1       Running   0          29m
 ```

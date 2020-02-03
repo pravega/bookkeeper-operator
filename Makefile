@@ -8,8 +8,8 @@
 
 SHELL=/bin/bash -o pipefail
 
-PROJECT_NAME=pravega-operator
-REPO=tristan1900/$(PROJECT_NAME)
+PROJECT_NAME=bookkeeper-operator
+REPO=pravega/$(PROJECT_NAME)
 VERSION=$(shell git describe --always --tags --dirty | sed "s/\(.*\)-g`git rev-parse --short HEAD`/\1/")
 GIT_SHA=$(shell git rev-parse --short HEAD)
 TEST_IMAGE=$(REPO)-testimages:$(VERSION)
@@ -31,7 +31,8 @@ build-go:
 	-o bin/$(PROJECT_NAME) cmd/manager/main.go
 
 build-image:
-	docker build --build-arg VERSION=$(VERSION) --build-arg GIT_SHA=$(GIT_SHA) -t $(REPO):$(VERSION) .
+	echo "$(REPO)"
+	docker build --no-cache --build-arg VERSION=$(VERSION) --build-arg GIT_SHA=$(GIT_SHA) -t $(REPO):$(VERSION) .
 	docker tag $(REPO):$(VERSION) $(REPO):latest
 
 test: test-unit test-e2e

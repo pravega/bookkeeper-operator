@@ -15,8 +15,8 @@ import (
 	"fmt"
 	"net/http"
 
-	pravegav1alpha1 "github.com/pravega/pravega-operator/pkg/apis/pravega/v1alpha1"
-	"github.com/pravega/pravega-operator/pkg/util"
+	bookkeeperv1alpha1 "github.com/pravega/bookkeeper-operator/pkg/apis/bookkeeper/v1alpha1"
+	"github.com/pravega/bookkeeper-operator/pkg/util"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -46,90 +46,88 @@ var (
 	}
 )
 
-type pravegaWebhookHandler struct {
+type bookkeeperWebhookHandler struct {
 	client  client.Client
 	scheme  *runtime.Scheme
 	decoder admissiontypes.Decoder
 }
 
-var _ admission.Handler = &pravegaWebhookHandler{}
+var _ admission.Handler = &bookkeeperWebhookHandler{}
 
 // Webhook server will call this func when request comes in
-func (pwh *pravegaWebhookHandler) Handle(ctx context.Context, req admissiontypes.Request) admissiontypes.Response {
+func (pwh *bookkeeperWebhookHandler) Handle(ctx context.Context, req admissiontypes.Request) admissiontypes.Response {
 	log.Printf("Webhook is handling incoming requests")
-	pravega := &pravegav1alpha1.PravegaCluster{}
+	bookkeeper := &bookkeeperv1alpha1.BookkeeperCluster{}
 
-	if err := pwh.decoder.Decode(req, pravega); err != nil {
+	if err := pwh.decoder.Decode(req, bookkeeper); err != nil {
 		return admission.ErrorResponse(http.StatusBadRequest, err)
 	}
-	copy := pravega.DeepCopy()
+	copy := bookkeeper.DeepCopy()
 
 	if err := pwh.clusterIsAvailable(ctx, copy); err != nil {
 		return admission.ErrorResponse(http.StatusServiceUnavailable, err)
 	}
 
-	if err := pwh.mutatePravegaManifest(ctx, copy); err != nil {
+	if err := pwh.mutateBookkeeperManifest(ctx, copy); err != nil {
 		return admission.ErrorResponse(http.StatusBadRequest, err)
 	}
 
-	return admission.PatchResponse(pravega, copy)
+	return admission.PatchResponse(bookkeeper, copy)
 }
 
-func (pwh *pravegaWebhookHandler) mutatePravegaManifest(ctx context.Context, p *pravegav1alpha1.PravegaCluster) error {
-	if err := pwh.mutatePravegaVersion(ctx, p); err != nil {
+func (pwh *bookkeeperWebhookHandler) mutateBookkeeperManifest(ctx context.Context, p *bookkeeperv1alpha1.BookkeeperCluster) error {
+	if err := pwh.mutateBookkeeperVersion(ctx, p); err != nil {
 		return err
 	}
-
 	//Add other validators here
 	return nil
 }
 
-func (pwh *pravegaWebhookHandler) mutatePravegaVersion(ctx context.Context, p *pravegav1alpha1.PravegaCluster) error {
-	// Identify the request Pravega version
+func (pwh *bookkeeperWebhookHandler) mutateBookkeeperVersion(ctx context.Context, bk *bookkeeperv1alpha1.BookkeeperCluster) error {
+	// Identify the request Bookkeeper version
 	// Mutate the version if it is empty
-	if p.Spec.Version == "" {
-		if p.Spec.Pravega != nil && p.Spec.Pravega.Image != nil && p.Spec.Pravega.Image.Tag != "" {
-			p.Spec.Version = p.Spec.Pravega.Image.Tag
+	if bk.Spec.Version == "" {
+		if bk.Spec.Image != nil && bk.Spec.Image.Tag != "" {
+			bk.Spec.Version = bk.Spec.Image.Tag
 		} else {
-			p.Spec.Version = pravegav1alpha1.DefaultPravegaVersion
+			bk.Spec.Version = bookkeeperv1alpha1.DefaultBookkeeperVersion
 		}
 	}
-	// Set Pravega and Bookkeeper tag to empty
-	if p.Spec.Pravega != nil && p.Spec.Pravega.Image != nil && p.Spec.Pravega.Image.Tag != "" {
-		p.Spec.Pravega.Image.Tag = ""
+	// Set Bookkeeper and Bookkeeper tag to empty
+	if bk.Spec.Image != nil && bk.Spec.Image.Tag != "" {
+		bk.Spec.Image.Tag = ""
 	}
-	if p.Spec.Bookkeeper != nil && p.Spec.Bookkeeper.Image != nil && p.Spec.Bookkeeper.Image.Tag != "" {
-		p.Spec.Bookkeeper.Image.Tag = ""
+	if bk.Spec.Image != nil && bk.Spec.Image.Tag != "" {
+		bk.Spec.Image.Tag = ""
 	}
+	requestVersion := bk.Spec.Version
 
-	requestVersion := p.Spec.Version
-
-	if p.Status.IsClusterInUpgradeFailedState() {
-		if requestVersion != p.Status.GetLastVersion() {
-			return fmt.Errorf("Rollback to version %s not supported. Only rollback to version %s is supported.", requestVersion, p.Status.GetLastVersion())
+	if bk.Status.IsClusterInUpgradeFailedState() {
+		if requestVersion != bk.Status.GetLastVersion() {
+			return fmt.Errorf("Rollback to version %s not supported. Only rollback to version %s is supported.", requestVersion, bk.Status.GetLastVersion())
 		}
 		return nil
 	}
 
 	// Allow upgrade only if Cluster is in Ready State
-	// Check if the request has a valid Pravega version
+	// Check if the request has a valid Bookkeeper version
 	normRequestVersion, err := util.NormalizeVersion(requestVersion)
 	if err != nil {
 		return fmt.Errorf("request version is not in valid format: %v", err)
 	}
 	if _, ok := supportedVersions[normRequestVersion]; !ok {
-		return fmt.Errorf("unsupported Pravega cluster version %s", requestVersion)
+		return fmt.Errorf("unsupported Bookkeeper cluster version %s", requestVersion)
 	}
 
 	// Check if the request is an upgrade
-	found := &pravegav1alpha1.PravegaCluster{}
+	found := &bookkeeperv1alpha1.BookkeeperCluster{}
 	nn := types.NamespacedName{
-		Namespace: p.Namespace,
-		Name:      p.Name,
+		Namespace: bk.Namespace,
+		Name:      bk.Name,
 	}
 	err = pwh.client.Get(context.TODO(), nn, found)
 	if err != nil && !errors.IsNotFound(err) {
-		return fmt.Errorf("failed to obtain PravegarequestVersionCluster resource: %v", err)
+		return fmt.Errorf("failed to obtain BookkeeperrequestVersionCluster resource: %v", err)
 	}
 
 	foundVersion := found.Spec.Version
@@ -155,8 +153,8 @@ func (pwh *pravegaWebhookHandler) mutatePravegaVersion(ctx context.Context, p *p
 	return nil
 }
 
-func (pwh *pravegaWebhookHandler) clusterIsAvailable(ctx context.Context, p *pravegav1alpha1.PravegaCluster) error {
-	found := &pravegav1alpha1.PravegaCluster{}
+func (pwh *bookkeeperWebhookHandler) clusterIsAvailable(ctx context.Context, p *bookkeeperv1alpha1.BookkeeperCluster) error {
+	found := &bookkeeperv1alpha1.BookkeeperCluster{}
 	nn := types.NamespacedName{
 		Namespace: p.Namespace,
 		Name:      p.Name,
@@ -166,7 +164,7 @@ func (pwh *pravegaWebhookHandler) clusterIsAvailable(ctx context.Context, p *pra
 		if errors.IsNotFound(err) {
 			return nil
 		}
-		return fmt.Errorf("failed to obtain PravegaCluster resource: %v", err)
+		return fmt.Errorf("failed to obtain BookkeeperCluster resource: %v", err)
 	}
 
 	if found.Status.IsClusterInUpgradingState() {
@@ -190,29 +188,29 @@ func (pwh *pravegaWebhookHandler) clusterIsAvailable(ctx context.Context, p *pra
 	return nil
 }
 
-// pravegaWebhookHandler implements inject.Client.
-var _ inject.Client = &pravegaWebhookHandler{}
+// BookkeeperWebhookHandler implements inject.Client.
+var _ inject.Client = &bookkeeperWebhookHandler{}
 
-// InjectClient injects the client into the pravegaWebhookHandler
-func (pwh *pravegaWebhookHandler) InjectClient(c client.Client) error {
+// InjectClient injects the client into the bookkeeperWebhookHandler
+func (pwh *bookkeeperWebhookHandler) InjectClient(c client.Client) error {
 	pwh.client = c
 	return nil
 }
 
-// pravegaWebhookHandler implements inject.Decoder.
-var _ inject.Decoder = &pravegaWebhookHandler{}
+// BookkeeperWebhookHandler implements inject.Decoder.
+var _ inject.Decoder = &bookkeeperWebhookHandler{}
 
-// InjectDecoder injects the decoder into the pravegaWebhookHandler
-func (pwh *pravegaWebhookHandler) InjectDecoder(d admissiontypes.Decoder) error {
+// InjectDecoder injects the decoder into the bookkeeperWebhookHandler
+func (pwh *bookkeeperWebhookHandler) InjectDecoder(d admissiontypes.Decoder) error {
 	pwh.decoder = d
 	return nil
 }
 
-// pravegaWebhookHandler implements inject.Scheme.
-var _ inject.Scheme = &pravegaWebhookHandler{}
+// bookkeeperWebhookHandler implements inject.Scheme.
+var _ inject.Scheme = &bookkeeperWebhookHandler{}
 
-// InjectClient injects the client into the pravegaWebhookHandler
-func (pwh *pravegaWebhookHandler) InjectScheme(s *runtime.Scheme) error {
+// InjectClient injects the client into the bookkeeperWebhookHandler
+func (pwh *bookkeeperWebhookHandler) InjectScheme(s *runtime.Scheme) error {
 	pwh.scheme = s
 	return nil
 }

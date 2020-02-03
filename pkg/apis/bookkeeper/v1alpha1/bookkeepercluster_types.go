@@ -14,15 +14,26 @@ import (
 	"github.com/pravega/pravega-operator/pkg/controller/config"
 	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 const (
+	// DefaultZookeeperUri is the default ZooKeeper URI in the form of "hostname:port"
+	DefaultZookeeperUri = "zk-client:2181"
+
+	// DefaultServiceType is the default service type for external access
+	DefaultServiceType = v1.ServiceTypeLoadBalancer
+
+	// DefaultPravegaVersion is the default tag used for for the Pravega
+	// Docker image
+	DefaultBookkeeperVersion = "0.6.1"
 	// DefaultBookkeeperImageRepository is the default Docker repository for
+
 	// the BookKeeper image
 	DefaultBookkeeperImageRepository = "pravega/bookkeeper"
 
-	// DefaultPravegaImagePullPolicy is the default image pull policy used
-	// for the Pravega Docker image
+	// DefaultbookkeeperImagePullPolicy is the default image pull policy used
+	// for the Bookkeeper Docker image
 	DefaultBookkeeperImagePullPolicy = v1.PullAlways
 
 	// DefaultBookkeeperLedgerVolumeSize is the default volume size for the
@@ -54,8 +65,46 @@ const (
 	DefaultBookkeeperLimitMemory = "2Gi"
 )
 
-// BookkeeperSpec defines the configuration of BookKeeper
-type BookkeeperSpec struct {
+func init() {
+	SchemeBuilder.Register(&BookkeeperCluster{}, &BookkeeperClusterList{})
+}
+
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+
+// BookkeeperClusterList contains a list of BookkeeperCluster
+type BookkeeperClusterList struct {
+	metav1.TypeMeta `json:",inline"`
+	metav1.ListMeta `json:"metadata,omitempty"`
+	Items           []BookkeeperCluster `json:"items"`
+}
+
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+
+// BookkeeperCluster is the Schema for the BookkeeperClusters API
+// +k8s:openapi-gen=true
+type BookkeeperCluster struct {
+	metav1.TypeMeta   `json:",inline"`
+	metav1.ObjectMeta `json:"metadata,omitempty"`
+
+	Spec   BookkeeperClusterSpec   `json:"spec,omitempty"`
+	Status BookkeeperClusterStatus `json:"status,omitempty"`
+}
+
+// WithDefaults set default values when not defined in the spec.
+func (bk *BookkeeperCluster) WithDefaults() (changed bool) {
+	changed = bk.Spec.withDefaults()
+	return changed
+}
+
+// ClusterSpec defines the desired state of BookkeeperCluster
+type BookkeeperClusterSpec struct {
+	// ZookeeperUri specifies the hostname/IP address and port in the format
+	// "hostname:port".
+	// By default, the value "zk-client:2181" is used, that corresponds to the
+	// default Zookeeper service created by the Pravega Zookkeeper operator
+	// available at: https://github.com/pravega/zookeeper-operator
+	ZookeeperUri string `json:"zookeeperUri"`
+
 	// Image defines the BookKeeper Docker image to use.
 	// By default, "pravega/bookkeeper" will be used.
 	Image *BookkeeperImageSpec `json:"image"`
@@ -86,65 +135,17 @@ type BookkeeperSpec struct {
 	// JVM is the JVM options for bookkeeper. It will be passed to the JVM for performance tuning.
 	// If this field is not specified, the operator will use a set of default
 	// options that is good enough for general deployment.
-	BookkeeperJVMOptions *BookkeeperJVMOptions `json:"bookkeeperJVMOptions"`
-}
+	JVMOptions *JVMOptions `json:"jvmOptions"`
 
-func (s *BookkeeperSpec) withDefaults() (changed bool) {
-	if s.Image == nil {
-		changed = true
-		s.Image = &BookkeeperImageSpec{}
-	}
-	if s.Image.withDefaults() {
-		changed = true
-	}
-
-	if !config.TestMode && s.Replicas < MinimumBookkeeperReplicas {
-		changed = true
-		s.Replicas = MinimumBookkeeperReplicas
-	}
-
-	if s.Storage == nil {
-		changed = true
-		s.Storage = &BookkeeperStorageSpec{}
-	}
-	if s.Storage.withDefaults() {
-		changed = true
-	}
-
-	if s.AutoRecovery == nil {
-		changed = true
-		boolTrue := true
-		s.AutoRecovery = &boolTrue
-	}
-
-	if s.Resources == nil {
-		changed = true
-		s.Resources = &v1.ResourceRequirements{
-			Requests: v1.ResourceList{
-				v1.ResourceCPU:    resource.MustParse(DefaultBookkeeperRequestCPU),
-				v1.ResourceMemory: resource.MustParse(DefaultBookkeeperRequestMemory),
-			},
-			Limits: v1.ResourceList{
-				v1.ResourceCPU:    resource.MustParse(DefaultBookkeeperLimitCPU),
-				v1.ResourceMemory: resource.MustParse(DefaultBookkeeperLimitMemory),
-			},
-		}
-	}
-
-	if s.Options == nil {
-		s.Options = map[string]string{}
-	}
-
-	if s.BookkeeperJVMOptions == nil {
-		changed = true
-		s.BookkeeperJVMOptions = &BookkeeperJVMOptions{}
-	}
-
-	if s.BookkeeperJVMOptions.withDefaults() {
-		changed = true
-	}
-
-	return changed
+	// Version is the expected version of the Pravega cluster.
+	// The pravega-operator will eventually make the Pravega cluster version
+	// equal to the expected version.
+	//
+	// The version must follow the [semver]( http://semver.org) format, for example "3.2.13".
+	// Only Pravega released versions are supported: https://github.com/pravega/pravega/releases
+	//
+	// If version is not set, default is "0.4.0".
+	Version string `json:"version"`
 }
 
 // BookkeeperImageSpec defines the fields needed for a BookKeeper Docker image
@@ -168,14 +169,14 @@ func (s *BookkeeperImageSpec) withDefaults() (changed bool) {
 	return changed
 }
 
-type BookkeeperJVMOptions struct {
+type JVMOptions struct {
 	MemoryOpts    []string `json:"memoryOpts"`
 	GcOpts        []string `json:"gcOpts"`
 	GcLoggingOpts []string `json:"gcLoggingOpts"`
 	ExtraOpts     []string `json:"extraOpts"`
 }
 
-func (s *BookkeeperJVMOptions) withDefaults() (changed bool) {
+func (s *JVMOptions) withDefaults() (changed bool) {
 	if s.MemoryOpts == nil {
 		changed = true
 		s.MemoryOpts = []string{}
@@ -253,6 +254,82 @@ func (s *BookkeeperStorageSpec) withDefaults() (changed bool) {
 			},
 		}
 	}
-
 	return changed
+}
+
+func (s *BookkeeperClusterSpec) withDefaults() (changed bool) {
+	if s.ZookeeperUri == "" {
+		changed = true
+		s.ZookeeperUri = DefaultZookeeperUri
+	}
+
+	if s.Image == nil {
+		changed = true
+		s.Image = &BookkeeperImageSpec{}
+	}
+	if s.Image.withDefaults() {
+		changed = true
+	}
+
+	if !config.TestMode && s.Replicas < MinimumBookkeeperReplicas {
+		changed = true
+		s.Replicas = MinimumBookkeeperReplicas
+	}
+
+	if s.Storage == nil {
+		changed = true
+		s.Storage = &BookkeeperStorageSpec{}
+	}
+	if s.Storage.withDefaults() {
+		changed = true
+	}
+
+	if s.AutoRecovery == nil {
+		changed = true
+		boolTrue := true
+		s.AutoRecovery = &boolTrue
+	}
+
+	if s.Resources == nil {
+		changed = true
+		s.Resources = &v1.ResourceRequirements{
+			Requests: v1.ResourceList{
+				v1.ResourceCPU:    resource.MustParse(DefaultBookkeeperRequestCPU),
+				v1.ResourceMemory: resource.MustParse(DefaultBookkeeperRequestMemory),
+			},
+			Limits: v1.ResourceList{
+				v1.ResourceCPU:    resource.MustParse(DefaultBookkeeperLimitCPU),
+				v1.ResourceMemory: resource.MustParse(DefaultBookkeeperLimitMemory),
+			},
+		}
+	}
+
+	if s.Options == nil {
+		s.Options = map[string]string{}
+	}
+
+	if s.JVMOptions == nil {
+		changed = true
+		s.JVMOptions = &JVMOptions{}
+	}
+
+	if s.JVMOptions.withDefaults() {
+		changed = true
+	}
+
+	if s.Version == "" {
+		s.Version = DefaultBookkeeperVersion
+		changed = true
+	}
+	return changed
+}
+
+// ImageSpec defines the fields needed for a Docker repository image
+type ImageSpec struct {
+	Repository string `json:"repository"`
+
+	// Deprecated: Use `spec.Version` instead
+	Tag string `json:"tag,omitempty"`
+
+	PullPolicy v1.PullPolicy `json:"pullPolicy"`
 }

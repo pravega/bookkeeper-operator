@@ -17,7 +17,7 @@ import (
 	"strings"
 
 	v "github.com/hashicorp/go-version"
-	"github.com/pravega/pravega-operator/pkg/apis/pravega/v1alpha1"
+	"github.com/pravega/bookkeeper-operator/pkg/apis/bookkeeper/v1alpha1"
 	"k8s.io/api/core/v1"
 )
 
@@ -45,68 +45,20 @@ func StatefulSetNameForBookie(clusterName string) string {
 	return fmt.Sprintf("%s-bookie", clusterName)
 }
 
-func PdbNameForController(clusterName string) string {
-	return fmt.Sprintf("%s-pravega-controller", clusterName)
-}
-
-func ConfigMapNameForController(clusterName string) string {
-	return fmt.Sprintf("%s-pravega-controller", clusterName)
-}
-
-func ServiceNameForController(clusterName string) string {
-	return fmt.Sprintf("%s-pravega-controller", clusterName)
-}
-
-func ServiceNameForSegmentStore(clusterName string, index int32) string {
-	return fmt.Sprintf("%s-pravega-segmentstore-%d", clusterName, index)
-}
-
-func HeadlessServiceNameForSegmentStore(clusterName string) string {
-	return fmt.Sprintf("%s-pravega-segmentstore-headless", clusterName)
-}
-
 func HeadlessServiceNameForBookie(clusterName string) string {
 	return fmt.Sprintf("%s-bookie-headless", clusterName)
 }
 
-func DeploymentNameForController(clusterName string) string {
-	return fmt.Sprintf("%s-pravega-controller", clusterName)
-}
-
-func PdbNameForSegmentstore(clusterName string) string {
-	return fmt.Sprintf("%s-segmentstore", clusterName)
-}
-
-func ConfigMapNameForSegmentstore(clusterName string) string {
-	return fmt.Sprintf("%s-pravega-segmentstore", clusterName)
-}
-
-func StatefulSetNameForSegmentstore(clusterName string) string {
-	return fmt.Sprintf("%s-pravega-segmentstore", clusterName)
-}
-
-func LabelsForBookie(pravegaCluster *v1alpha1.PravegaCluster) map[string]string {
-	labels := LabelsForPravegaCluster(pravegaCluster)
+func LabelsForBookie(bookkeeperCluster *v1alpha1.BookkeeperCluster) map[string]string {
+	labels := LabelsForBookkeeperCluster(bookkeeperCluster)
 	labels["component"] = "bookie"
 	return labels
 }
 
-func LabelsForController(pravegaCluster *v1alpha1.PravegaCluster) map[string]string {
-	labels := LabelsForPravegaCluster(pravegaCluster)
-	labels["component"] = "pravega-controller"
-	return labels
-}
-
-func LabelsForSegmentStore(pravegaCluster *v1alpha1.PravegaCluster) map[string]string {
-	labels := LabelsForPravegaCluster(pravegaCluster)
-	labels["component"] = "pravega-segmentstore"
-	return labels
-}
-
-func LabelsForPravegaCluster(pravegaCluster *v1alpha1.PravegaCluster) map[string]string {
+func LabelsForBookkeeperCluster(bookkeeperCluster *v1alpha1.BookkeeperCluster) map[string]string {
 	return map[string]string{
-		"app":             "pravega-cluster",
-		"pravega_cluster": pravegaCluster.Name,
+		"app":                "bookkeeper-cluster",
+		"bookkeeper_cluster": bookkeeperCluster.Name,
 	}
 }
 
@@ -122,10 +74,6 @@ func IsOrphan(k8sObjectName string, replicas int32) bool {
 	}
 
 	return int32(ordinal) >= replicas
-}
-
-func PravegaControllerServiceURL(pravegaCluster v1alpha1.PravegaCluster) string {
-	return fmt.Sprintf("tcp://%v.%v:%v", ServiceNameForController(pravegaCluster.Name), pravegaCluster.Namespace, "9090")
 }
 
 func HealthcheckCommand(port int32) []string {
@@ -159,34 +107,23 @@ func RemoveString(slice []string, str string) (result []string) {
 	return result
 }
 
-func GetClusterExpectedSize(p *v1alpha1.PravegaCluster) (size int) {
-	return int(p.Spec.Pravega.ControllerReplicas + p.Spec.Pravega.SegmentStoreReplicas + p.Spec.Bookkeeper.Replicas)
+func GetClusterExpectedSize(p *v1alpha1.BookkeeperCluster) (size int) {
+	return int(p.Spec.Replicas)
 }
 
-func PravegaImage(p *v1alpha1.PravegaCluster) (image string) {
-	return fmt.Sprintf("%s:%s", p.Spec.Pravega.Image.Repository, p.Spec.Version)
+func BookkeeperImage(p *v1alpha1.BookkeeperCluster) (image string) {
+	return fmt.Sprintf("%s:%s", p.Spec.Image.Repository, p.Spec.Version)
 }
 
-func BookkeeperImage(p *v1alpha1.PravegaCluster) (image string) {
-	return fmt.Sprintf("%s:%s", p.Spec.Bookkeeper.Image.Repository, p.Spec.Version)
-}
-
-func PravegaTargetImage(p *v1alpha1.PravegaCluster) (string, error) {
+func BookkeeperTargetImage(p *v1alpha1.BookkeeperCluster) (string, error) {
 	if p.Status.TargetVersion == "" {
 		return "", fmt.Errorf("target version is not set")
 	}
-	return fmt.Sprintf("%s:%s", p.Spec.Pravega.Image.Repository, p.Status.TargetVersion), nil
-}
-
-func BookkeeperTargetImage(p *v1alpha1.PravegaCluster) (string, error) {
-	if p.Status.TargetVersion == "" {
-		return "", fmt.Errorf("target version is not set")
-	}
-	return fmt.Sprintf("%s:%s", p.Spec.Bookkeeper.Image.Repository, p.Status.TargetVersion), nil
+	return fmt.Sprintf("%s:%s", p.Spec.Image.Repository, p.Status.TargetVersion), nil
 }
 
 func GetPodVersion(pod *v1.Pod) string {
-	return pod.GetAnnotations()["pravega.version"]
+	return pod.GetAnnotations()["bookkeeper.version"]
 }
 
 func CompareVersions(v1, v2, operator string) (bool, error) {

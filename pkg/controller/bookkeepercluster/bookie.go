@@ -8,14 +8,14 @@
  *     http://www.apache.org/licenses/LICENSE-2.0
  */
 
-package pravega
+package bookkeepercluster
 
 import (
 	"fmt"
 	"strings"
 
-	"github.com/pravega/pravega-operator/pkg/apis/pravega/v1alpha1"
-	"github.com/pravega/pravega-operator/pkg/util"
+	"github.com/pravega/bookkeeper-operator/pkg/apis/bookkeeper/v1alpha1"
+	"github.com/pravega/bookkeeper-operator/pkg/util"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	policyv1beta1 "k8s.io/api/policy/v1beta1"
@@ -27,18 +27,20 @@ const (
 	LedgerDiskName  = "ledger"
 	JournalDiskName = "journal"
 	IndexDiskName   = "index"
+	heapDumpName    = "heap-dump"
+	heapDumpDir     = "/tmp/dumpfile/heap"
 )
 
-func MakeBookieHeadlessService(pravegaCluster *v1alpha1.PravegaCluster) *corev1.Service {
+func MakeBookieHeadlessService(bookkeeperCluster *v1alpha1.BookkeeperCluster) *corev1.Service {
 	return &corev1.Service{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Service",
 			APIVersion: "v1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      util.HeadlessServiceNameForBookie(pravegaCluster.Name),
-			Namespace: pravegaCluster.Namespace,
-			Labels:    util.LabelsForBookie(pravegaCluster),
+			Name:      util.HeadlessServiceNameForBookie(bookkeeperCluster.Name),
+			Namespace: bookkeeperCluster.Namespace,
+			Labels:    util.LabelsForBookie(bookkeeperCluster),
 		},
 		Spec: corev1.ServiceSpec{
 			Ports: []corev1.ServicePort{
@@ -47,56 +49,56 @@ func MakeBookieHeadlessService(pravegaCluster *v1alpha1.PravegaCluster) *corev1.
 					Port: 3181,
 				},
 			},
-			Selector:  util.LabelsForBookie(pravegaCluster),
+			Selector:  util.LabelsForBookie(bookkeeperCluster),
 			ClusterIP: corev1.ClusterIPNone,
 		},
 	}
 }
 
-func MakeBookieStatefulSet(pravegaCluster *v1alpha1.PravegaCluster) *appsv1.StatefulSet {
+func MakeBookieStatefulSet(bookkeeperCluster *v1alpha1.BookkeeperCluster) *appsv1.StatefulSet {
 	return &appsv1.StatefulSet{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "StatefulSet",
 			APIVersion: "apps/v1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      util.StatefulSetNameForBookie(pravegaCluster.Name),
-			Namespace: pravegaCluster.Namespace,
-			Labels:    util.LabelsForBookie(pravegaCluster),
+			Name:      util.StatefulSetNameForBookie(bookkeeperCluster.Name),
+			Namespace: bookkeeperCluster.Namespace,
+			Labels:    util.LabelsForBookie(bookkeeperCluster),
 		},
 		Spec: appsv1.StatefulSetSpec{
-			ServiceName:         util.HeadlessServiceNameForBookie(pravegaCluster.Name),
-			Replicas:            &pravegaCluster.Spec.Bookkeeper.Replicas,
+			ServiceName:         util.HeadlessServiceNameForBookie(bookkeeperCluster.Name),
+			Replicas:            &bookkeeperCluster.Spec.Replicas,
 			PodManagementPolicy: appsv1.ParallelPodManagement,
 			UpdateStrategy: appsv1.StatefulSetUpdateStrategy{
 				Type: appsv1.OnDeleteStatefulSetStrategyType,
 			},
-			Template: MakeBookiePodTemplate(pravegaCluster),
+			Template: MakeBookiePodTemplate(bookkeeperCluster),
 			Selector: &metav1.LabelSelector{
-				MatchLabels: util.LabelsForBookie(pravegaCluster),
+				MatchLabels: util.LabelsForBookie(bookkeeperCluster),
 			},
-			VolumeClaimTemplates: makeBookieVolumeClaimTemplates(pravegaCluster.Spec.Bookkeeper),
+			VolumeClaimTemplates: makeBookieVolumeClaimTemplates(bookkeeperCluster.Spec.Storage),
 		},
 	}
 }
 
-func MakeBookiePodTemplate(p *v1alpha1.PravegaCluster) corev1.PodTemplateSpec {
+func MakeBookiePodTemplate(p *v1alpha1.BookkeeperCluster) corev1.PodTemplateSpec {
 	return corev1.PodTemplateSpec{
 		ObjectMeta: metav1.ObjectMeta{
 			Labels:      util.LabelsForBookie(p),
-			Annotations: map[string]string{"pravega.version": p.Spec.Version},
+			Annotations: map[string]string{"bookkeeper.version": p.Spec.Version},
 		},
 		Spec: *makeBookiePodSpec(p),
 	}
 }
 
-func makeBookiePodSpec(p *v1alpha1.PravegaCluster) *corev1.PodSpec {
+func makeBookiePodSpec(bk *v1alpha1.BookkeeperCluster) *corev1.PodSpec {
 	podSpec := &corev1.PodSpec{
 		Containers: []corev1.Container{
 			{
 				Name:            "bookie",
-				Image:           util.BookkeeperImage(p),
-				ImagePullPolicy: p.Spec.Bookkeeper.Image.PullPolicy,
+				Image:           util.BookkeeperImage(bk),
+				ImagePullPolicy: bk.Spec.Image.PullPolicy,
 				Ports: []corev1.ContainerPort{
 					{
 						Name:          "bookie",
@@ -107,7 +109,7 @@ func makeBookiePodSpec(p *v1alpha1.PravegaCluster) *corev1.PodSpec {
 					{
 						ConfigMapRef: &corev1.ConfigMapEnvSource{
 							LocalObjectReference: corev1.LocalObjectReference{
-								Name: util.ConfigMapNameForBookie(p.Name),
+								Name: util.ConfigMapNameForBookie(bk.Name),
 							},
 						},
 					},
@@ -130,7 +132,7 @@ func makeBookiePodSpec(p *v1alpha1.PravegaCluster) *corev1.PodSpec {
 						MountPath: heapDumpDir,
 					},
 				},
-				Resources: *p.Spec.Bookkeeper.Resources,
+				Resources: *bk.Spec.Resources,
 				ReadinessProbe: &corev1.Probe{
 					Handler: corev1.Handler{
 						Exec: &corev1.ExecAction{
@@ -158,7 +160,7 @@ func makeBookiePodSpec(p *v1alpha1.PravegaCluster) *corev1.PodSpec {
 				},
 			},
 		},
-		Affinity: util.PodAntiAffinity("bookie", p.Name),
+		Affinity: util.PodAntiAffinity("bookie", bk.Name),
 		Volumes: []corev1.Volume{
 			{
 				Name: heapDumpName,
@@ -169,37 +171,37 @@ func makeBookiePodSpec(p *v1alpha1.PravegaCluster) *corev1.PodSpec {
 		},
 	}
 
-	if p.Spec.Bookkeeper.ServiceAccountName != "" {
-		podSpec.ServiceAccountName = p.Spec.Bookkeeper.ServiceAccountName
+	if bk.Spec.ServiceAccountName != "" {
+		podSpec.ServiceAccountName = bk.Spec.ServiceAccountName
 	}
 
 	return podSpec
 }
 
-func makeBookieVolumeClaimTemplates(spec *v1alpha1.BookkeeperSpec) []corev1.PersistentVolumeClaim {
+func makeBookieVolumeClaimTemplates(spec *v1alpha1.BookkeeperStorageSpec) []corev1.PersistentVolumeClaim {
 	return []corev1.PersistentVolumeClaim{
 		{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: JournalDiskName,
 			},
-			Spec: *spec.Storage.JournalVolumeClaimTemplate,
+			Spec: *spec.JournalVolumeClaimTemplate,
 		},
 		{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: LedgerDiskName,
 			},
-			Spec: *spec.Storage.LedgerVolumeClaimTemplate,
+			Spec: *spec.LedgerVolumeClaimTemplate,
 		},
 		{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: IndexDiskName,
 			},
-			Spec: *spec.Storage.IndexVolumeClaimTemplate,
+			Spec: *spec.IndexVolumeClaimTemplate,
 		},
 	}
 }
 
-func MakeBookieConfigMap(pravegaCluster *v1alpha1.PravegaCluster) *corev1.ConfigMap {
+func MakeBookieConfigMap(bookkeeperCluster *v1alpha1.BookkeeperCluster) *corev1.ConfigMap {
 	memoryOpts := []string{
 		"-Xms1g",
 		"-XX:MaxDirectMemorySize=1g",
@@ -207,17 +209,12 @@ func MakeBookieConfigMap(pravegaCluster *v1alpha1.PravegaCluster) *corev1.Config
 		"-XX:+CrashOnOutOfMemoryError",
 		"-XX:+HeapDumpOnOutOfMemoryError",
 		"-XX:HeapDumpPath=" + heapDumpDir,
+		"-XX:+UnlockExperimentalVMOptions",
+		"-XX:+UseCGroupMemoryLimitForHeap",
+		"-XX:MaxRAMFraction=2",
 	}
 
-	if match, _ := util.CompareVersions(pravegaCluster.Spec.Version, "0.4.0", ">="); match {
-		// Pravega < 0.4 uses a Java version that does not support the options below
-		memoryOpts = append(memoryOpts,
-			"-XX:+UnlockExperimentalVMOptions",
-			"-XX:+UseCGroupMemoryLimitForHeap",
-			"-XX:MaxRAMFraction=2",
-		)
-	}
-	memoryOpts = util.OverrideDefaultJVMOptions(memoryOpts, pravegaCluster.Spec.Bookkeeper.BookkeeperJVMOptions.MemoryOpts)
+	memoryOpts = util.OverrideDefaultJVMOptions(memoryOpts, bookkeeperCluster.Spec.JVMOptions.MemoryOpts)
 
 	gcOpts := []string{
 		"-XX:+UseG1GC",
@@ -231,7 +228,7 @@ func MakeBookieConfigMap(pravegaCluster *v1alpha1.PravegaCluster) *corev1.Config
 		"-XX:+DisableExplicitGC",
 		"-XX:-ResizePLAB",
 	}
-	gcOpts = util.OverrideDefaultJVMOptions(gcOpts, pravegaCluster.Spec.Bookkeeper.BookkeeperJVMOptions.GcOpts)
+	gcOpts = util.OverrideDefaultJVMOptions(gcOpts, bookkeeperCluster.Spec.JVMOptions.GcOpts)
 
 	gcLoggingOpts := []string{
 		"-XX:+PrintGCDetails",
@@ -241,11 +238,11 @@ func MakeBookieConfigMap(pravegaCluster *v1alpha1.PravegaCluster) *corev1.Config
 		"-XX:NumberOfGCLogFiles=5",
 		"-XX:GCLogFileSize=64m",
 	}
-	gcLoggingOpts = util.OverrideDefaultJVMOptions(gcLoggingOpts, pravegaCluster.Spec.Bookkeeper.BookkeeperJVMOptions.GcLoggingOpts)
+	gcLoggingOpts = util.OverrideDefaultJVMOptions(gcLoggingOpts, bookkeeperCluster.Spec.JVMOptions.GcLoggingOpts)
 
 	extraOpts := []string{}
-	if pravegaCluster.Spec.Bookkeeper.BookkeeperJVMOptions.ExtraOpts != nil {
-		extraOpts = pravegaCluster.Spec.Bookkeeper.BookkeeperJVMOptions.ExtraOpts
+	if bookkeeperCluster.Spec.JVMOptions.ExtraOpts != nil {
+		extraOpts = bookkeeperCluster.Spec.JVMOptions.ExtraOpts
 	}
 
 	configData := map[string]string{
@@ -253,26 +250,26 @@ func MakeBookieConfigMap(pravegaCluster *v1alpha1.PravegaCluster) *corev1.Config
 		"BOOKIE_GC_OPTS":           strings.Join(gcOpts, " "),
 		"BOOKIE_GC_LOGGING_OPTS":   strings.Join(gcLoggingOpts, " "),
 		"BOOKIE_EXTRA_OPTS":        strings.Join(extraOpts, " "),
-		"ZK_URL":                   pravegaCluster.Spec.ZookeeperUri,
+		"ZK_URL":                   bookkeeperCluster.Spec.ZookeeperUri,
 		"BK_useHostNameAsBookieID": "true",
-		"PRAVEGA_CLUSTER_NAME":     pravegaCluster.ObjectMeta.Name,
-		"WAIT_FOR":                 pravegaCluster.Spec.ZookeeperUri,
+		"PRAVEGA_CLUSTER_NAME":     bookkeeperCluster.ObjectMeta.Name,
+		"WAIT_FOR":                 bookkeeperCluster.Spec.ZookeeperUri,
 	}
 
-	if match, _ := util.CompareVersions(pravegaCluster.Spec.Version, "0.5.0", "<"); match {
-		// Pravega < 0.5 uses BookKeeper 4.5, which does not play well
+	if match, _ := util.CompareVersions(bookkeeperCluster.Spec.Version, "0.5.0", "<"); match {
+		// bookkeeper < 0.5 uses BookKeeper 4.5, which does not play well
 		// with hostnames that resolve to different IP addresses over time
 		configData["BK_useHostNameAsBookieID"] = "false"
 	}
 
-	if *pravegaCluster.Spec.Bookkeeper.AutoRecovery {
+	if *bookkeeperCluster.Spec.AutoRecovery {
 		configData["BK_AUTORECOVERY"] = "true"
 		// Wait one minute before starting autorecovery. This will give
 		// pods some time to come up after being updated or migrated
 		configData["BK_lostBookieRecoveryDelay"] = "60"
 	}
 
-	for k, v := range pravegaCluster.Spec.Bookkeeper.Options {
+	for k, v := range bookkeeperCluster.Spec.Options {
 		prefixKey := fmt.Sprintf("BK_%s", k)
 		configData[prefixKey] = v
 	}
@@ -283,14 +280,14 @@ func MakeBookieConfigMap(pravegaCluster *v1alpha1.PravegaCluster) *corev1.Config
 			APIVersion: "v1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      util.ConfigMapNameForBookie(pravegaCluster.Name),
-			Namespace: pravegaCluster.ObjectMeta.Namespace,
+			Name:      util.ConfigMapNameForBookie(bookkeeperCluster.Name),
+			Namespace: bookkeeperCluster.ObjectMeta.Namespace,
 		},
 		Data: configData,
 	}
 }
 
-func MakeBookiePodDisruptionBudget(pravegaCluster *v1alpha1.PravegaCluster) *policyv1beta1.PodDisruptionBudget {
+func MakeBookiePodDisruptionBudget(bookkeeperCluster *v1alpha1.BookkeeperCluster) *policyv1beta1.PodDisruptionBudget {
 	maxUnavailable := intstr.FromInt(1)
 	return &policyv1beta1.PodDisruptionBudget{
 		TypeMeta: metav1.TypeMeta{
@@ -298,13 +295,13 @@ func MakeBookiePodDisruptionBudget(pravegaCluster *v1alpha1.PravegaCluster) *pol
 			APIVersion: "policy/v1beta1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      util.PdbNameForBookie(pravegaCluster.Name),
-			Namespace: pravegaCluster.Namespace,
+			Name:      util.PdbNameForBookie(bookkeeperCluster.Name),
+			Namespace: bookkeeperCluster.Namespace,
 		},
 		Spec: policyv1beta1.PodDisruptionBudgetSpec{
 			MaxUnavailable: &maxUnavailable,
 			Selector: &metav1.LabelSelector{
-				MatchLabels: util.LabelsForBookie(pravegaCluster),
+				MatchLabels: util.LabelsForBookie(bookkeeperCluster),
 			},
 		},
 	}
