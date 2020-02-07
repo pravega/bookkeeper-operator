@@ -1,4 +1,4 @@
-# Pravega Helm Chart
+# Bookkeeper Helm Chart
 
 Installs Bookkeeper clusters atop Kubernetes.
 
@@ -41,10 +41,7 @@ The following table lists the configurable parameters of the Bookkeeper chart an
 | ----- | ----------- | ------ |
 | `version` | Version for Bookkeeper cluster | `latest` |
 | `zookeeperUri` | Zookeeper service address | `zk-client:2181` |
-| `image.repository` | Image repo for Bookkeeper image | `pravega/bookkeeper` |
+| `image.repository` | Repository for Bookkeeper image | `pravega/bookkeeper` |
+| `image.pullPolicy` | Pull policy for Bookkeeper image | `IfNotPresent` |
 | `replicas` | Replicas for Bookkeeper | `3` |
-| `storage.className` | Storage class for Bookkeeper volumes | `standard` |
-| `storage.ledgerVolumeRequest` | Request storage for ledgerVolume | `10Gi` |
-| `storage.journalVolumeRequest` | Request storage for journalVolume | `10Gi` |
-| `storage.indexVolumeRequest` | Request storage for indexVolume | `10Gi` |
 | `autoRecovery`| Enable Bookkeeper autoRecovery | `true` |
