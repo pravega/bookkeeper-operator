@@ -1,0 +1,35 @@
+apiVersion: "bookkeeper.pravega.io/v1alpha1"
+kind: "BookkeeperCluster"
+metadata:
+  name: {{ template "bookkeeper.fullname" . }}
+
+spec:
+  replicas: {{ .Values.replicas }}
+
+  image:
+    repository: {{ with .Values.image }}{{ .repository }}{{ end }}
+    pullPolicy: {{ with .Values.image }}{{ .pullPolicy }}{{ end }}
+
+  storage:
+      ledgerVolumeClaimTemplate:
+        accessModes: [ "ReadWriteOnce" ]
+        storageClassName: {{ .Values.storage.className }}
+        resources:
+          requests:
+            storage: {{ .Values.storage.ledgerVolumeRequest }}
+      journalVolumeClaimTemplate:
+        accessModes: [ "ReadWriteOnce" ]
+        storageClassName: {{ .Values.storage.className }}
+        resources:
+          requests:
+            storage: {{ .Values.storage.journalVolumeRequest }}
+      indexVolumeClaimTemplate:
+        accessModes: [ "ReadWriteOnce" ]
+        storageClassName: {{ .Values.storage.className }}
+        resources:
+          requests:
+            storage: {{ .Values.storage.indexVolumeRequest }}
+
+  version: 0.6.1
+  zookeeperUri: {{ .Values.zookeeperUri }}
+  autoRecovery: {{ .Values.autoRecovery }}

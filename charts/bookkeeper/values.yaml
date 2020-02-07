@@ -1,0 +1,25 @@
+# Default values for pravega.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+apiVersion: "bookkeeper.pravega.io/v1alpha1"
+kind: "BookkeeperCluster"
+metadata:
+  name: "pravega"
+
+spec:
+  replicas: 3
+
+  image:
+    repository: pravega/bookkeeper
+    pullPolicy: IfNotPresent
+
+  storage:
+    className: standard
+    ledgerVolumeRequest: 10Gi
+    journalVolumeRequest: 10Gi
+    indexVolumeRequest: 10Gi
+
+  version: latest
+  zookeeperUri: zk-client:2181
+  autoRecovery: true

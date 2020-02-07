@@ -2,10 +2,10 @@
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: {{ template "pravega-operator.fullname" . }}
+  name: {{ template "bookkeeper-operator.fullname" . }}
 rules:
 - apiGroups:
-  - pravega.pravega.io
+  - bookkeeper.pravega.io
   resources:
   - "*"
   verbs:
