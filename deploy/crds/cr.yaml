@@ -1,13 +1,13 @@
 apiVersion: "bookkeeper.pravega.io/v1alpha1"
 kind: "BookkeeperCluster"
 metadata:
-  name: "pravega"
+  name: "pravega-bk"
 spec:
-  zookeeperUri: example-client:2181
+  zookeeperUri: zookeeper-client:2181
 
   image:
       repository: pravega/bookkeeper
-      tag: 0.6.1
+      tag: latest
       pullPolicy: IfNotPresent
 
   replicas: 3
@@ -28,4 +28,4 @@ spec:
             storage: 10Gi
 
   autoRecovery: true
-  version: 0.6.1
+  version: latest

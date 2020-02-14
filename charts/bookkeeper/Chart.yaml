@@ -1,4 +1,4 @@
-name: pravega
+name: pravega-bk
 version: 0.6.1
 appVersion: 0.6.1
 description: Bookkeeper Helm chart for Kubernetes

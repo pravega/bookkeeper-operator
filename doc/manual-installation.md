@@ -12,7 +12,7 @@
 Register the Pravega cluster custom resource definition (CRD).
 
 ```
-$ kubectl create -f deploy/crd.yaml
+$ kubectl create -f deploy/crds/crd.yaml
 ```
 
 Create the operator role, role binding and service account.
