@@ -11,5 +11,5 @@ spec:
     pullPolicy: IfNotPresent
 
   version: latest
-  zookeeperUri: zk-client:2181
+  zookeeperUri: zookeeper-client:2181
   autoRecovery: true
