@@ -3,10 +3,10 @@ version: 0.6.1
 appVersion: 0.6.1
 description: Bookkeeper Helm chart for Kubernetes
 keywords:
-- pravega
-- storage
-home: https://github.com/pravega/pravega
-icon: https://avatars3.githubusercontent.com/u/25698199
+  - log storage
+  - stream storage
+home: https://github.com/pravega/bookkeeper-operator/tree/master/charts/bookkeeper
+icon: https://bookkeeper.apache.org/images/bookkeeper_logo_blk.png
 sources:
-- https://github.com/pravega/pravega
+- https://github.com/apache/bookkeeper
 engine: gotpl
