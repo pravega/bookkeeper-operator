@@ -137,6 +137,10 @@ type BookkeeperClusterSpec struct {
 	// options that is good enough for general deployment.
 	JVMOptions *JVMOptions `json:"jvmOptions"`
 
+	// Provides the name of the configmap created by the user to provide additional key-value pairs
+	// that need to be configured into the bookie pods as environmental variables
+	EnvVars string `json:"envVars,omitempty"`
+
 	// Version is the expected version of the Pravega cluster.
 	// The pravega-operator will eventually make the Pravega cluster version
 	// equal to the expected version.

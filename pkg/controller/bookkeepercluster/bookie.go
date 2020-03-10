@@ -93,6 +93,27 @@ func MakeBookiePodTemplate(p *v1alpha1.BookkeeperCluster) corev1.PodTemplateSpec
 }
 
 func makeBookiePodSpec(bk *v1alpha1.BookkeeperCluster) *corev1.PodSpec {
+	configMapName := strings.TrimSpace(bk.Spec.EnvVars)
+	environment := []corev1.EnvFromSource{
+		{
+			ConfigMapRef: &corev1.ConfigMapEnvSource{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: util.ConfigMapNameForBookie(bk.Name),
+				},
+			},
+		},
+	}
+
+	if configMapName != "" {
+		environment = append(environment, corev1.EnvFromSource{
+			ConfigMapRef: &corev1.ConfigMapEnvSource{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: configMapName,
+				},
+			},
+		})
+	}
+
 	podSpec := &corev1.PodSpec{
 		Containers: []corev1.Container{
 			{
@@ -105,15 +126,7 @@ func makeBookiePodSpec(bk *v1alpha1.BookkeeperCluster) *corev1.PodSpec {
 						ContainerPort: 3181,
 					},
 				},
-				EnvFrom: []corev1.EnvFromSource{
-					{
-						ConfigMapRef: &corev1.ConfigMapEnvSource{
-							LocalObjectReference: corev1.LocalObjectReference{
-								Name: util.ConfigMapNameForBookie(bk.Name),
-							},
-						},
-					},
-				},
+				EnvFrom: environment,
 				VolumeMounts: []corev1.VolumeMount{
 					{
 						Name:      LedgerDiskName,

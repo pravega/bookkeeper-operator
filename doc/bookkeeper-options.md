@@ -78,3 +78,21 @@ Default gcLoggingOpts:
 "-XX:NumberOfGCLogFiles=5",
 "-XX:GCLogFileSize=64m",
 ```
+
+### BookKeeper Custom Configuration
+
+It is possible to add additional parameters into the BookKeeper container by allowing users to create a custom ConfigMap  and specify its name within the field `EnvVars`of the Bookkeeper Spec. However, the user needs to ensure that the following keys which are present in BookKeeper ConfigMap which is created by the BookKeeper Operator should not be a part of this custom ConfigMap.
+
+```
+- BOOKIE_MEM_OPTS
+- BOOKIE_GC_OPTS
+- BOOKIE_GC_LOGGING_OPTS
+- BOOKIE_EXTRA_OPTS
+- ZK_URL
+- BK_useHostNameAsBookieID
+- PRAVEGA_CLUSTER_NAME
+- WAIT_FOR
+- BK_useHostNameAsBookieID
+- BK_AUTORECOVERY
+- BK_lostBookieRecoveryDelay
+```
