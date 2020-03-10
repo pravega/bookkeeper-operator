@@ -93,7 +93,6 @@ func MakeBookiePodTemplate(p *v1alpha1.BookkeeperCluster) corev1.PodTemplateSpec
 }
 
 func makeBookiePodSpec(bk *v1alpha1.BookkeeperCluster) *corev1.PodSpec {
-	configMapName := strings.TrimSpace(bk.Spec.EnvVars)
 	environment := []corev1.EnvFromSource{
 		{
 			ConfigMapRef: &corev1.ConfigMapEnvSource{
@@ -104,6 +103,7 @@ func makeBookiePodSpec(bk *v1alpha1.BookkeeperCluster) *corev1.PodSpec {
 		},
 	}
 
+	configMapName := strings.TrimSpace(bk.Spec.EnvVars)
 	if configMapName != "" {
 		environment = append(environment, corev1.EnvFromSource{
 			ConfigMapRef: &corev1.ConfigMapEnvSource{
@@ -265,8 +265,6 @@ func MakeBookieConfigMap(bookkeeperCluster *v1alpha1.BookkeeperCluster) *corev1.
 		"BOOKIE_EXTRA_OPTS":        strings.Join(extraOpts, " "),
 		"ZK_URL":                   bookkeeperCluster.Spec.ZookeeperUri,
 		"BK_useHostNameAsBookieID": "true",
-		"PRAVEGA_CLUSTER_NAME":     bookkeeperCluster.ObjectMeta.Name,
-		"WAIT_FOR":                 bookkeeperCluster.Spec.ZookeeperUri,
 	}
 
 	if match, _ := util.CompareVersions(bookkeeperCluster.Spec.Version, "0.5.0", "<"); match {

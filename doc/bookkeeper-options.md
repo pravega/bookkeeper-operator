@@ -90,8 +90,6 @@ It is possible to add additional parameters into the BookKeeper container by all
 - BOOKIE_EXTRA_OPTS
 - ZK_URL
 - BK_useHostNameAsBookieID
-- PRAVEGA_CLUSTER_NAME
-- WAIT_FOR
 - BK_useHostNameAsBookieID
 - BK_AUTORECOVERY
 - BK_lostBookieRecoveryDelay
