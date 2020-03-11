@@ -61,7 +61,9 @@ pr-bookkeeper-operator          1         1         1            1           17s
 
 ### Install a sample Bookkeeper cluster
 
-Use Helm to install a sample Bookkeeper cluster with release name `pravega`.
+If the BookKeeper cluster is expected to work with Pravega, create a ConfigMap which contains the correct value for the key `PRAVEGA_CLUSTER_NAME`, and provide the name of this file within the field `envVars` present in the BookKeeper Spec. For more details about this ConfigMap refer to [this](doc/bookkeeper-options.md#bookkeeper-custom-configuration).
+
+Helm can be used to install a sample Bookkeeper cluster.
 
 ```
 $ helm install charts/bookkeeper --name pravega-bk --set zookeeperUri=[ZOOKEEPER_HOST]
@@ -70,7 +72,6 @@ $ helm install charts/bookkeeper --name pravega-bk --set zookeeperUri=[ZOOKEEPER
 where:
 
 - `[ZOOKEEPER_HOST]` is the host or IP address of your Zookeeper deployment (e.g. `zk-client:2181`). Multiple Zookeeper URIs can be specified, use a comma-separated list and DO NOT leave any spaces in between (e.g. `zk-0:2181,zk-1:2181,zk-2:2181`).
-
 
 Check out the [Bookkeeper Helm Chart](charts/bookkeeper) for more a complete list of installation parameters.
 
