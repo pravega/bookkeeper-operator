@@ -12,6 +12,8 @@ spec:
 
   replicas: 3
 
+  envVars: bk-config-map
+
   storage:
       ledgerVolumeClaimTemplate:
         accessModes: [ "ReadWriteOnce" ]
