@@ -63,7 +63,7 @@ pr-bookkeeper-operator          1         1         1            1           17s
 
 If the BookKeeper cluster is expected to work with Pravega, we need to create a ConfigMap which needs to have the following values
 
-| PRAVEGA_CLUSTER_NAME | Name of Pravega Cluster using this BookKeeper Vluster |
+| PRAVEGA_CLUSTER_NAME | Name of Pravega Cluster using this BookKeeper Cluster |
 | WAIT_FOR | Zookeeper URL |
 
 The name this ConfigMap needs to be mentioned in the field `envVars` present in the BookKeeper Spec. For more details about this ConfigMap refer to [this](doc/bookkeeper-options.md#bookkeeper-custom-configuration).
