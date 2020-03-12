@@ -81,7 +81,12 @@ Default gcLoggingOpts:
 
 ### BookKeeper Custom Configuration
 
-It is possible to add additional parameters into the BookKeeper container by allowing users to create a custom ConfigMap  and specify its name within the field `EnvVars`of the Bookkeeper Spec. However, the user needs to ensure that the following keys which are present in BookKeeper ConfigMap which is created by the BookKeeper Operator should not be a part of this custom ConfigMap.
+It is possible to add additional parameters into the BookKeeper container by allowing users to create a custom ConfigMap  and specify its name within the field `envVars` of the Bookkeeper Spec. The following values need to be provided within this ConfigMap if we expect the BookKeeper cluster to work with Pravega.
+
+| PRAVEGA_CLUSTER_NAME | Name of Pravega Cluster using this BookKeeper Vluster |
+| WAIT_FOR | Zookeeper URL |
+
+The user however needs to ensure that the following keys which are present in BookKeeper ConfigMap which is created by the BookKeeper Operator should not be a part of this custom ConfigMap.
 
 ```
 - BOOKIE_MEM_OPTS
