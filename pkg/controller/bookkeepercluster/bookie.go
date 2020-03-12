@@ -93,6 +93,27 @@ func MakeBookiePodTemplate(p *v1alpha1.BookkeeperCluster) corev1.PodTemplateSpec
 }
 
 func makeBookiePodSpec(bk *v1alpha1.BookkeeperCluster) *corev1.PodSpec {
+	environment := []corev1.EnvFromSource{
+		{
+			ConfigMapRef: &corev1.ConfigMapEnvSource{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: util.ConfigMapNameForBookie(bk.Name),
+				},
+			},
+		},
+	}
+
+	configMapName := strings.TrimSpace(bk.Spec.EnvVars)
+	if configMapName != "" {
+		environment = append(environment, corev1.EnvFromSource{
+			ConfigMapRef: &corev1.ConfigMapEnvSource{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: configMapName,
+				},
+			},
+		})
+	}
+
 	podSpec := &corev1.PodSpec{
 		Containers: []corev1.Container{
 			{
@@ -105,15 +126,7 @@ func makeBookiePodSpec(bk *v1alpha1.BookkeeperCluster) *corev1.PodSpec {
 						ContainerPort: 3181,
 					},
 				},
-				EnvFrom: []corev1.EnvFromSource{
-					{
-						ConfigMapRef: &corev1.ConfigMapEnvSource{
-							LocalObjectReference: corev1.LocalObjectReference{
-								Name: util.ConfigMapNameForBookie(bk.Name),
-							},
-						},
-					},
-				},
+				EnvFrom: environment,
 				VolumeMounts: []corev1.VolumeMount{
 					{
 						Name:      LedgerDiskName,
@@ -252,8 +265,6 @@ func MakeBookieConfigMap(bookkeeperCluster *v1alpha1.BookkeeperCluster) *corev1.
 		"BOOKIE_EXTRA_OPTS":        strings.Join(extraOpts, " "),
 		"ZK_URL":                   bookkeeperCluster.Spec.ZookeeperUri,
 		"BK_useHostNameAsBookieID": "true",
-		"PRAVEGA_CLUSTER_NAME":     bookkeeperCluster.ObjectMeta.Name,
-		"WAIT_FOR":                 bookkeeperCluster.Spec.ZookeeperUri,
 	}
 
 	if match, _ := util.CompareVersions(bookkeeperCluster.Spec.Version, "0.5.0", "<"); match {
