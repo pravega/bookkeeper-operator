@@ -65,9 +65,8 @@ spec:
   envVars: bk-config-map
   replicas: 3
   image:
-      repository: pravega/bookkeeper
-      tag: latest
-      pullPolicy: IfNotPresent
+    repository: pravega/bookkeeper
+    pullPolicy: IfNotPresent
 ```
 
 where:
@@ -87,7 +86,7 @@ Verify that the cluster instances and its components are being created.
 ```
 $ kubectl get bk
 NAME         VERSION   DESIRED MEMBERS    READY MEMBERS      AGE
-pravega-bk   0.6.1      3                    0               25s
+pravega-bk   0.6.1     3                  0                  25s
 ```
 
 ### Uninstall the Bookkeeper cluster manually
