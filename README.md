@@ -78,7 +78,7 @@ $ helm install charts/bookkeeper --name pravega-bk --set zookeeperUri=[ZOOKEEPER
 
 where:
 
-- `[ZOOKEEPER_HOST]` is the host or IP address of your Zookeeper deployment (e.g. `zk-client:2181`). Multiple Zookeeper URIs can be specified, use a comma-separated list and DO NOT leave any spaces in between (e.g. `zk-0:2181,zk-1:2181,zk-2:2181`).
+- `[ZOOKEEPER_HOST]` is the host or IP address of your Zookeeper deployment (e.g. `zookeeper-client:2181`). Multiple Zookeeper URIs can be specified, use a comma-separated list and DO NOT leave any spaces in between (e.g. `zookeeper-0:2181,zookeeper-1:2181,zookeeper-2:2181`).
 
 Check out the [Bookkeeper Helm Chart](charts/bookkeeper) for more a complete list of installation parameters.
 
@@ -87,7 +87,7 @@ Verify that the cluster instances and its components are being created.
 ```
 $ kubectl get bk
 NAME                   VERSION   DESIRED MEMBERS   READY MEMBERS      AGE
-pravega-bk             0.6.1     3                 1                  25s
+pravega-bk             0.7.0     3                 1                  25s
 ```
 
 After a couple of minutes, all cluster members should become ready.
@@ -95,7 +95,7 @@ After a couple of minutes, all cluster members should become ready.
 ```
 $ kubectl get bk
 NAME                   VERSION   DESIRED MEMBERS   READY MEMBERS     AGE
-pravega-bk             0.6.1     3                 3                 2m
+pravega-bk             0.7.0     3                 3                 2m
 ```
 
 ```
