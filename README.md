@@ -56,7 +56,7 @@ Verify that the Bookkeeper Operator is running.
 ```
 $ kubectl get deploy
 NAME                          DESIRED   CURRENT   UP-TO-DATE   AVAILABLE     AGE
-pr-bookkeeper-operator          1         1         1            1           17s
+pr-bookkeeper-operator           1         1         1            1          17s
 ```
 
 ### Install a sample Bookkeeper cluster
@@ -68,7 +68,7 @@ If the BookKeeper cluster is expected to work with Pravega, we need to create a 
 | *PRAVEGA_CLUSTER_NAME* | Name of Pravega Cluster using this BookKeeper Cluster |
 | *WAIT_FOR* | Zookeeper URL |
 
-The name this ConfigMap needs to be mentioned in the field `envVars` present in the BookKeeper Spec. For more details about this ConfigMap refer to [this](doc/bookkeeper-options.md#bookkeeper-custom-configuration).
+The name of this ConfigMap needs to be mentioned in the field `envVars` present in the BookKeeper Spec. For more details about this ConfigMap refer to [this](doc/bookkeeper-options.md#bookkeeper-custom-configuration).
 
 Helm can be used to install a sample Bookkeeper cluster.
 
@@ -78,7 +78,7 @@ $ helm install charts/bookkeeper --name pravega-bk --set zookeeperUri=[ZOOKEEPER
 
 where:
 
-- `[ZOOKEEPER_HOST]` is the host or IP address of your Zookeeper deployment (e.g. `zk-client:2181`). Multiple Zookeeper URIs can be specified, use a comma-separated list and DO NOT leave any spaces in between (e.g. `zk-0:2181,zk-1:2181,zk-2:2181`).
+- `[ZOOKEEPER_HOST]` is the host or IP address of your Zookeeper deployment (e.g. `zookeeper-client:2181`). Multiple Zookeeper URIs can be specified, use a comma-separated list and DO NOT leave any spaces in between (e.g. `zookeeper-0:2181,zookeeper-1:2181,zookeeper-2:2181`).
 
 Check out the [Bookkeeper Helm Chart](charts/bookkeeper) for more a complete list of installation parameters.
 
@@ -87,7 +87,7 @@ Verify that the cluster instances and its components are being created.
 ```
 $ kubectl get bk
 NAME                   VERSION   DESIRED MEMBERS   READY MEMBERS      AGE
-pravega-bk             0.6.1       3                 1                25s
+pravega-bk             0.7.0     3                 1                  25s
 ```
 
 After a couple of minutes, all cluster members should become ready.
@@ -95,7 +95,7 @@ After a couple of minutes, all cluster members should become ready.
 ```
 $ kubectl get bk
 NAME                   VERSION   DESIRED MEMBERS   READY MEMBERS     AGE
-pravega-bk             0.6.1     3                 3                 2m
+pravega-bk             0.7.0     3                 3                 2m
 ```
 
 ```
@@ -109,7 +109,7 @@ NAME                                            TYPE        CLUSTER-IP    EXTERN
 service/pravega-bk-bookie-headless              ClusterIP   None          <none>        3181/TCP             2m
 
 NAME                                            DESIRED   CURRENT     AGE
-statefulset.apps/pravega-bk-bookie                 3         3         2m
+statefulset.apps/pravega-bk-bookie              3         3           2m
 ```
 
 By default, a `BookkeeperCluster` is reachable using this kind of headless service URL for each pod:
@@ -144,6 +144,7 @@ $ helm delete pravega-bk --purge
 $ helm delete pr --purge
 ```
 If you want to delete the Bookkeeper cluster, make sure to do it before uninstalling the operator. Also, once the Bookkeeper cluster has been deleted, make sure to check that the zookeeper metadata has been cleaned up before proceeding with the deletion of the operator. This can be confirmed with the presence of the following log message in the operator logs.
+
 ```
 zookeeper metadata deleted
 ```
