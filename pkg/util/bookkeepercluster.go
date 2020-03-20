@@ -33,6 +33,10 @@ func init() {
 	versionRegexp = regexp.MustCompile(MajorMinorVersionRegexp)
 }
 
+func ConfigMapNameForBookieVersions(clusterName string) string {
+	return fmt.Sprintf("%s-supported-upgrade-paths", clusterName)
+}
+
 func PdbNameForBookie(clusterName string) string {
 	return fmt.Sprintf("%s-bookie", clusterName)
 }

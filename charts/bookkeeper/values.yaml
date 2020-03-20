@@ -6,7 +6,7 @@ replicas: 3
 image:
   repository: pravega/bookkeeper
   pullPolicy: IfNotPresent
-version: latest
+version: 0.7.0
 pravegaClusterName: pravega
 zookeeperUri: zookeeper-client:2181
 autoRecovery: true
