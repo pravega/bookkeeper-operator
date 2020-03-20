@@ -66,7 +66,8 @@ spec:
   replicas: 3
   image:
     repository: pravega/bookkeeper
-    pullPolicy: IfNotPresent```
+    pullPolicy: IfNotPresent
+```
 
 where:
 
