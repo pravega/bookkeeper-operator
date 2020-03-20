@@ -30,4 +30,4 @@ spec:
             storage: 10Gi
 
   autoRecovery: true
-  version: latest
+  version: 0.7.0
