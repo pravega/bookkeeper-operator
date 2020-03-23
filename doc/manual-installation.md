@@ -50,7 +50,7 @@ To create this ConfigMap.
 $ kubectl create -f deploy/config_map.yaml
 ```
 
-The name of this ConfigMap needs to be mentioned in the field `envVars` present in the BookKeeper Spec. For more details about this ConfigMap refer to [this](doc/bookkeeper-options.md#bookkeeper-custom-configuration).
+The name of this ConfigMap needs to be mentioned in the field `envVars` present in the BookKeeper Spec. For more details about this ConfigMap refer to [this](bookkeeper-options.md#bookkeeper-custom-configuration).
 
 Once all these have been installed, you can use the following YAML template to install a small development Bookkeeper Cluster. Create a `bookkeeper.yaml` file with the following content.
 
