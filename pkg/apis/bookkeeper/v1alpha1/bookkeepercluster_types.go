@@ -50,7 +50,8 @@ const (
 
 	// MinimumBookkeeperReplicas is the minimum number of Bookkeeper replicas
 	// accepted
-	MinimumBookkeeperReplicas = 3
+	MinimumBookkeeperReplicas = 1
+	DefaultBookkeeperReplicas = 3
 
 	// DefaultBookkeeperRequestCPU is the default CPU request for BookKeeper
 	DefaultBookkeeperRequestCPU = "500m"
@@ -277,7 +278,7 @@ func (s *BookkeeperClusterSpec) withDefaults() (changed bool) {
 
 	if !config.TestMode && s.Replicas < MinimumBookkeeperReplicas {
 		changed = true
-		s.Replicas = MinimumBookkeeperReplicas
+		s.Replicas = DefaultBookkeeperReplicas
 	}
 
 	if s.Storage == nil {
