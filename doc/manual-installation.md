@@ -1,6 +1,7 @@
 ## Manual installation
 
 * [Install the Operator manually](#install-the-operator-manually)
+  * [Install the Operator in Test Mode](#install-the-operator-in-test-mode)
 * [Install the Bookkeeper cluster manually](#install-the-bookkeeper-cluster-manually)
 * [Uninstall the Bookkeeper Cluster manually](#uninstall-the-bookkeeper-cluster-manually)
 * [Uninstall the Operator manually](#uninstall-the-operator-manually)
@@ -34,6 +35,23 @@ Finally create a ConfigMap which contains the list of supported upgrade paths fo
 ```
 $ kubectl create -f deploy/version_map.yaml
 ```
+
+#### Install the Operator in Test Mode
+The operator can be deployed in `test mode` by providing the argument `-test` inside the `operator.yaml` file in the following way.
+
+```
+containers:
+  - name: bookkeeper-operator
+    image: pravega/bookkeeper-operator:latest
+    ports:
+    - containerPort: 60000
+      name: metrics
+    command:
+    - bookkeeper-operator
+    imagePullPolicy: Always
+    args: [-test]
+```
+For more details check [this](../README.md#install-the-operator-in-test-mode)
 
 ### Install the Bookkeeper cluster manually
 
