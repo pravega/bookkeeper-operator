@@ -12,6 +12,7 @@ The project is currently alpha. While no breaking API changes are currently plan
  * [Requirements](#requirements)
  * [Quickstart](#quickstart)    
     * [Install the Operator](#install-the-operator)
+        * [Install the Operator in Test Mode](#install-the-operator-in-test-mode)
     * [Install a sample Bookkeeper Cluster](#install-a-sample-bookkeeper-cluster)
     * [Scale a Bookkeeper Cluster](#scale-a-bookkeeper-cluster)
     * [Upgrade a Bookkeeper Cluster](#upgrade-a-bookkeeper-cluster)
@@ -58,6 +59,9 @@ $ kubectl get deploy
 NAME                          DESIRED   CURRENT   UP-TO-DATE   AVAILABLE     AGE
 pr-bookkeeper-operator           1         1         1            1          17s
 ```
+
+#### Install the Operator in Test Mode
+ The Operator can be run in `test mode` if we want to deploy the Bookkeeper Cluster on minikube or on a cluster with very limited resources by setting `testmode: true` in `values.yaml` file. Operator running in test mode skips the minimum replica requirement checks. Test mode provides a bare minimum setup and is not recommended to be used in production environments.
 
 ### Install a sample Bookkeeper cluster
 
@@ -165,7 +169,7 @@ Check out the [development guide](doc/development.md).
 
 The latest Bookkeeper releases can be found on the [Github Release](https://github.com/pravega/bookkeeper-operator/releases) project page.
 
-## Upgrade the Bookkeeper-Operator
+## Upgrade the Bookkeeper Operator
 Bookkeeper operator can be upgraded by modifying the image tag using
 ```
 $ kubectl edit <operator deployment name>
