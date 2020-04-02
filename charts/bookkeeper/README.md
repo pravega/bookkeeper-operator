@@ -45,3 +45,4 @@ The following table lists the configurable parameters of the Bookkeeper chart an
 | `image.pullPolicy` | Pull policy for Bookkeeper image | `IfNotPresent` |
 | `replicas` | Replicas for Bookkeeper | `3` |
 | `autoRecovery`| Enable Bookkeeper autoRecovery | `true` |
+| `storage.className` | Storage class for Bookkeeper volume | `standard` |
