@@ -10,3 +10,5 @@ version: 0.7.0
 pravegaClusterName: pravega
 zookeeperUri: zookeeper-client:2181
 autoRecovery: true
+storage:
+  className: standard
