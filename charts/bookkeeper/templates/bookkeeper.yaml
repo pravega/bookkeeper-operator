@@ -12,9 +12,23 @@ spec:
   zookeeperUri: {{ .Values.zookeeperUri }}
   autoRecovery: {{ .Values.autoRecovery }}
   storage:
-    ledgerVolumeClaimTemplate:
-      storageClassName: {{ .Values.storage.className }}
-    journalVolumeClaimTemplate:
-      storageClassName: {{ .Values.storage.className }}
-    indexVolumeClaimTemplate:
-      storageClassName: {{ .Values.storage.className }}
+      ledgerVolumeClaimTemplate:
+        accessModes: [ "ReadWriteOnce" ]
+        storageClassName: {{ .Values.storage.className }}
+        resources:
+          requests:
+            storage: 10Gi
+
+      journalVolumeClaimTemplate:
+        accessModes: [ "ReadWriteOnce" ]
+        storageClassName: {{ .Values.storage.className }}
+        resources:
+          requests:
+            storage: 10Gi
+
+      indexVolumeClaimTemplate:
+        accessModes: [ "ReadWriteOnce" ]
+        storageClassName: {{ .Values.storage.className }}
+        resources:
+          requests:
+            storage: 10Gi
