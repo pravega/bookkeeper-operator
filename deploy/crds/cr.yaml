@@ -7,7 +7,6 @@ spec:
 
   image:
       repository: pravega/bookkeeper
-      tag: latest
       pullPolicy: IfNotPresent
 
   replicas: 3
