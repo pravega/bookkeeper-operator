@@ -141,6 +141,9 @@ type BookkeeperClusterSpec struct {
 	// that need to be configured into the bookie pods as environmental variables
 	EnvVars string `json:"envVars,omitempty"`
 
+	// PravegaClusterName is the name of the pravega cluster that thie bookkeeper cluser connects to
+	PravegaClusterName string `json:"pravegaClusterName,omitempty"`
+
 	// Version is the expected version of the Pravega cluster.
 	// The pravega-operator will eventually make the Pravega cluster version
 	// equal to the expected version.

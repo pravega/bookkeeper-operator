@@ -264,7 +264,6 @@ func MakeBookieConfigMap(bookkeeperCluster *v1alpha1.BookkeeperCluster) *corev1.
 		"BOOKIE_GC_LOGGING_OPTS":   strings.Join(gcLoggingOpts, " "),
 		"BOOKIE_EXTRA_OPTS":        strings.Join(extraOpts, " "),
 		"ZK_URL":                   bookkeeperCluster.Spec.ZookeeperUri,
-		"BK_CLUSTER_NAME":          bookkeeperCluster.Name,
 		"BK_useHostNameAsBookieID": "true",
 	}
 

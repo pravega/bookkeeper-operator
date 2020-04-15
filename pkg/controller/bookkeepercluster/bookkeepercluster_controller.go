@@ -13,6 +13,7 @@ package bookkeepercluster
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	bookkeeperv1alpha1 "github.com/pravega/bookkeeper-operator/pkg/apis/bookkeeper/v1alpha1"
@@ -195,6 +196,21 @@ func (r *ReconcileBookkeeperCluster) deployBookie(p *bookkeeperv1alpha1.Bookkeep
 	err = r.client.Create(context.TODO(), statefulSet)
 	if err != nil && !errors.IsAlreadyExists(err) {
 		return err
+	}
+
+	bkConfigMap := &corev1.ConfigMap{}
+	err = r.client.Get(context.TODO(), types.NamespacedName{Name: strings.TrimSpace(p.Spec.EnvVars), Namespace: p.Namespace}, bkConfigMap)
+	if err == nil {
+		pravegaClusterName, ok := bkConfigMap.Data["PRAVEGA_CLUSTER_NAME"]
+		if ok {
+			if p.Spec.PravegaClusterName != pravegaClusterName {
+				p.Spec.PravegaClusterName = pravegaClusterName
+				err = r.client.Update(context.TODO(), p)
+				if err != nil {
+					log.Println("Error Updating the Pravega Cluster Name")
+				}
+			}
+		}
 	}
 
 	return nil

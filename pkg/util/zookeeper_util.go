@@ -13,6 +13,7 @@ package util
 import (
 	"container/list"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/pravega/bookkeeper-operator/pkg/apis/bookkeeper/v1alpha1"
@@ -34,7 +35,7 @@ func DeleteAllZnodes(bk *v1alpha1.BookkeeperCluster) (err error) {
 	}
 	defer conn.Close()
 
-	root := fmt.Sprintf("/%s/%s", PravegaPath, bk.Name)
+	root := fmt.Sprintf("/%s/%s", PravegaPath, bk.Spec.PravegaClusterName)
 	exist, _, err := conn.Exists(root)
 	if err != nil {
 		return fmt.Errorf("failed to check if zookeeper path exists: %v", err)
@@ -54,6 +55,8 @@ func DeleteAllZnodes(bk *v1alpha1.BookkeeperCluster) (err error) {
 			}
 			tree.Remove(tree.Back())
 		}
+	} else {
+		log.Println("zookeeper path does not exist")
 	}
 	return nil
 }
