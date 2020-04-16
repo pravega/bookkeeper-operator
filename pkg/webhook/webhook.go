@@ -11,14 +11,15 @@
 package webhook
 
 import (
+	"bufio"
 	"context"
 	"fmt"
 	"net/http"
+	"os"
 	"strings"
 
 	bookkeeperv1alpha1 "github.com/pravega/bookkeeper-operator/pkg/apis/bookkeeper/v1alpha1"
 	"github.com/pravega/bookkeeper-operator/pkg/util"
-	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -69,16 +70,20 @@ func (pwh *bookkeeperWebhookHandler) mutateBookkeeperManifest(ctx context.Contex
 }
 
 func (pwh *bookkeeperWebhookHandler) mutateBookkeeperVersion(ctx context.Context, bk *bookkeeperv1alpha1.BookkeeperCluster) error {
-	configMap := &corev1.ConfigMap{}
-	err := pwh.client.Get(ctx, types.NamespacedName{Name: util.ConfigMapNameForBookieVersions(bk.Name), Namespace: bk.Namespace}, configMap)
-	if err != nil {
-		if errors.IsNotFound(err) {
-			return fmt.Errorf("config map %s not found. Please create this config map first and then retry", util.ConfigMapNameForBookieVersions(bk.Name))
-		}
-		return err
-	}
 	// The key is the supported versions, the value is a list of versions that can be upgraded to.
-	supportedVersions := configMap.Data
+	supportedVersions := make(map[string]string)
+
+	file, err := os.Open("/tmp/config/keys")
+	if err != nil {
+		log.Fatal(err)
+		return fmt.Errorf("Version map /tmp/config/keys not found")
+	}
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		data := strings.Split(scanner.Text(), ":")
+		supportedVersions[data[0]] = data[1]
+	}
+	file.Close()
 
 	// Identify the request Bookkeeper version
 	// Mutate the version if it is empty
