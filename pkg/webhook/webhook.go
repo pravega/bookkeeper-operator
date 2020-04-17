@@ -71,7 +71,7 @@ func (pwh *bookkeeperWebhookHandler) mutateBookkeeperManifest(ctx context.Contex
 
 func (pwh *bookkeeperWebhookHandler) mutateBookkeeperVersion(ctx context.Context, bk *bookkeeperv1alpha1.BookkeeperCluster) error {
 	// The key is the supported versions, the value is a list of versions that can be upgraded to.
-	supportedVersions, err := CreateVersionMap()
+	supportedVersions, err := createVersionMap()
 
 	if err != nil {
 		return err
@@ -209,7 +209,7 @@ func (pwh *bookkeeperWebhookHandler) InjectScheme(s *runtime.Scheme) error {
 	return nil
 }
 
-func CreateVersionMap() (map[string]string, error) {
+func createVersionMap() (map[string]string, error) {
 	supportedVersions := make(map[string]string)
 	file, err := os.Open("/tmp/config/keys")
 	if err != nil {

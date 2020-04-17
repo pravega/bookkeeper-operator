@@ -19,7 +19,7 @@ spec:
   - name: Desired Version
     type: string
     description: The desired bookkeeper version
-    JSONPath: .spec.version
+    JSONPath: .status.TargetVersion
   - name: Desired Members
     type: integer
     description: The number of desired bookkeeper members
