@@ -71,19 +71,11 @@ func (pwh *bookkeeperWebhookHandler) mutateBookkeeperManifest(ctx context.Contex
 
 func (pwh *bookkeeperWebhookHandler) mutateBookkeeperVersion(ctx context.Context, bk *bookkeeperv1alpha1.BookkeeperCluster) error {
 	// The key is the supported versions, the value is a list of versions that can be upgraded to.
-	supportedVersions := make(map[string]string)
+	supportedVersions, err := CreateVersionMap()
 
-	file, err := os.Open("/tmp/config/keys")
 	if err != nil {
-		log.Fatal(err)
-		return fmt.Errorf("Version map /tmp/config/keys not found")
+		return err
 	}
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		data := strings.Split(scanner.Text(), ":")
-		supportedVersions[data[0]] = data[1]
-	}
-	file.Close()
 
 	// Identify the request Bookkeeper version
 	// Mutate the version if it is empty
@@ -215,4 +207,20 @@ var _ inject.Scheme = &bookkeeperWebhookHandler{}
 func (pwh *bookkeeperWebhookHandler) InjectScheme(s *runtime.Scheme) error {
 	pwh.scheme = s
 	return nil
+}
+
+func CreateVersionMap() (map[string]string, error) {
+	supportedVersions := make(map[string]string)
+	file, err := os.Open("/tmp/config/keys")
+	if err != nil {
+		log.Fatal(err)
+		return supportedVersions, fmt.Errorf("Version map /tmp/config/keys not found")
+	}
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		data := strings.Split(scanner.Text(), ":")
+		supportedVersions[data[0]] = data[1]
+	}
+	file.Close()
+	return supportedVersions, nil
 }
