@@ -25,12 +25,17 @@ spec:
           imagePullPolicy: Always
           env:
             - name: WATCH_NAMESPACE
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.namespace
+              value: ""
             - name: POD_NAME
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.name
             - name: OPERATOR_NAME
               value: "bookkeeper-operator"
+          volumeMounts:
+            - name: versions-volume
+              mountPath: "/tmp/config"
+      volumes:
+        - name: versions-volume
+          configMap:
+            name: bk-supported-versions-map

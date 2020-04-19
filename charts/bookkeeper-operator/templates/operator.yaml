@@ -23,14 +23,22 @@ spec:
           name: metrics
         command:
         - bookkeeper-operator
+        {{- if .Values.testmode }}
+        args: [-test]
+        {{- end }}
         env:
         - name: WATCH_NAMESPACE
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.namespace
+          value: {{ .Values.watchNamespace }}
         - name: POD_NAME
           valueFrom:
             fieldRef:
               fieldPath: metadata.name
         - name: OPERATOR_NAME
           value: {{ template "bookkeeper-operator.fullname" . }}
+        volumeMounts:
+        - name: versions-volume
+          mountPath: "/tmp/config"
+      volumes:
+      - name: versions-volume
+        configMap:
+          name: bk-supported-versions-map
