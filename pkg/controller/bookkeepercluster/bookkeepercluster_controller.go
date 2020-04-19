@@ -13,6 +13,8 @@ package bookkeepercluster
 import (
 	"context"
 	"fmt"
+	"os"
+	"strings"
 	"time"
 
 	bookkeeperv1alpha1 "github.com/pravega/bookkeeper-operator/pkg/apis/bookkeeper/v1alpha1"
@@ -195,6 +197,20 @@ func (r *ReconcileBookkeeperCluster) deployBookie(p *bookkeeperv1alpha1.Bookkeep
 	err = r.client.Create(context.TODO(), statefulSet)
 	if err != nil && !errors.IsAlreadyExists(err) {
 		return err
+	}
+
+	if !fileExists(util.PravegaMountPath) {
+		bkConfigMap := &corev1.ConfigMap{}
+		err = r.client.Get(context.TODO(), types.NamespacedName{Name: strings.TrimSpace(p.Spec.EnvVars), Namespace: p.Namespace}, bkConfigMap)
+		if err == nil {
+			pravegaClusterName, ok := bkConfigMap.Data["PRAVEGA_CLUSTER_NAME"]
+			if ok {
+				err = writeToFile(util.PravegaMountPath, pravegaClusterName)
+				if err != nil {
+					log.Println(err)
+				}
+			}
+		}
 	}
 
 	return nil
@@ -400,4 +416,26 @@ func (r *ReconcileBookkeeperCluster) isRollbackTriggered(bk *bookkeeperv1alpha1.
 		return true
 	}
 	return false
+}
+
+func fileExists(filename string) bool {
+	info, err := os.Stat(filename)
+	if os.IsNotExist(err) {
+		return false
+	}
+	return !info.IsDir()
+}
+
+func writeToFile(filename string, value string) error {
+	file, err := os.Create(filename)
+	if err != nil {
+		return err
+	}
+	_, err = file.WriteString(value)
+	if err != nil {
+		file.Close()
+		return err
+	}
+	file.Close()
+	return nil
 }
