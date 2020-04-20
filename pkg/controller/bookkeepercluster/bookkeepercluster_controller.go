@@ -13,7 +13,6 @@ package bookkeepercluster
 import (
 	"context"
 	"fmt"
-	"os"
 	"strings"
 	"time"
 
@@ -199,20 +198,6 @@ func (r *ReconcileBookkeeperCluster) deployBookie(p *bookkeeperv1alpha1.Bookkeep
 		return err
 	}
 
-	if !fileExists(util.PravegaMountPath) {
-		bkConfigMap := &corev1.ConfigMap{}
-		err = r.client.Get(context.TODO(), types.NamespacedName{Name: strings.TrimSpace(p.Spec.EnvVars), Namespace: p.Namespace}, bkConfigMap)
-		if err == nil {
-			pravegaClusterName, ok := bkConfigMap.Data["PRAVEGA_CLUSTER_NAME"]
-			if ok {
-				err = writeToFile(util.PravegaMountPath, pravegaClusterName)
-				if err != nil {
-					log.Println(err)
-				}
-			}
-		}
-	}
-
 	return nil
 }
 
@@ -250,18 +235,37 @@ func (r *ReconcileBookkeeperCluster) syncBookieSize(bk *bookkeeperv1alpha1.Bookk
 func (r *ReconcileBookkeeperCluster) reconcileFinalizers(bk *bookkeeperv1alpha1.BookkeeperCluster) (err error) {
 	if bk.DeletionTimestamp.IsZero() {
 		if !util.ContainsString(bk.ObjectMeta.Finalizers, util.ZkFinalizer) {
+			// appending name of pravega cluster to the finalizers
+			configMap := &corev1.ConfigMap{}
+			err = r.client.Get(context.TODO(), types.NamespacedName{Name: strings.TrimSpace(bk.Spec.EnvVars), Namespace: bk.Namespace}, configMap)
+			if err == nil {
+				str, ok := configMap.Data["PRAVEGA_CLUSTER_NAME"]
+				if ok {
+					pravegaClusterName := "PRAVEGA_CLUSTER_NAME" + str
+					bk.ObjectMeta.Finalizers = append(bk.ObjectMeta.Finalizers, pravegaClusterName)
+				}
+			}
 			bk.ObjectMeta.Finalizers = append(bk.ObjectMeta.Finalizers, util.ZkFinalizer)
 			if err = r.client.Update(context.TODO(), bk); err != nil {
 				return fmt.Errorf("failed to add the finalizer (%s): %v", bk.Name, err)
 			}
 		}
 	} else {
+		pravegaClusterName := "pravega"
 		if util.ContainsString(bk.ObjectMeta.Finalizers, util.ZkFinalizer) {
+			value := util.GetString(bk.ObjectMeta.Finalizers, "PRAVEGA_CLUSTER_NAME")
+			if value != "" {
+				pravegaClusterName = strings.Replace(value, "PRAVEGA_CLUSTER_NAME", "", 1)
+				bk.ObjectMeta.Finalizers = util.RemoveString(bk.ObjectMeta.Finalizers, value)
+
+			}
 			bk.ObjectMeta.Finalizers = util.RemoveString(bk.ObjectMeta.Finalizers, util.ZkFinalizer)
+
 			if err = r.client.Update(context.TODO(), bk); err != nil {
 				return fmt.Errorf("failed to update Bookkeeper object (%s): %v", bk.Name, err)
 			}
-			if err = r.cleanUpZookeeperMeta(bk); err != nil {
+
+			if err = r.cleanUpZookeeperMeta(bk, pravegaClusterName); err != nil {
 				return fmt.Errorf("failed to clean up metadata (%s): %v", bk.Name, err)
 			}
 		}
@@ -269,12 +273,12 @@ func (r *ReconcileBookkeeperCluster) reconcileFinalizers(bk *bookkeeperv1alpha1.
 	return nil
 }
 
-func (r *ReconcileBookkeeperCluster) cleanUpZookeeperMeta(bk *bookkeeperv1alpha1.BookkeeperCluster) (err error) {
+func (r *ReconcileBookkeeperCluster) cleanUpZookeeperMeta(bk *bookkeeperv1alpha1.BookkeeperCluster, pravegaClusterName string) (err error) {
 	if err = util.WaitForClusterToTerminate(r.client, bk); err != nil {
 		return fmt.Errorf("failed to wait for cluster pods termination (%s): %v", bk.Name, err)
 	}
 
-	if err = util.DeleteAllZnodes(bk); err != nil {
+	if err = util.DeleteAllZnodes(bk, pravegaClusterName); err != nil {
 		return fmt.Errorf("failed to delete zookeeper znodes for (%s): %v", bk.Name, err)
 	}
 	fmt.Println("zookeeper metadata deleted")
@@ -416,26 +420,4 @@ func (r *ReconcileBookkeeperCluster) isRollbackTriggered(bk *bookkeeperv1alpha1.
 		return true
 	}
 	return false
-}
-
-func fileExists(filename string) bool {
-	info, err := os.Stat(filename)
-	if os.IsNotExist(err) {
-		return false
-	}
-	return !info.IsDir()
-}
-
-func writeToFile(filename string, value string) error {
-	file, err := os.Create(filename)
-	if err != nil {
-		return err
-	}
-	_, err = file.WriteString(value)
-	if err != nil {
-		file.Close()
-		return err
-	}
-	file.Close()
-	return nil
 }

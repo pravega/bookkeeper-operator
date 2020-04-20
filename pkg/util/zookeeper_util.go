@@ -11,11 +11,8 @@
 package util
 
 import (
-	"bufio"
 	"container/list"
 	"fmt"
-	"log"
-	"os"
 	"time"
 
 	"github.com/pravega/bookkeeper-operator/pkg/apis/bookkeeper/v1alpha1"
@@ -24,13 +21,12 @@ import (
 
 const (
 	// Set in https://github.com/pravega/bookkeeper/blob/master/docker/bookkeeper/entrypoint.sh#L21
-	PravegaPath      = "pravega"
-	ZkFinalizer      = "cleanUpZookeeper"
-	PravegaMountPath = "/tmp/pravega"
+	PravegaPath = "pravega"
+	ZkFinalizer = "cleanUpZookeeper"
 )
 
 // Delete all znodes related to a specific Bookkeeper cluster
-func DeleteAllZnodes(bk *v1alpha1.BookkeeperCluster) (err error) {
+func DeleteAllZnodes(bk *v1alpha1.BookkeeperCluster, pravegaClusterName string) (err error) {
 	host := []string{bk.Spec.ZookeeperUri}
 	conn, _, err := zk.Connect(host, time.Second*5)
 	if err != nil {
@@ -38,30 +34,25 @@ func DeleteAllZnodes(bk *v1alpha1.BookkeeperCluster) (err error) {
 	}
 	defer conn.Close()
 
-	pravegaClusterName, err := getClusterName(PravegaMountPath)
+	root := fmt.Sprintf("/%s/%s", PravegaPath, pravegaClusterName)
+	exist, _, err := conn.Exists(root)
 	if err != nil {
-		log.Println(err)
-	} else {
-		root := fmt.Sprintf("/%s/%s", PravegaPath, pravegaClusterName)
-		exist, _, err := conn.Exists(root)
+		return fmt.Errorf("failed to check if zookeeper path exists: %v", err)
+	}
+
+	if exist {
+		// Construct BFS tree to delete all znodes recursively
+		tree, err := ListSubTreeBFS(conn, root)
 		if err != nil {
-			return fmt.Errorf("failed to check if zookeeper path exists: %v", err)
+			return fmt.Errorf("failed to construct BFS tree: %v", err)
 		}
 
-		if exist {
-			// Construct BFS tree to delete all znodes recursively
-			tree, err := ListSubTreeBFS(conn, root)
+		for tree.Len() != 0 {
+			err := conn.Delete(tree.Back().Value.(string), -1)
 			if err != nil {
-				return fmt.Errorf("failed to construct BFS tree: %v", err)
+				return fmt.Errorf("failed to delete znode (%s): %v", tree.Back().Value.(string), err)
 			}
-
-			for tree.Len() != 0 {
-				err := conn.Delete(tree.Back().Value.(string), -1)
-				if err != nil {
-					return fmt.Errorf("failed to delete znode (%s): %v", tree.Back().Value.(string), err)
-				}
-				tree.Remove(tree.Back())
-			}
+			tree.Remove(tree.Back())
 		}
 	}
 	return nil
@@ -92,18 +83,4 @@ func ListSubTreeBFS(conn *zk.Conn, root string) (*list.List, error) {
 		queue.Remove(node)
 	}
 	return tree, nil
-}
-
-func getClusterName(filename string) (string, error) {
-	value := ""
-	file, err := os.Open(filename)
-	if err != nil {
-		return value, err
-	}
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		value = scanner.Text()
-	}
-	file.Close()
-	return value, nil
 }

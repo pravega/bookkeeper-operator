@@ -107,6 +107,15 @@ func RemoveString(slice []string, str string) (result []string) {
 	return result
 }
 
+func GetString(slice []string, str string) (result string) {
+	for _, item := range slice {
+		if strings.HasPrefix(item, str) {
+			return item
+		}
+	}
+	return ""
+}
+
 func GetClusterExpectedSize(p *v1alpha1.BookkeeperCluster) (size int) {
 	return int(p.Spec.Replicas)
 }
