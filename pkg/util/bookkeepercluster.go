@@ -90,7 +90,7 @@ func Min(x, y int32) int32 {
 
 func ContainsString(slice []string, str string) bool {
 	for _, item := range slice {
-		if item == str {
+		if strings.HasPrefix(item, str) {
 			return true
 		}
 	}

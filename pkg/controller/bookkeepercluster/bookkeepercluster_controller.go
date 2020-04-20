@@ -236,29 +236,32 @@ func (r *ReconcileBookkeeperCluster) reconcileFinalizers(bk *bookkeeperv1alpha1.
 	if bk.DeletionTimestamp.IsZero() {
 		if !util.ContainsString(bk.ObjectMeta.Finalizers, util.ZkFinalizer) {
 			// appending name of pravega cluster to the finalizers
+			finalizer := util.ZkFinalizer
 			configMap := &corev1.ConfigMap{}
-			err = r.client.Get(context.TODO(), types.NamespacedName{Name: strings.TrimSpace(bk.Spec.EnvVars), Namespace: bk.Namespace}, configMap)
-			if err == nil {
-				str, ok := configMap.Data["PRAVEGA_CLUSTER_NAME"]
-				if ok {
-					pravegaClusterName := "PRAVEGA_CLUSTER_NAME" + str
-					bk.ObjectMeta.Finalizers = append(bk.ObjectMeta.Finalizers, pravegaClusterName)
+			if strings.TrimSpace(bk.Spec.EnvVars) != "" {
+				err = r.client.Get(context.TODO(), types.NamespacedName{Name: strings.TrimSpace(bk.Spec.EnvVars), Namespace: bk.Namespace}, configMap)
+				if err == nil {
+					clusterName, ok := configMap.Data["PRAVEGA_CLUSTER_NAME"]
+					if ok {
+						finalizer = finalizer + "_" + clusterName
+					}
 				}
 			}
-			bk.ObjectMeta.Finalizers = append(bk.ObjectMeta.Finalizers, util.ZkFinalizer)
+			bk.ObjectMeta.Finalizers = append(bk.ObjectMeta.Finalizers, finalizer)
 			if err = r.client.Update(context.TODO(), bk); err != nil {
 				return fmt.Errorf("failed to add the finalizer (%s): %v", bk.Name, err)
 			}
 		}
 	} else {
-		pravegaClusterName := "pravega"
 		if util.ContainsString(bk.ObjectMeta.Finalizers, util.ZkFinalizer) {
-			value := util.GetString(bk.ObjectMeta.Finalizers, "PRAVEGA_CLUSTER_NAME")
-			if value != "" {
-				pravegaClusterName = strings.Replace(value, "PRAVEGA_CLUSTER_NAME", "", 1)
-				bk.ObjectMeta.Finalizers = util.RemoveString(bk.ObjectMeta.Finalizers, value)
+			finalizer := util.GetString(bk.ObjectMeta.Finalizers, util.ZkFinalizer)
+			pravegaClusterName := strings.Replace(finalizer, util.ZkFinalizer, "", 1)
+			if pravegaClusterName == "" {
+				pravegaClusterName = "pravega"
+			} else {
+				pravegaClusterName = strings.Replace(pravegaClusterName, "_", "", 1)
 			}
-			bk.ObjectMeta.Finalizers = util.RemoveString(bk.ObjectMeta.Finalizers, util.ZkFinalizer)
+			bk.ObjectMeta.Finalizers = util.RemoveString(bk.ObjectMeta.Finalizers, finalizer)
 			if err = r.client.Update(context.TODO(), bk); err != nil {
 				return fmt.Errorf("failed to update Bookkeeper object (%s): %v", bk.Name, err)
 			}
