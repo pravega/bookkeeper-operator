@@ -257,7 +257,7 @@ func (r *ReconcileBookkeeperCluster) reconcileFinalizers(bk *bookkeeperv1alpha1.
 			finalizer := util.GetString(bk.ObjectMeta.Finalizers, util.ZkFinalizer)
 			pravegaClusterName := strings.Replace(finalizer, util.ZkFinalizer, "", 1)
 			if pravegaClusterName == "" {
-				pravegaClusterName = "pravega"
+				pravegaClusterName = "pravega-cluster"
 			} else {
 				pravegaClusterName = strings.Replace(pravegaClusterName, "_", "", 1)
 			}
@@ -281,7 +281,6 @@ func (r *ReconcileBookkeeperCluster) cleanUpZookeeperMeta(bk *bookkeeperv1alpha1
 	if err = util.DeleteAllZnodes(bk, pravegaClusterName); err != nil {
 		return fmt.Errorf("failed to delete zookeeper znodes for (%s): %v", bk.Name, err)
 	}
-	fmt.Println("zookeeper metadata deleted")
 	return nil
 }
 

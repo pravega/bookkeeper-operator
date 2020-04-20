@@ -13,6 +13,7 @@ package util
 import (
 	"container/list"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/pravega/bookkeeper-operator/pkg/apis/bookkeeper/v1alpha1"
@@ -54,6 +55,9 @@ func DeleteAllZnodes(bk *v1alpha1.BookkeeperCluster, pravegaClusterName string) 
 			}
 			tree.Remove(tree.Back())
 		}
+		log.Println("zookeeper metadata deleted")
+	} else {
+		log.Println("zookeeper metadata not found")
 	}
 	return nil
 }
