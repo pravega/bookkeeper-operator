@@ -257,14 +257,11 @@ func (r *ReconcileBookkeeperCluster) reconcileFinalizers(bk *bookkeeperv1alpha1.
 			if value != "" {
 				pravegaClusterName = strings.Replace(value, "PRAVEGA_CLUSTER_NAME", "", 1)
 				bk.ObjectMeta.Finalizers = util.RemoveString(bk.ObjectMeta.Finalizers, value)
-
 			}
 			bk.ObjectMeta.Finalizers = util.RemoveString(bk.ObjectMeta.Finalizers, util.ZkFinalizer)
-
 			if err = r.client.Update(context.TODO(), bk); err != nil {
 				return fmt.Errorf("failed to update Bookkeeper object (%s): %v", bk.Name, err)
 			}
-
 			if err = r.cleanUpZookeeperMeta(bk, pravegaClusterName); err != nil {
 				return fmt.Errorf("failed to clean up metadata (%s): %v", bk.Name, err)
 			}
