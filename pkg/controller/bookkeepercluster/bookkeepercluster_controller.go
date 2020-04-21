@@ -241,13 +241,14 @@ func (r *ReconcileBookkeeperCluster) reconcileFinalizers(bk *bookkeeperv1alpha1.
 			configMap := &corev1.ConfigMap{}
 			if strings.TrimSpace(bk.Spec.EnvVars) != "" {
 				err = r.client.Get(context.TODO(), types.NamespacedName{Name: strings.TrimSpace(bk.Spec.EnvVars), Namespace: bk.Namespace}, configMap)
-				if err == nil {
-					clusterName, ok := configMap.Data["PRAVEGA_CLUSTER_NAME"]
-					if ok {
-						// appending name of pravega cluster to the name of the finalizer
-						// to handle zk metadata deletion
-						finalizer = finalizer + "_" + clusterName
-					}
+				if err != nil {
+					return fmt.Errorf("failed to get the configmap %s: %v", bk.Spec.EnvVars, err)
+				}
+				clusterName, ok := configMap.Data["PRAVEGA_CLUSTER_NAME"]
+				if ok {
+					// appending name of pravega cluster to the name of the finalizer
+					// to handle zk metadata deletion
+					finalizer = finalizer + "_" + clusterName
 				}
 			}
 			bk.ObjectMeta.Finalizers = append(bk.ObjectMeta.Finalizers, finalizer)
