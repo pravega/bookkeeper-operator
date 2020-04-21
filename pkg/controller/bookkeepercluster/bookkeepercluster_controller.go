@@ -234,8 +234,9 @@ func (r *ReconcileBookkeeperCluster) syncBookieSize(bk *bookkeeperv1alpha1.Bookk
 
 func (r *ReconcileBookkeeperCluster) reconcileFinalizers(bk *bookkeeperv1alpha1.BookkeeperCluster) (err error) {
 	if bk.DeletionTimestamp.IsZero() {
-		if !util.ContainsString(bk.ObjectMeta.Finalizers, util.ZkFinalizer) {
-			// appending name of pravega cluster to the finalizers
+		// checks whether the slice of finalizers contains a string with the given prefix
+		// hence we need to ensure that no two finalizer names have the same prefix
+		if !util.ContainsStringWithPrefix(bk.ObjectMeta.Finalizers, util.ZkFinalizer) {
 			finalizer := util.ZkFinalizer
 			configMap := &corev1.ConfigMap{}
 			if strings.TrimSpace(bk.Spec.EnvVars) != "" {
@@ -243,6 +244,7 @@ func (r *ReconcileBookkeeperCluster) reconcileFinalizers(bk *bookkeeperv1alpha1.
 				if err == nil {
 					clusterName, ok := configMap.Data["PRAVEGA_CLUSTER_NAME"]
 					if ok {
+						// appending name of pravega cluster to the finalizer name
 						finalizer = finalizer + "_" + clusterName
 					}
 				}
@@ -253,14 +255,9 @@ func (r *ReconcileBookkeeperCluster) reconcileFinalizers(bk *bookkeeperv1alpha1.
 			}
 		}
 	} else {
-		if util.ContainsString(bk.ObjectMeta.Finalizers, util.ZkFinalizer) {
-			finalizer := util.GetString(bk.ObjectMeta.Finalizers, util.ZkFinalizer)
-			pravegaClusterName := strings.Replace(finalizer, util.ZkFinalizer, "", 1)
-			if pravegaClusterName == "" {
-				pravegaClusterName = "pravega-cluster"
-			} else {
-				pravegaClusterName = strings.Replace(pravegaClusterName, "_", "", 1)
-			}
+		// checks whether the slice of finalizers contains a string with the given prefix
+		if util.ContainsStringWithPrefix(bk.ObjectMeta.Finalizers, util.ZkFinalizer) {
+			finalizer, pravegaClusterName := getFinalizerAndClusterName(bk.ObjectMeta.Finalizers)
 			bk.ObjectMeta.Finalizers = util.RemoveString(bk.ObjectMeta.Finalizers, finalizer)
 			if err = r.client.Update(context.TODO(), bk); err != nil {
 				return fmt.Errorf("failed to update Bookkeeper object (%s): %v", bk.Name, err)
@@ -419,4 +416,17 @@ func (r *ReconcileBookkeeperCluster) isRollbackTriggered(bk *bookkeeperv1alpha1.
 		return true
 	}
 	return false
+}
+
+func getFinalizerAndClusterName(slice []string) (string, string) {
+	// returns the string with the given prefix from the slice of finalizers
+	finalizer := util.GetStringWithPrefix(slice, util.ZkFinalizer)
+	// extracting pravega cluster name from the name of the finalizer
+	pravegaClusterName := strings.Replace(finalizer, util.ZkFinalizer, "", 1)
+	if pravegaClusterName == "" {
+		pravegaClusterName = "pravega-cluster"
+	} else {
+		pravegaClusterName = strings.Replace(pravegaClusterName, "_", "", 1)
+	}
+	return finalizer, pravegaClusterName
 }

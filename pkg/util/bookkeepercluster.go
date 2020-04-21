@@ -88,7 +88,7 @@ func Min(x, y int32) int32 {
 	return x
 }
 
-func ContainsString(slice []string, str string) bool {
+func ContainsStringWithPrefix(slice []string, str string) bool {
 	for _, item := range slice {
 		if strings.HasPrefix(item, str) {
 			return true
@@ -107,7 +107,7 @@ func RemoveString(slice []string, str string) (result []string) {
 	return result
 }
 
-func GetString(slice []string, str string) (result string) {
+func GetStringWithPrefix(slice []string, str string) (result string) {
 	for _, item := range slice {
 		if strings.HasPrefix(item, str) {
 			return item
