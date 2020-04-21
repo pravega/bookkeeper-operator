@@ -88,9 +88,9 @@ func Min(x, y int32) int32 {
 	return x
 }
 
-func ContainsString(slice []string, str string) bool {
+func ContainsStringWithPrefix(slice []string, str string) bool {
 	for _, item := range slice {
-		if item == str {
+		if strings.HasPrefix(item, str) {
 			return true
 		}
 	}
@@ -105,6 +105,15 @@ func RemoveString(slice []string, str string) (result []string) {
 		result = append(result, item)
 	}
 	return result
+}
+
+func GetStringWithPrefix(slice []string, str string) (result string) {
+	for _, item := range slice {
+		if strings.HasPrefix(item, str) {
+			return item
+		}
+	}
+	return ""
 }
 
 func GetClusterExpectedSize(p *v1alpha1.BookkeeperCluster) (size int) {

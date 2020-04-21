@@ -13,6 +13,7 @@ package bookkeepercluster
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	bookkeeperv1alpha1 "github.com/pravega/bookkeeper-operator/pkg/apis/bookkeeper/v1alpha1"
@@ -233,19 +234,37 @@ func (r *ReconcileBookkeeperCluster) syncBookieSize(bk *bookkeeperv1alpha1.Bookk
 
 func (r *ReconcileBookkeeperCluster) reconcileFinalizers(bk *bookkeeperv1alpha1.BookkeeperCluster) (err error) {
 	if bk.DeletionTimestamp.IsZero() {
-		if !util.ContainsString(bk.ObjectMeta.Finalizers, util.ZkFinalizer) {
-			bk.ObjectMeta.Finalizers = append(bk.ObjectMeta.Finalizers, util.ZkFinalizer)
+		// checks whether the slice of finalizers contains a string with the given prefix
+		// NOTE: we need to ensure that no two finalizer names have the same prefix
+		if !util.ContainsStringWithPrefix(bk.ObjectMeta.Finalizers, util.ZkFinalizer) {
+			finalizer := util.ZkFinalizer
+			configMap := &corev1.ConfigMap{}
+			if strings.TrimSpace(bk.Spec.EnvVars) != "" {
+				err = r.client.Get(context.TODO(), types.NamespacedName{Name: strings.TrimSpace(bk.Spec.EnvVars), Namespace: bk.Namespace}, configMap)
+				if err != nil {
+					return fmt.Errorf("failed to get the configmap %s: %v", bk.Spec.EnvVars, err)
+				}
+				clusterName, ok := configMap.Data["PRAVEGA_CLUSTER_NAME"]
+				if ok {
+					// appending name of pravega cluster to the name of the finalizer
+					// to handle zk metadata deletion
+					finalizer = finalizer + "_" + clusterName
+				}
+			}
+			bk.ObjectMeta.Finalizers = append(bk.ObjectMeta.Finalizers, finalizer)
 			if err = r.client.Update(context.TODO(), bk); err != nil {
 				return fmt.Errorf("failed to add the finalizer (%s): %v", bk.Name, err)
 			}
 		}
 	} else {
-		if util.ContainsString(bk.ObjectMeta.Finalizers, util.ZkFinalizer) {
-			bk.ObjectMeta.Finalizers = util.RemoveString(bk.ObjectMeta.Finalizers, util.ZkFinalizer)
+		// checks whether the slice of finalizers contains a string with the given prefix
+		if util.ContainsStringWithPrefix(bk.ObjectMeta.Finalizers, util.ZkFinalizer) {
+			finalizer, pravegaClusterName := getFinalizerAndClusterName(bk.ObjectMeta.Finalizers)
+			bk.ObjectMeta.Finalizers = util.RemoveString(bk.ObjectMeta.Finalizers, finalizer)
 			if err = r.client.Update(context.TODO(), bk); err != nil {
 				return fmt.Errorf("failed to update Bookkeeper object (%s): %v", bk.Name, err)
 			}
-			if err = r.cleanUpZookeeperMeta(bk); err != nil {
+			if err = r.cleanUpZookeeperMeta(bk, pravegaClusterName); err != nil {
 				return fmt.Errorf("failed to clean up metadata (%s): %v", bk.Name, err)
 			}
 		}
@@ -253,15 +272,14 @@ func (r *ReconcileBookkeeperCluster) reconcileFinalizers(bk *bookkeeperv1alpha1.
 	return nil
 }
 
-func (r *ReconcileBookkeeperCluster) cleanUpZookeeperMeta(bk *bookkeeperv1alpha1.BookkeeperCluster) (err error) {
+func (r *ReconcileBookkeeperCluster) cleanUpZookeeperMeta(bk *bookkeeperv1alpha1.BookkeeperCluster, pravegaClusterName string) (err error) {
 	if err = util.WaitForClusterToTerminate(r.client, bk); err != nil {
 		return fmt.Errorf("failed to wait for cluster pods termination (%s): %v", bk.Name, err)
 	}
 
-	if err = util.DeleteAllZnodes(bk); err != nil {
+	if err = util.DeleteAllZnodes(bk, pravegaClusterName); err != nil {
 		return fmt.Errorf("failed to delete zookeeper znodes for (%s): %v", bk.Name, err)
 	}
-	fmt.Println("zookeeper metadata deleted")
 	return nil
 }
 
@@ -400,4 +418,17 @@ func (r *ReconcileBookkeeperCluster) isRollbackTriggered(bk *bookkeeperv1alpha1.
 		return true
 	}
 	return false
+}
+
+func getFinalizerAndClusterName(slice []string) (string, string) {
+	// get the modified finalizer name from the slice of finalizers with the given prefix
+	finalizer := util.GetStringWithPrefix(slice, util.ZkFinalizer)
+	// extracting pravega cluster name from the modified finalizer name
+	pravegaClusterName := strings.Replace(finalizer, util.ZkFinalizer, "", 1)
+	if pravegaClusterName == "" {
+		pravegaClusterName = "pravega-cluster"
+	} else {
+		pravegaClusterName = strings.Replace(pravegaClusterName, "_", "", 1)
+	}
+	return finalizer, pravegaClusterName
 }

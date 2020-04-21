@@ -13,6 +13,7 @@ package util
 import (
 	"container/list"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/pravega/bookkeeper-operator/pkg/apis/bookkeeper/v1alpha1"
@@ -26,7 +27,7 @@ const (
 )
 
 // Delete all znodes related to a specific Bookkeeper cluster
-func DeleteAllZnodes(bk *v1alpha1.BookkeeperCluster) (err error) {
+func DeleteAllZnodes(bk *v1alpha1.BookkeeperCluster, pravegaClusterName string) (err error) {
 	host := []string{bk.Spec.ZookeeperUri}
 	conn, _, err := zk.Connect(host, time.Second*5)
 	if err != nil {
@@ -34,7 +35,7 @@ func DeleteAllZnodes(bk *v1alpha1.BookkeeperCluster) (err error) {
 	}
 	defer conn.Close()
 
-	root := fmt.Sprintf("/%s/%s", PravegaPath, bk.Name)
+	root := fmt.Sprintf("/%s/%s", PravegaPath, pravegaClusterName)
 	exist, _, err := conn.Exists(root)
 	if err != nil {
 		return fmt.Errorf("failed to check if zookeeper path exists: %v", err)
@@ -54,6 +55,9 @@ func DeleteAllZnodes(bk *v1alpha1.BookkeeperCluster) (err error) {
 			}
 			tree.Remove(tree.Back())
 		}
+		log.Println("zookeeper metadata deleted")
+	} else {
+		log.Println("zookeeper metadata not found")
 	}
 	return nil
 }
