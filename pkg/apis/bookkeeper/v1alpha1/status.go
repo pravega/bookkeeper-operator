@@ -26,8 +26,6 @@ const (
 	ClusterConditionError                          = "Error"
 
 	// Reasons for cluster upgrading condition
-	UpdatingControllerReason   = "Updating Controller"
-	UpdatingSegmentstoreReason = "Updating Segmentstore"
 	UpdatingBookkeeperReason   = "Updating Bookkeeper"
 	UpgradeErrorReason         = "Upgrade Error"
 	RollbackErrorReason        = "Rollback Error"
