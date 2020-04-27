@@ -266,8 +266,8 @@ func (r *ReconcileBookkeeperCluster) reconcileFinalizers(bk *bookkeeperv1alpha1.
 			}
 			if err = r.cleanUpZookeeperMeta(bk, pravegaClusterName); err != nil {
 				// emit an event for zk metadata cleanup failure
-				message := fmt.Sprintf("failed to cleanup %s metadata from zookeeper (znode path: \"/pravega/%s\"): %v", bk.Name, pravegaClusterName, err)
-				event := util.NewEvent("ZKMETA_CLEANUP_ERROR", bk, "ZK Metadata Cleanup Failed", message, "Error")
+				message := fmt.Sprintf("failed to cleanup %s metadata from zookeeper (znode path: /pravega/%s): %v", bk.Name, pravegaClusterName, err)
+				event := util.NewApplicationEvent("ZKMETA_CLEANUP_ERROR", bk, "ZK Metadata Cleanup Failed", message, "Error")
 				pubErr := r.client.Create(context.TODO(), event)
 				if pubErr != nil {
 					log.Printf("Error publishing zk metadata cleanup failure event to k8s. %v", pubErr)
