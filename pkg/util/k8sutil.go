@@ -152,7 +152,6 @@ func NewEvent(name string, p *v1alpha1.BookkeeperCluster, reason string, message
 	return &event
 }
 
-
 func NewApplicationEvent(name string, p *v1alpha1.BookkeeperCluster, reason string, message string, eventType string) *corev1.Event {
 	now := metav1.Now()
 	operatorName, _ := k8s.GetOperatorName()
@@ -163,10 +162,10 @@ func NewApplicationEvent(name string, p *v1alpha1.BookkeeperCluster, reason stri
 			Labels:    LabelsForBookkeeperCluster(p),
 		},
 		InvolvedObject: corev1.ObjectReference{
-			APIVersion:      "app.k8s.io/v1beta1",
-			Kind:            "Application",
-			Name:            "bookkeeper-cluster",
-			Namespace:       p.GetNamespace(),
+			APIVersion: "app.k8s.io/v1beta1",
+			Kind:       "Application",
+			Name:       "bookkeeper-cluster",
+			Namespace:  p.GetNamespace(),
 		},
 		Reason:              reason,
 		Message:             message,
