@@ -58,7 +58,7 @@ spec:
     codahaleStatsOutputFrequencySeconds: "30"
 
   # Pass the JVM options to Bookkeeper
-  bookkeeperJVMOptions:
+  jvmOptions:
     memoryOpts: ["-Xms2g", "-XX:MaxDirectMemorySize=2g"]
     gcOpts: ["-XX:MaxGCPauseMillis=20"]
     gcLoggingOpts: ["-XX:NumberOfGCLogFiles=10"]
