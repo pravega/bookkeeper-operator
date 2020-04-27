@@ -127,11 +127,12 @@ func IsPodFaulty(pod *corev1.Pod) (bool, error) {
 func NewEvent(name string, p *v1alpha1.BookkeeperCluster, reason string, message string, eventType string) *corev1.Event {
 	now := metav1.Now()
 	operatorName, _ := k8s.GetOperatorName()
+	generateName := name + "-"
 	event := corev1.Event{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
-			Namespace: p.Namespace,
-			Labels:    LabelsForBookkeeperCluster(p),
+			GenerateName: generateName,
+			Namespace:    p.Namespace,
+			Labels:       LabelsForBookkeeperCluster(p),
 		},
 		InvolvedObject: corev1.ObjectReference{
 			APIVersion:      "bookkeeper.pravega.io/v1alpha1",
@@ -155,11 +156,12 @@ func NewEvent(name string, p *v1alpha1.BookkeeperCluster, reason string, message
 func NewApplicationEvent(name string, p *v1alpha1.BookkeeperCluster, reason string, message string, eventType string) *corev1.Event {
 	now := metav1.Now()
 	operatorName, _ := k8s.GetOperatorName()
+	generateName := name + "-"
 	event := corev1.Event{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
-			Namespace: p.Namespace,
-			Labels:    LabelsForBookkeeperCluster(p),
+			GenerateName: generateName,
+			Namespace:    p.Namespace,
+			Labels:       LabelsForBookkeeperCluster(p),
 		},
 		InvolvedObject: corev1.ObjectReference{
 			APIVersion: "app.k8s.io/v1beta1",
