@@ -82,6 +82,7 @@ func PodAntiAffinity(component string, clusterName string) *corev1.Affinity {
 // Wait for pods in cluster to be terminated
 func WaitForClusterToTerminate(kubeClient client.Client, p *v1alpha1.BookkeeperCluster) (err error) {
 	listOptions := &client.ListOptions{
+		Namespace:     p.Namespace,
 		LabelSelector: labels.SelectorFromSet(LabelsForBookkeeperCluster(p)),
 	}
 
