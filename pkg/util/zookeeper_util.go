@@ -32,9 +32,13 @@ func DeleteAllZnodes(bk *v1alpha1.BookkeeperCluster, pravegaClusterName string) 
 	zkUri := strings.Split(bk.Spec.ZookeeperUri, ":")
 	zkSvcName := ""
 	zkSvcPort := ""
-	if len(zkUri) == 2 {
+	if len(zkUri) >= 1 {
 		zkSvcName = zkUri[0]
-		zkSvcPort = zkUri[1]
+		if len(zkUri) == 1 {
+			zkSvcPort = "2181"
+		} else {
+			zkSvcPort = zkUri[1]
+		}
 	}
 	hostname := zkSvcName + "." + bk.Namespace + ".svc.cluster.local:" + zkSvcPort
 	host := []string{hostname}
