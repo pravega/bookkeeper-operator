@@ -14,8 +14,8 @@ import (
 	"container/list"
 	"fmt"
 	"log"
-	"time"
 	"strings"
+	"time"
 
 	"github.com/pravega/bookkeeper-operator/pkg/apis/bookkeeper/v1alpha1"
 	"github.com/samuel/go-zookeeper/zk"
