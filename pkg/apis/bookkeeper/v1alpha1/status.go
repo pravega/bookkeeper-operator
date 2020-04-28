@@ -26,11 +26,9 @@ const (
 	ClusterConditionError                          = "Error"
 
 	// Reasons for cluster upgrading condition
-	UpdatingControllerReason   = "Updating Controller"
-	UpdatingSegmentstoreReason = "Updating Segmentstore"
-	UpdatingBookkeeperReason   = "Updating Bookkeeper"
-	UpgradeErrorReason         = "Upgrade Error"
-	RollbackErrorReason        = "Rollback Error"
+	UpdatingBookkeeperReason = "Updating Bookkeeper"
+	UpgradeErrorReason       = "Upgrade Error"
+	RollbackErrorReason      = "Rollback Error"
 )
 
 // BookkeeperClusterStatus defines the observed state of BookkeeperCluster
