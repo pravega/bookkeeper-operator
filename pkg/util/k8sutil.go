@@ -127,12 +127,11 @@ func IsPodFaulty(pod *corev1.Pod) (bool, error) {
 func NewEvent(name string, p *v1alpha1.BookkeeperCluster, reason string, message string, eventType string) *corev1.Event {
 	now := metav1.Now()
 	operatorName, _ := k8s.GetOperatorName()
-	generateName := name + "-"
 	event := corev1.Event{
 		ObjectMeta: metav1.ObjectMeta{
-			GenerateName: generateName,
-			Namespace:    p.Namespace,
-			Labels:       LabelsForBookkeeperCluster(p),
+			Name:      name,
+			Namespace: p.Namespace,
+			Labels:    LabelsForBookkeeperCluster(p),
 		},
 		InvolvedObject: corev1.ObjectReference{
 			APIVersion:      "bookkeeper.pravega.io/v1alpha1",
@@ -141,33 +140,6 @@ func NewEvent(name string, p *v1alpha1.BookkeeperCluster, reason string, message
 			Namespace:       p.GetNamespace(),
 			ResourceVersion: p.GetResourceVersion(),
 			UID:             p.GetUID(),
-		},
-		Reason:              reason,
-		Message:             message,
-		FirstTimestamp:      now,
-		LastTimestamp:       now,
-		Type:                eventType,
-		ReportingController: operatorName,
-		ReportingInstance:   os.Getenv("POD_NAME"),
-	}
-	return &event
-}
-
-func NewApplicationEvent(name string, p *v1alpha1.BookkeeperCluster, reason string, message string, eventType string) *corev1.Event {
-	now := metav1.Now()
-	operatorName, _ := k8s.GetOperatorName()
-	generateName := name + "-"
-	event := corev1.Event{
-		ObjectMeta: metav1.ObjectMeta{
-			GenerateName: generateName,
-			Namespace:    p.Namespace,
-			Labels:       LabelsForBookkeeperCluster(p),
-		},
-		InvolvedObject: corev1.ObjectReference{
-			APIVersion: "app.k8s.io/v1beta1",
-			Kind:       "Application",
-			Name:       "bookkeeper-cluster",
-			Namespace:  p.GetNamespace(),
 		},
 		Reason:              reason,
 		Message:             message,
