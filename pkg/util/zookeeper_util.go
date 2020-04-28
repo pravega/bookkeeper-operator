@@ -44,7 +44,7 @@ func DeleteAllZnodes(bk *v1alpha1.BookkeeperCluster, pravegaClusterName string) 
 	host := []string{hostname}
 	conn, _, err := zk.Connect(host, time.Second*5)
 	if err != nil {
-		return fmt.Errorf("failed to connect to zookeeper: %v", err)
+		return fmt.Errorf("failed to connect to zookeeper (%s): %v", hostname, err)
 	}
 	defer conn.Close()
 
