@@ -145,13 +145,14 @@ $ helm delete pravega-bk --purge
 ### Uninstall the Operator
 > Note that the Bookkeeper clusters managed by the Bookkeeper operator will NOT be deleted even if the operator is uninstalled.
 
-```
-$ helm delete pr --purge
-```
 If you want to delete the Bookkeeper cluster, make sure to do it before uninstalling the operator. Also, once the Bookkeeper cluster has been deleted, make sure to check that the zookeeper metadata has been cleaned up before proceeding with the deletion of the operator. This can be confirmed with the presence of the following log message in the operator logs.
-
 ```
 zookeeper metadata deleted
+```
+
+You can then delete the operator
+```
+$ helm delete pr --purge
 ```
 
 ### Manual installation
