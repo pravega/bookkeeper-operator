@@ -64,6 +64,7 @@ pr-bookkeeper-operator           1         1         1            1          17s
  The Operator can be run in `test mode` if we want to deploy the Bookkeeper Cluster on minikube or on a cluster with very limited resources by setting `testmode: true` in `values.yaml` file. Operator running in test mode skips the minimum replica requirement checks. Test mode provides a bare minimum setup and is not recommended to be used in production environments.
 
 ### Install a sample Bookkeeper cluster
+> Note that the Bookkeeper cluster must be installed in the same namespace as the Zookeeper cluster.
 
 If the BookKeeper cluster is expected to work with Pravega, we need to create a ConfigMap which needs to have the following values
 
@@ -82,7 +83,7 @@ $ helm install charts/bookkeeper --name pravega-bk --set zookeeperUri=[ZOOKEEPER
 
 where:
 
-- `[ZOOKEEPER_HOST]` is the host or IP address of your Zookeeper deployment (e.g. `zookeeper-client:2181`). Multiple Zookeeper URIs can be specified, use a comma-separated list and DO NOT leave any spaces in between (e.g. `zookeeper-0:2181,zookeeper-1:2181,zookeeper-2:2181`).
+- `[ZOOKEEPER_HOST]` is the Zookeeper service endpoint of your Zookeeper deployment (e.g. `zookeeper-client:2181`). It expects the zookeeper service URL in the given format `<service-name>:<port-number>`
 
 Check out the [Bookkeeper Helm Chart](charts/bookkeeper) for more a complete list of installation parameters.
 
@@ -144,13 +145,14 @@ $ helm delete pravega-bk --purge
 ### Uninstall the Operator
 > Note that the Bookkeeper clusters managed by the Bookkeeper operator will NOT be deleted even if the operator is uninstalled.
 
-```
-$ helm delete pr --purge
-```
 If you want to delete the Bookkeeper cluster, make sure to do it before uninstalling the operator. Also, once the Bookkeeper cluster has been deleted, make sure to check that the zookeeper metadata has been cleaned up before proceeding with the deletion of the operator. This can be confirmed with the presence of the following log message in the operator logs.
-
 ```
 zookeeper metadata deleted
+```
+
+You can then delete the operator
+```
+$ helm delete pr --purge
 ```
 
 ### Manual installation

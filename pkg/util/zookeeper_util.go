@@ -14,6 +14,7 @@ import (
 	"container/list"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/pravega/bookkeeper-operator/pkg/apis/bookkeeper/v1alpha1"
@@ -28,10 +29,22 @@ const (
 
 // Delete all znodes related to a specific Bookkeeper cluster
 func DeleteAllZnodes(bk *v1alpha1.BookkeeperCluster, pravegaClusterName string) (err error) {
-	host := []string{bk.Spec.ZookeeperUri}
+	zkUri := strings.Split(bk.Spec.ZookeeperUri, ":")
+	zkSvcName := ""
+	zkSvcPort := ""
+	if len(zkUri) >= 1 {
+		zkSvcName = zkUri[0]
+		if len(zkUri) == 1 {
+			zkSvcPort = "2181"
+		} else {
+			zkSvcPort = zkUri[1]
+		}
+	}
+	hostname := zkSvcName + "." + bk.Namespace + ".svc.cluster.local:" + zkSvcPort
+	host := []string{hostname}
 	conn, _, err := zk.Connect(host, time.Second*5)
 	if err != nil {
-		return fmt.Errorf("failed to connect to zookeeper: %v", err)
+		return fmt.Errorf("failed to connect to zookeeper (%s): %v", hostname, err)
 	}
 	defer conn.Close()
 

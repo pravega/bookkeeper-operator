@@ -54,6 +54,7 @@ containers:
 For more details check [this](../README.md#install-the-operator-in-test-mode)
 
 ### Install the Bookkeeper cluster manually
+> Note that the Bookkeeper cluster must be installed in the same namespace as the Zookeeper cluster.
 
 If the BookKeeper cluster is expected to work with Pravega, we need to create a ConfigMap which needs to have the following values
 
@@ -89,7 +90,7 @@ spec:
 
 where:
 
-- `[ZOOKEEPER_HOST]` is the host or IP address of your Zookeeper deployment.
+- `[ZOOKEEPER_HOST]` is the Zookeeper service endpoint of your Zookeeper deployment (e.g. `zookeeper-client:2181`). It expects the zookeeper service URL in the given format `<service-name>:<port-number>`
 
 Check out other sample CR files in the [`example`](../example) directory.
 
@@ -117,8 +118,12 @@ $ kubectl delete -f bookkeeper.yaml
 
 > Note that the Bookkeeper cluster managed by the Bookkeeper operator will NOT be deleted even if the operator is uninstalled.
 
-To delete all clusters, delete all cluster CR objects before uninstalling the operator.
+If you want to delete the Bookkeeper cluster, make sure to do it before uninstalling the operator (to delete all clusters, delete all cluster CR objects before uninstalling the operator). Also, once the Bookkeeper cluster has been deleted, make sure to check that the zookeeper metadata has been cleaned up before proceeding with the deletion of the operator. This can be confirmed with the presence of the following log message in the operator logs.
+```
+zookeeper metadata deleted
+```
 
+You can then delete the operator
 ```
 $ kubectl delete -f deploy
 ```
