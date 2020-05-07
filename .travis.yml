@@ -3,7 +3,7 @@ sudo: required
 language: go
 go_import_path: github.com/pravega/bookkeeper-operator
 go:
-  - '1.12'
+  - '1.13.8'
 
 env:
   global:

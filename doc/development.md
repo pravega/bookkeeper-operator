@@ -1,7 +1,7 @@
 ## Development
 
 Requirements:
-  - Go 1.12+
+  - Go 1.13+
 
 ### Install Go
 
@@ -27,8 +27,8 @@ Install a new go version:
 ```
 gvm install go1.4 -B
 gvm use go1.4
-gvm install go1.12 --binary
-gvm use go1.12 --default
+gvm install go1.13.8 --binary
+gvm use go1.13.8 --default
 ```
 Your GOPATH should be be set by now, check using
 ```
@@ -39,23 +39,20 @@ should display something like `/home/<userdir>/.gvm/pkgsets/go1.11/global`
 Clone operator repo:
 ```
 cd $GOPATH
-go get github.com:pravega/pravega-operator
+go get github.com:pravega/bookkeeper-operator
 ```
-This should clone operator code under `$GOPATH/src/github.com/pravega/pravega-operator`
+This should clone operator code under `$GOPATH/src/github.com/pravega/bookkeeper-operator`
 
-### Install dep
-```
-curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
-```
-This may prompt for creation of `GOBIN` directory. Please create it and then issue this command again.
+For pulling the dependencies we are using go modules for more details on go modules refer to the link below:-
+
+https://blog.golang.org/using-go-modules
 
 ### Build the operator image
 
-Use the `make` command to build the Bookkeeper operator image.
+Use the `make` command to build the Bookkeeper operator image, it will also automatically get all the dependencies by using the go.mod file.
 
 ```
 $ cd $GOPATH/src/github.com/pravega/bookkeeper-operator
-$ make dep
 $ make build
 ```
 That will generate a Docker image with the format
@@ -63,7 +60,7 @@ That will generate a Docker image with the format
 
 Example image after running `make build`.
 
-The Pravega Operator image will be available in your Docker environment.
+The Bookkeeper Operator image will be available in your Docker environment.
 
 ```
 $ docker images pravega/bookkeeper-operator
