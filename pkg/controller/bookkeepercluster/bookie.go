@@ -117,21 +117,16 @@ func makeBookiePodSpec(bk *v1alpha1.BookkeeperCluster) *corev1.PodSpec {
 	var ledgerDirs, journalDirs, indexDirs string
 	var ok bool
 
-	if ledgerDirs, ok = bk.Spec.Options["ledgerDirectories"]; ok {
-		//user has provided ledgerDirs in options
-	} else {
+	if ledgerDirs, ok = bk.Spec.Options["ledgerDirectories"]; !ok {
+		// default value if user did not set ledgerDirectories in options
 		ledgerDirs = "/bk/ledgers"
 	}
-
-	if journalDirs, ok = bk.Spec.Options["journalDirectories"]; ok {
-		// User has provided journalDirs in options
-	} else {
+	if journalDirs, ok = bk.Spec.Options["journalDirectories"]; !ok {
+		// default value if user did not set journalDirectories in options
 		journalDirs = "/bk/journal"
 	}
-
-	if indexDirs, ok = bk.Spec.Options["indexDirectories"]; ok {
-		// User has provided indexDirs in options
-	} else {
+	if indexDirs, ok = bk.Spec.Options["indexDirectories"]; !ok {
+		// default value if user did not set indexDirectories in options
 		indexDirs = "/bk/index"
 	}
 
