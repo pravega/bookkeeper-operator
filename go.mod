@@ -78,7 +78,7 @@ require (
 	golang.org/x/net v0.0.0-20181201002055-351d144fa1fc
 	golang.org/x/oauth2 v0.0.0-20181203162652-d668ce993890
 	golang.org/x/sys v0.0.0-20181205085412-a5c9d58dba9a
-	golang.org/x/text v0.3.0
+	golang.org/x/text v0.3.1-0.20171227012246-e19ae1496984
 	golang.org/x/time v0.0.0-20181108054448-85acf8d2951c
 	golang.org/x/tools v0.0.0-20181205014116-22934f0fdb62
 	google.golang.org/appengine v1.3.0
@@ -95,4 +95,5 @@ require (
 	k8s.io/kube-openapi v0.0.0-20181114233023-0317810137be
 	k8s.io/kubernetes v1.14.3
 	sigs.k8s.io/controller-runtime v0.1.8
+	sigs.k8s.io/testing_frameworks v0.1.2 // indirect
 )

@@ -114,6 +114,22 @@ func makeBookiePodSpec(bk *v1alpha1.BookkeeperCluster) *corev1.PodSpec {
 		})
 	}
 
+	var ledgerDirs, journalDirs, indexDirs string
+	var ok bool
+
+	if ledgerDirs, ok = bk.Spec.Options["ledgerDirectories"]; !ok {
+		// default value if user did not set ledgerDirectories in options
+		ledgerDirs = "/bk/ledgers"
+	}
+	if journalDirs, ok = bk.Spec.Options["journalDirectories"]; !ok {
+		// default value if user did not set journalDirectories in options
+		journalDirs = "/bk/journal"
+	}
+	if indexDirs, ok = bk.Spec.Options["indexDirectories"]; !ok {
+		// default value if user did not set indexDirectories in options
+		indexDirs = "/bk/index"
+	}
+
 	podSpec := &corev1.PodSpec{
 		Containers: []corev1.Container{
 			{
@@ -130,15 +146,15 @@ func makeBookiePodSpec(bk *v1alpha1.BookkeeperCluster) *corev1.PodSpec {
 				VolumeMounts: []corev1.VolumeMount{
 					{
 						Name:      LedgerDiskName,
-						MountPath: "/bk/ledgers",
+						MountPath: ledgerDirs,
 					},
 					{
 						Name:      JournalDiskName,
-						MountPath: "/bk/journal",
+						MountPath: journalDirs,
 					},
 					{
 						Name:      IndexDiskName,
-						MountPath: "/bk/index",
+						MountPath: indexDirs,
 					},
 					{
 						Name:      heapDumpName,
