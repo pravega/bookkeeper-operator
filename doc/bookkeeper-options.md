@@ -95,7 +95,6 @@ The user however needs to ensure that the following keys which are present in Bo
 - BOOKIE_EXTRA_OPTS
 - ZK_URL
 - BK_useHostNameAsBookieID
-- BK_useHostNameAsBookieID
-- BK_AUTORECOVERY
+- BK_autoRecoveryDaemonEnabled
 - BK_lostBookieRecoveryDelay
 ```
