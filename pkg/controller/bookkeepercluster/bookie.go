@@ -297,6 +297,8 @@ func MakeBookieConfigMap(bk *v1alpha1.BookkeeperCluster) *corev1.ConfigMap {
 		// Wait one minute before starting autorecovery. This will give
 		// pods some time to come up after being updated or migrated
 		configData["BK_lostBookieRecoveryDelay"] = "60"
+	} else {
+		configData["BK_autoRecoveryDaemonEnabled"] = "false"
 	}
 
 	for k, v := range bk.Spec.Options {
