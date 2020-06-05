@@ -5,30 +5,52 @@ metadata:
 spec:
   replicas: {{ .Values.replicas }}
   image:
-    repository: {{ with .Values.image }}{{ .repository }}{{ end }}
-    pullPolicy: {{ with .Values.image }}{{ .pullPolicy }}{{ end }}
-  envVars: {{ template "configmap.fullname" . }}
+    repository: {{ .Values.image.repository }}
+    pullPolicy: {{ .Values.image.pullPolicy }}
   version: {{ .Values.version }}
   zookeeperUri: {{ .Values.zookeeperUri }}
+  envVars: {{ template "configmap.fullname" . }}
   autoRecovery: {{ .Values.autoRecovery }}
+  {{- if .Values.resources }}
+  resources:
+    requests:
+      cpu: {{ .Values.resources.requests.cpu | quote }}
+      memory: {{ .Values.resources.requests.memory | quote }}
+    limits:
+      cpu: {{ .Values.resources.limits.cpu | quote }}
+      memory: {{ .Values.resources.limits.memory | quote }}
+  {{- end }}
   storage:
-      ledgerVolumeClaimTemplate:
-        accessModes: [ "ReadWriteOnce" ]
-        storageClassName: {{ .Values.storage.className }}
-        resources:
-          requests:
-            storage: 10Gi
-
-      journalVolumeClaimTemplate:
-        accessModes: [ "ReadWriteOnce" ]
-        storageClassName: {{ .Values.storage.className }}
-        resources:
-          requests:
-            storage: 10Gi
-
-      indexVolumeClaimTemplate:
-        accessModes: [ "ReadWriteOnce" ]
-        storageClassName: {{ .Values.storage.className }}
-        resources:
-          requests:
-            storage: 10Gi
+    ledgerVolumeClaimTemplate:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: {{ .Values.storage.ledger.className }}
+      resources:
+        requests:
+          storage: {{ .Values.storage.ledger.volumeSize }}
+    journalVolumeClaimTemplate:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: {{ .Values.storage.journal.className }}
+      resources:
+        requests:
+          storage: {{ .Values.storage.journal.volumeSize }}
+    indexVolumeClaimTemplate:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: {{ .Values.storage.index.className }}
+      resources:
+        requests:
+          storage: {{ .Values.storage.index.volumeSize }}
+  {{- if .Values.jvmOptions }}
+  jvmOptions:
+    memoryOpts:
+{{ toYaml .Values.jvmOptions.memoryOpts | indent 6 }}
+    gcOpts:
+{{ toYaml .Values.jvmOptions.gcOpts | indent 6 }}
+    gcLoggingOpts:
+{{ toYaml .Values.jvmOptions.gcLoggingOpts | indent 6 }}
+    extraOpts:
+{{ toYaml .Values.jvmOptions.extraOpts | indent 6 }}
+  {{- end }}
+  {{- if .Values.options }}
+  options:
+{{ toYaml .Values.options | indent 4 }}
+  {{- end }}
