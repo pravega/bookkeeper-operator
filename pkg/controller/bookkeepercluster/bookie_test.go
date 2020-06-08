@@ -60,8 +60,11 @@ var _ = Describe("Bookie", func() {
 				}
 				boolFalse := false
 				bk.Spec = v1alpha1.BookkeeperClusterSpec{
-					AutoRecovery: &boolFalse,
-					Resources:    customReq,
+					Version:            "0.4.0",
+					ServiceAccountName: "bk-operator",
+					EnvVars:            "bk-configmap",
+					AutoRecovery:       &boolFalse,
+					Resources:          customReq,
 					Options: map[string]string{
 						"journalDirectories": "/bk/journal/j0,/bk/journal/j1,/bk/journal/j2,/bk/journal/j3",
 						"ledgerDirectories":  "/bk/ledgers/l0,/bk/ledgers/l1,/bk/ledgers/l2,/bk/ledgers/l3",
