@@ -10,8 +10,6 @@
 package util
 
 import (
-	"log"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/pravega/bookkeeper-operator/pkg/apis/bookkeeper/v1alpha1"
@@ -30,7 +28,6 @@ var _ = Describe("zookeeperutil", func() {
 			}
 			bk.WithDefaults()
 			err = DeleteAllZnodes(bk, "bookie")
-			log.Printf("%v", err)
 		})
 		It("should not be nil", func() {
 			Ω(err).ShouldNot(BeNil())
