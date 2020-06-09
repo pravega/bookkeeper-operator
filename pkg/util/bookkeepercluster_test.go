@@ -206,6 +206,9 @@ var _ = Describe("bookkeepercluster", func() {
 				ObjectMeta: metav1.ObjectMeta{
 					Name: "default",
 				},
+				Spec: v1alpha1.BookkeeperClusterSpec{
+					Version: "0.6.1",
+				},
 			}
 			bk.WithDefaults()
 			image = BookkeeperImage(bk)

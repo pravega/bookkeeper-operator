@@ -160,6 +160,8 @@ var _ = Describe("BookkeeperCluster Status", func() {
 			It("should have pod upgrade condition with true status", func() {
 				_, condition := bk.Status.GetClusterCondition(v1alpha1.ClusterConditionUpgrading)
 				Ω(condition.Status).To(Equal(corev1.ConditionTrue))
+				Ω(condition.Message).To(Equal("0"))
+				Ω(condition.Reason).To(Equal("UpdatingBookkeeperReason"))
 			})
 			It("should have pod upgrade condition with true status using function", func() {
 				Ω(bk.Status.IsClusterInUpgradingState()).To(Equal(true))
@@ -287,23 +289,22 @@ var _ = Describe("BookkeeperCluster Status", func() {
 			It("Checking ClusterInUpgradeFailedOrRollbackState and It should return true", func() {
 				Ω(bk.Status.IsClusterInUpgradeFailedOrRollbackState()).To(Equal(true))
 			})
-
-			Context("set pods rollback condition to be false", func() {
-				BeforeEach(func() {
-					bk.Status.SetRollbackConditionTrue(" ", " ")
-					bk.Status.SetRollbackConditionFalse()
-				})
-				It("should have pods rollback condition with false status", func() {
-					_, condition := bk.Status.GetClusterCondition(v1alpha1.ClusterConditionRollback)
-					Ω(condition.Status).To(Equal(corev1.ConditionFalse))
-				})
-				It("should have pods rollback condition with false status using function", func() {
-					Ω(bk.Status.IsClusterInRollbackState()).To(Equal(false))
-				})
-				It("Checking GetlastCondition function and It should return nil n as cluster not in Rollback state", func() {
-					condition := bk.Status.GetLastCondition()
-					Ω(condition).To(BeNil())
-				})
+		})
+		Context("set pods rollback condition to be false", func() {
+			BeforeEach(func() {
+				bk.Status.SetRollbackConditionTrue(" ", " ")
+				bk.Status.SetRollbackConditionFalse()
+			})
+			It("should have pods rollback condition with false status", func() {
+				_, condition := bk.Status.GetClusterCondition(v1alpha1.ClusterConditionRollback)
+				Ω(condition.Status).To(Equal(corev1.ConditionFalse))
+			})
+			It("should have pods rollback condition with false status using function", func() {
+				Ω(bk.Status.IsClusterInRollbackState()).To(Equal(false))
+			})
+			It("Checking GetlastCondition function and It should return nil n as cluster not in Rollback state", func() {
+				condition := bk.Status.GetLastCondition()
+				Ω(condition).To(BeNil())
 			})
 		})
 	})
