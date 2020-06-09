@@ -3,7 +3,7 @@ kind: "BookkeeperCluster"
 metadata:
   name: "pravega-bk"
 spec:
-  zookeeperUri: zookeeper-client:2181
+  zookeeperUri: zk-client:2181
 
   image:
       repository: pravega/bookkeeper
