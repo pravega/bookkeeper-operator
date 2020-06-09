@@ -46,10 +46,10 @@ The Bookkeeper Operator manages Bookkeeper clusters deployed to Kubernetes and a
 
 > Note: If you are running on Google Kubernetes Engine (GKE), please [check this first](doc/development.md#installation-on-google-kubernetes-engine).
 
-Use Helm to quickly deploy a Bookkeeper operator with the release name `bkop`.
+Use Helm to quickly deploy a Bookkeeper operator with the release name `bookkeeper-operator`.
 
 ```
-$ helm install bkop charts/bookkeeper-operator
+$ helm install bookkeeper-operator charts/bookkeeper-operator
 ```
 
 Verify that the Bookkeeper Operator is running.
@@ -57,7 +57,7 @@ Verify that the Bookkeeper Operator is running.
 ```
 $ kubectl get deploy
 NAME                          DESIRED   CURRENT   UP-TO-DATE   AVAILABLE     AGE
-bkop-bookkeeper-operator         1         1         1            1          17s
+bookkeeper-operator              1         1         1            1          17s
 ```
 
 #### Install the Operator in Test Mode
@@ -75,16 +75,16 @@ If the Bookkeeper cluster is expected to work with Pravega, we need to create a 
 
 The name of this ConfigMap needs to be mentioned in the field `envVars` present in the BookKeeper Spec. For more details about this ConfigMap refer to [this](doc/bookkeeper-options.md#bookkeeper-custom-configuration).
 
-Helm can be used to install a sample Bookkeeper cluster with the release name `bkc`.
+Helm can be used to install a sample Bookkeeper cluster with the release name `pravega-bk`.
 
 ```
-$ helm install bkc charts/bookkeeper --set zookeeperUri=[ZOOKEEPER_HOST] --set pravegaClusterName=[CLUSTER_NAME]
+$ helm install pravega-bk charts/bookkeeper --set zookeeperUri=[ZOOKEEPER_HOST] --set pravegaClusterName=[CLUSTER_NAME]
 ```
 
 where:
 
-- **[ZOOKEEPER_HOST]** is the Zookeeper service endpoint of your Zookeeper deployment (e.g. `zookeeper-client:2181`). It expects the zookeeper service URL in the given format `<service-name>:<port-number>`
-- **[CLUSTER_NAME]** is the name of the Pravega cluster (i.e. this field is optional and needs to be provided only if we expect this bookkeeper cluster to work with [Pravega](https://github.com/pravega/pravega)). The name of the Pravega cluster follows the format `<release-name>-pravega`
+- **[ZOOKEEPER_HOST]** is the Zookeeper service endpoint of your Zookeeper deployment (e.g. `zk-client:2181`). It expects the zookeeper service URL in the given format `<service-name>:<port-number>`
+- **[CLUSTER_NAME]** is the name of the Pravega cluster (i.e. this field is optional and needs to be provided only if we expect this bookkeeper cluster to work with [Pravega](https://github.com/pravega/pravega)).
 
 Check out the [Bookkeeper Helm Chart](charts/bookkeeper) for more a complete list of installation parameters.
 
@@ -93,7 +93,7 @@ Verify that the cluster instances and its components are being created.
 ```
 $ kubectl get bk
 NAME                   VERSION   DESIRED MEMBERS   READY MEMBERS      AGE
-bkc-pravega-bk         0.7.0     3                 1                  25s
+pravega-bk             0.7.0     3                 1                  25s
 ```
 
 After a couple of minutes, all cluster members should become ready.
@@ -101,26 +101,26 @@ After a couple of minutes, all cluster members should become ready.
 ```
 $ kubectl get bk
 NAME                   VERSION   DESIRED MEMBERS   READY MEMBERS     AGE
-bkc-pravega-bk         0.7.0     3                 3                 2m
+pravega-bk             0.7.0     3                 3                 2m
 ```
 
 ```
 $ kubectl get all -l bookkeeper_cluster=pravega-bk
 NAME                                              READY   STATUS    RESTARTS   AGE
-pod/bkc-pravega-bk-bookie-0                       1/1     Running   0          2m
-pod/bkc-pravega-bk-bookie-1                       1/1     Running   0          2m
-pod/bkc-pravega-bk-bookie-2                       1/1     Running   0          2m
+pod/pravega-bk-bookie-0                           1/1     Running   0          2m
+pod/pravega-bk-bookie-1                           1/1     Running   0          2m
+pod/pravega-bk-bookie-2                           1/1     Running   0          2m
 
 NAME                                            TYPE        CLUSTER-IP    EXTERNAL-IP   PORT(S)              AGE
-service/bkc-pravega-bk-bookie-headless          ClusterIP   None          <none>        3181/TCP             2m
+service/pravega-bk-bookie-headless              ClusterIP   None          <none>        3181/TCP             2m
 
 NAME                                            DESIRED   CURRENT     AGE
-statefulset.apps/bkc-pravega-bk-bookie          3         3           2m
+statefulset.apps/pravega-bk-bookie              3         3           2m
 ```
 
 By default, a `BookkeeperCluster` is reachable using this kind of headless service URL for each pod:
 ```
-http://bkc-pravega-bk-bookie-0.bkc-pravega-bk-bookie-headless.pravega-bk-bookie:3181
+http://pravega-bk-bookie-0.pravega-bk-bookie-headless.pravega-bk-bookie:3181
 ```
 
 ### Scale a Bookkeeper cluster
@@ -130,7 +130,7 @@ You can scale Bookkeeper cluster by updating the `replicas` field in the Bookkee
 Example of patching the Bookkeeper Cluster resource to scale the server instances to 4.
 
 ```
-kubectl patch bk bkc-pravega-bk --type='json' -p='[{"op": "replace", "path": "/spec/replicas", "value": 4}]'
+kubectl patch bk pravega-bk --type='json' -p='[{"op": "replace", "path": "/spec/replicas", "value": 4}]'
 ```
 
 ### Upgrade a Bookkeeper cluster
@@ -140,7 +140,7 @@ Check out the [upgrade guide](doc/upgrade-cluster.md).
 ### Uninstall the Bookkeeper cluster
 
 ```
-$ helm uninstall bkc
+$ helm uninstall pravega-bk
 ```
 
 Once the Bookkeeper cluster has been deleted, make sure to check that the zookeeper metadata has been cleaned up before proceeding with the deletion of the operator. This can be confirmed with the presence of the following log message in the operator logs.
@@ -191,7 +191,7 @@ Events:  <none>
 > Note that the Bookkeeper clusters managed by the Bookkeeper operator will NOT be deleted even if the operator is uninstalled.
 
 ```
-$ helm uninstall bkop
+$ helm uninstall bookkeeper-operator
 ```
 
 ### Manual installation

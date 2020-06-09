@@ -11,16 +11,20 @@ Create a default fully qualified app name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 */}}
 {{- define "bookkeeper.fullname" -}}
+{{- if .Values.fullnameOverride -}}
+{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
 {{- $name := default .Chart.Name .Values.nameOverride -}}
+{{- if contains $name .Release.Name -}}
+{{- .Release.Name | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
 {{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
-
-{{- define "configmap.fullname" -}}
-{{- $name := default .Chart.Name .Values.nameOverride -}}
-{{- printf "%s-%s-configmap" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
 {{- end -}}
 
-{{- define "hook.fullname" -}}
-{{- $name := default .Chart.Name .Values.nameOverride -}}
-{{- printf "%s-%s-post-install-upgrade" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
+{{- define "bookkeeper.commonLabels" -}}
+app.kubernetes.io/name: "{{ template "bookkeeper.name" . }}"
+app.kubernetes.io/version: "{{ .Chart.AppVersion }}"
+helm.sh/chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
 {{- end -}}

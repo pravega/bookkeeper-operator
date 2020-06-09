@@ -2,6 +2,9 @@ apiVersion: "bookkeeper.pravega.io/v1alpha1"
 kind: "BookkeeperCluster"
 metadata:
   name: {{ template "bookkeeper.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+{{ include "bookkeeper.commonLabels" . | indent 4 }}
 spec:
   replicas: {{ .Values.replicas }}
   image:
@@ -9,7 +12,7 @@ spec:
     pullPolicy: {{ .Values.image.pullPolicy }}
   version: {{ .Values.version }}
   zookeeperUri: {{ .Values.zookeeperUri }}
-  envVars: {{ template "configmap.fullname" . }}
+  envVars: {{ template "bookkeeper.fullname" . }}-configmap
   autoRecovery: {{ .Values.autoRecovery }}
   {{- if .Values.resources }}
   resources:

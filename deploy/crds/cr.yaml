@@ -12,7 +12,7 @@ spec:
 
   replicas: 3
 
-  envVars: bk-config-map
+  envVars: pravega-bk-configmap
 
   storage:
       ledgerVolumeClaimTemplate:
