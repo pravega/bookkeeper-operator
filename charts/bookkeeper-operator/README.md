@@ -1,15 +1,15 @@
 # Bookkeeper Operator Helm Chart
 
-Installs [bookkeeper-operator](https://github.com/pravega/bookkeeper-operator) to create/configure/manage Bookkeeper clusters atop Kubernetes.
+Installs [Bookkeeper Operator](https://github.com/pravega/bookkeeper-operator) to create/configure/manage Bookkeeper clusters atop Kubernetes.
 
 ## Introduction
 
-This chart bootstraps a [bookkeeper-operator](https://github.com/pravega/bookkeeper-operator) deployment on a [Kubernetes](http://kubernetes.io) cluster using the [Helm](https://helm.sh) package manager. The chart can be installed multiple times to create Bookkeeper Operator on multiple namespaces.
+This chart bootstraps a [Bookkeeper Operator](https://github.com/pravega/bookkeeper-operator) deployment on a [Kubernetes](http://kubernetes.io) cluster using the [Helm](https://helm.sh) package manager. The chart can be installed multiple times to create Bookkeeper Operator on multiple namespaces.
 
 ## Prerequisites
   - Kubernetes 1.15+ with Beta APIs
   - Helm 3+
-  - An existing Apache Zookeeper 3.5 cluster. This can be easily deployed using our [Zookeeper operator](https://github.com/pravega/zookeeper-operator
+  - An existing Apache Zookeeper 3.5 cluster. This can be easily deployed using our [Zookeeper Operator](https://github.com/pravega/zookeeper-operator)
 
 ## Installing the Chart
 
@@ -19,7 +19,7 @@ To install the chart with the release name `my-release`:
 $ helm install my-release bookkeeper-operator
 ```
 
-The command deploys bookkeeper-operator on the Kubernetes cluster in the default configuration. The [configuration](#configuration) section lists the parameters that can be configured during installation.
+The command deploys bookkeeper operator on the Kubernetes cluster in the default configuration. The [configuration](#configuration) section lists the parameters that can be configured during installation.
 
 ## Uninstalling the Chart
 
