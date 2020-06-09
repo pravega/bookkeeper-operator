@@ -213,5 +213,5 @@ The latest Bookkeeper releases can be found on the [Github Release](https://gith
 ## Upgrade the Bookkeeper Operator
 Bookkeeper operator can be upgraded by modifying the image tag using
 ```
-$ kubectl edit <operator deployment name>
+$ kubectl edit deploy bookkeeper-operator
 ```
