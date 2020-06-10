@@ -8,17 +8,17 @@ This chart creates a Bookkeeper cluster in [Kubernetes](http://kubernetes.io) us
 
 ## Prerequisites
 
-  - Kubernetes 1.10+ with Beta APIs
-  - Helm 2.10+
-  - An existing Apache Zookeeper 3.5 cluster. This can be easily deployed using our [Zookeeper operator](https://github.com/pravega/zookeeper-operator
-  - Bookkeeper Operator. You can install it using its own [Helm chart](https://github.com/pravega/pravega-operator/tree/master/charts/pravega-operator)
+  - Kubernetes 1.15+ with Beta APIs
+  - Helm 3+
+  - An existing Apache Zookeeper 3.5 cluster. This can be easily deployed using our [Zookeeper Operator](https://github.com/pravega/zookeeper-operator)
+  - Bookkeeper Operator. You can install it using its own [Helm chart](https://github.com/pravega/bookkeeper-operator/tree/master/charts/bookkeeper-operator)
 
 ## Installing the Chart
 
 To install the chart with the release name `my-release`:
 
 ```
-$ helm install --name my-release bookkeeper
+$ helm install my-release bookkeeper
 ```
 
 The command deploys bookkeeper on the Kubernetes cluster in the default configuration. The [configuration](#configuration) section lists the parameters that can be configured during installation.
@@ -28,7 +28,7 @@ The command deploys bookkeeper on the Kubernetes cluster in the default configur
 To uninstall/delete the `my-release` deployment:
 
 ```
-$ helm delete my-release
+$ helm uninstall my-release
 ```
 
 The command removes all the Kubernetes components associated with the chart and deletes the release.
@@ -39,10 +39,25 @@ The following table lists the configurable parameters of the Bookkeeper chart an
 
 | Parameter | Description | Default |
 | ----- | ----------- | ------ |
-| `version` | Version for Bookkeeper cluster | `latest` |
-| `zookeeperUri` | Zookeeper service address | `zk-client:2181` |
-| `image.repository` | Repository for Bookkeeper image | `pravega/bookkeeper` |
-| `image.pullPolicy` | Pull policy for Bookkeeper image | `IfNotPresent` |
-| `replicas` | Replicas for Bookkeeper | `3` |
-| `autoRecovery`| Enable Bookkeeper autoRecovery | `true` |
-| `storage.className` | Storage class for Bookkeeper volumes | `standard` |
+| `version` | Bookkeeper version | `0.7.0` |
+| `image.repository` | Image repository | `pravega/bookkeeper` |
+| `image.pullPolicy` | Image pull policy | `IfNotPresent` |
+| `replicas` | Number of bookkeeper replicas | `3` |
+| `zookeeperUri` | Zookeeper client service URI | `zk-client:2181` |
+| `pravegaClusterName` | Name of the pravega cluster | `pravega` |
+| `autoRecovery`| Enable bookkeeper auto-recovery | `true` |
+| `resources.requests.cpu` | Requests for CPU resources | `500m` |
+| `resources.requests.memory` | Requests for memory resources | `1Gi` |
+| `resources.limits.cpu` | Limits for CPU resources | `1` |
+| `resources.limits.memory` | Limits for memory resources | `2Gi` |
+| `storage.ledger.className` | Storage class name for bookkeeper ledgers | `standard` |
+| `storage.ledger.volumeSize` | Requested size for bookkeeper ledger persistent volumes | `10Gi` |
+| `storage.journal.className` | Storage class name for bookkeeper journals | `standard` |
+| `storage.journal.volumeSize` | Requested size for bookkeeper journal persistent volumes | `10Gi` |
+| `storage.index.className` | Storage class name for bookkeeper index | `standard` |
+| `storage.index.volumeSize` | Requested size for bookkeeper index persistent volumes | `10Gi` |
+| `jvmOptions.memoryOpts` | Memory Options passed to the JVM for bookkeeper performance tuning | `[]` |
+| `jvmOptions.gcOpts` | Garbage Collector (GC) Options passed to the JVM for bookkeeper bookkeeper performance tuning | `[]` |
+| `jvmOptions.gcLoggingOpts` | GC Logging Options passed to the JVM for bookkeeper performance tuning | `[]` |
+| `jvmOptions.extraOpts` | Extra Options passed to the JVM for bookkeeper performance tuning | `[]` |
+| `options` | List of bookkeeper options | |

@@ -2,6 +2,9 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ template "bookkeeper-operator.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+{{ include "bookkeeper-operator.commonLabels" . | indent 4 }}
 spec:
   replicas: 1
   selector:

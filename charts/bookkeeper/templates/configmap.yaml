@@ -1,0 +1,11 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: {{ template "bookkeeper.fullname" . }}-configmap
+  namespace: {{ .Release.Namespace }}
+  labels:
+{{ include "bookkeeper.commonLabels" . | indent 4 }}
+data:
+  # Configuration values can be set as key-value pairs
+  PRAVEGA_CLUSTER_NAME: {{ .Values.pravegaClusterName }}
+  WAIT_FOR: {{ .Values.zookeeperUri }}

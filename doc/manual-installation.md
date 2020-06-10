@@ -80,8 +80,8 @@ metadata:
   name: "pravega-bk"
 spec:
   version: 0.7.0
-  zookeeperUri: [ZOOKEEPER_HOST]:2181
-  envVars: bk-config-map
+  zookeeperUri: [ZOOKEEPER_HOST]
+  envVars: pravega-bk-configmap
   replicas: 3
   image:
     repository: pravega/bookkeeper
@@ -90,7 +90,7 @@ spec:
 
 where:
 
-- `[ZOOKEEPER_HOST]` is the Zookeeper service endpoint of your Zookeeper deployment (e.g. `zookeeper-client:2181`). It expects the zookeeper service URL in the given format `<service-name>:<port-number>`
+- `[ZOOKEEPER_HOST]` is the Zookeeper service endpoint of your Zookeeper deployment (e.g. `zk-client:2181`). It expects the zookeeper service URL in the given format `<service-name>:<port-number>`
 
 Check out other sample CR files in the [`example`](../example) directory.
 

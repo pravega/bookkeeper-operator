@@ -3,38 +3,30 @@ kind: "BookkeeperCluster"
 metadata:
   name: "pravega-bk"
 spec:
-  zookeeperUri: zookeeper-client:2181
-
-  image:
-      repository: pravega/bookkeeper
-      tag: latest
-      pullPolicy: IfNotPresent
-
-  replicas: 3
-
-  envVars: bk-config-map
-
-  storage:
-      ledgerVolumeClaimTemplate:
-        accessModes: [ "ReadWriteOnce" ]
-        storageClassName: "standard"
-        resources:
-          requests:
-            storage: 10Gi
-
-      journalVolumeClaimTemplate:
-        accessModes: [ "ReadWriteOnce" ]
-        storageClassName: "standard"
-        resources:
-          requests:
-            storage: 10Gi
-
-      indexVolumeClaimTemplate:
-        accessModes: [ "ReadWriteOnce" ]
-        storageClassName: "standard"
-        resources:
-          requests:
-            storage: 10Gi
-
-  autoRecovery: true
   version: 0.7.0
+  zookeeperUri: zk-client:2181
+  image:
+    repository: pravega/bookkeeper
+    pullPolicy: IfNotPresent
+  replicas: 3
+  envVars: pravega-bk-configmap
+  autoRecovery: true
+  storage:
+    ledgerVolumeClaimTemplate:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: "standard"
+      resources:
+        requests:
+          storage: 10Gi
+    journalVolumeClaimTemplate:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: "standard"
+      resources:
+        requests:
+          storage: 10Gi
+    indexVolumeClaimTemplate:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: "standard"
+      resources:
+        requests:
+          storage: 10Gi
