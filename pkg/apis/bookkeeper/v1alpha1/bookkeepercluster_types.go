@@ -21,9 +21,6 @@ const (
 	// DefaultZookeeperUri is the default ZooKeeper URI in the form of "hostname:port"
 	DefaultZookeeperUri = "zk-client:2181"
 
-	// DefaultServiceType is the default service type for external access
-	DefaultServiceType = v1.ServiceTypeLoadBalancer
-
 	// DefaultPravegaVersion is the default tag used for for the Pravega
 	// Docker image
 	DefaultBookkeeperVersion = "0.6.1"

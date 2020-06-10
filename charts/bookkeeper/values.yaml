@@ -1,14 +1,47 @@
-apiVersion: "bookkeeper.pravega.io/v1alpha1"
-kind: "BookkeeperCluster"
-metadata:
-  name: "pravega-bk"
-replicas: 3
+## Default values for bookkeeper.
+## This is a YAML-formatted file.
+## Declare variables to be passed into your templates.
+
+version: 0.7.0
+
 image:
   repository: pravega/bookkeeper
   pullPolicy: IfNotPresent
-version: 0.7.0
+
+hooks:
+  image:
+    repository: lachlanevenson/k8s-kubectl
+    tag: v1.16.10
+
+replicas: 3
+zookeeperUri: zk-client:2181
 pravegaClusterName: pravega
-zookeeperUri: zookeeper-client:2181
 autoRecovery: true
+
+resources:
+  requests:
+    cpu: 500m
+    memory: 1Gi
+  limits:
+    cpu: 1
+    memory: 2Gi
+
 storage:
-  className: standard
+  ledger:
+    className: standard
+    volumeSize: 10Gi
+  journal:
+    className: standard
+    volumeSize: 10Gi
+  index:
+    className: standard
+    volumeSize: 10Gi
+
+jvmOptions:
+  memoryOpts: []
+  gcOpts: []
+  gcLoggingOpts: []
+  extraOpts: []
+
+options:
+  # useHostNameAsBookieID: "true"

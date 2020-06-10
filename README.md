@@ -36,8 +36,8 @@ The Bookkeeper Operator manages Bookkeeper clusters deployed to Kubernetes and a
 
 ## Requirements
 
-- Kubernetes 1.9+
-- Helm 2.10+
+- Kubernetes 1.15+
+- Helm 3+
 - An existing Apache Zookeeper 3.5 cluster. This can be easily deployed using our [Zookeeper operator](https://github.com/pravega/zookeeper-operator)
 
 ## Quickstart
@@ -46,10 +46,10 @@ The Bookkeeper Operator manages Bookkeeper clusters deployed to Kubernetes and a
 
 > Note: If you are running on Google Kubernetes Engine (GKE), please [check this first](doc/development.md#installation-on-google-kubernetes-engine).
 
-Use Helm to quickly deploy a Bookkeeper operator with the release name `pravega-bk`.
+Use Helm to quickly deploy a Bookkeeper operator with the release name `bookkeeper-operator`.
 
 ```
-$ helm install charts/bookkeeper-operator --name pr
+$ helm install bookkeeper-operator charts/bookkeeper-operator
 ```
 
 Verify that the Bookkeeper Operator is running.
@@ -57,7 +57,7 @@ Verify that the Bookkeeper Operator is running.
 ```
 $ kubectl get deploy
 NAME                          DESIRED   CURRENT   UP-TO-DATE   AVAILABLE     AGE
-pr-bookkeeper-operator           1         1         1            1          17s
+bookkeeper-operator              1         1         1            1          17s
 ```
 
 #### Install the Operator in Test Mode
@@ -75,15 +75,16 @@ If the Bookkeeper cluster is expected to work with Pravega, we need to create a 
 
 The name of this ConfigMap needs to be mentioned in the field `envVars` present in the BookKeeper Spec. For more details about this ConfigMap refer to [this](doc/bookkeeper-options.md#bookkeeper-custom-configuration).
 
-Helm can be used to install a sample Bookkeeper cluster.
+Helm can be used to install a sample Bookkeeper cluster with the release name `pravega-bk`.
 
 ```
-$ helm install charts/bookkeeper --name pravega-bk --set zookeeperUri=[ZOOKEEPER_HOST]
+$ helm install pravega-bk charts/bookkeeper --set zookeeperUri=[ZOOKEEPER_HOST] --set pravegaClusterName=[CLUSTER_NAME]
 ```
 
 where:
 
-- `[ZOOKEEPER_HOST]` is the Zookeeper service endpoint of your Zookeeper deployment (e.g. `zookeeper-client:2181`). It expects the zookeeper service URL in the given format `<service-name>:<port-number>`
+- **[ZOOKEEPER_HOST]** is the Zookeeper service endpoint of your Zookeeper deployment (e.g. `zk-client:2181`). It expects the zookeeper service URL in the given format `<service-name>:<port-number>`
+- **[CLUSTER_NAME]** is the name of the Pravega cluster (i.e. this field is optional and needs to be provided only if we expect this bookkeeper cluster to work with [Pravega](https://github.com/pravega/pravega)).
 
 Check out the [Bookkeeper Helm Chart](charts/bookkeeper) for more a complete list of installation parameters.
 
@@ -139,7 +140,7 @@ Check out the [upgrade guide](doc/upgrade-cluster.md).
 ### Uninstall the Bookkeeper cluster
 
 ```
-$ helm delete pravega-bk --purge
+$ helm uninstall pravega-bk
 ```
 
 Once the Bookkeeper cluster has been deleted, make sure to check that the zookeeper metadata has been cleaned up before proceeding with the deletion of the operator. This can be confirmed with the presence of the following log message in the operator logs.
@@ -190,7 +191,7 @@ Events:  <none>
 > Note that the Bookkeeper clusters managed by the Bookkeeper operator will NOT be deleted even if the operator is uninstalled.
 
 ```
-$ helm delete pr --purge
+$ helm uninstall bookkeeper-operator
 ```
 
 ### Manual installation
@@ -212,5 +213,5 @@ The latest Bookkeeper releases can be found on the [Github Release](https://gith
 ## Upgrade the Bookkeeper Operator
 Bookkeeper operator can be upgraded by modifying the image tag using
 ```
-$ kubectl edit <operator deployment name>
+$ kubectl edit deploy bookkeeper-operator
 ```

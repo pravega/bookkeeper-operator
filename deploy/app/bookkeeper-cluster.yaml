@@ -3,7 +3,6 @@ kind: Application
 metadata:
   name: "bookkeeper-cluster"
   labels:
-    product: "streamingdata"
     app.kubernetes.io/name: "bookkeeper-cluster"
   annotations:
     com.dellemc.kahm.subscribed: "true"
