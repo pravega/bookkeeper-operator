@@ -1,4 +1,4 @@
-## Default values for pravega-operator.
+## Default values for bookkeeper-operator.
 ## This is a YAML-formatted file.
 ## Declare variables to be passed into your templates.
 

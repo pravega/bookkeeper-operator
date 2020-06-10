@@ -210,7 +210,7 @@ Check out the [development guide](doc/development.md).
 
 The latest Bookkeeper releases can be found on the [Github Release](https://github.com/pravega/bookkeeper-operator/releases) project page.
 
-## Upgrade the Bookkeeper Operator
+## Upgrade the Operator
 Bookkeeper operator can be upgraded by modifying the image tag using
 ```
 $ kubectl edit deploy bookkeeper-operator
