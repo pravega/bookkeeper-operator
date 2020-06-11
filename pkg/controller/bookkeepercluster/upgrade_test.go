@@ -17,6 +17,8 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/pravega/bookkeeper-operator/pkg/apis/bookkeeper/v1alpha1"
+	"github.com/pravega/bookkeeper-operator/pkg/util"
+	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -170,6 +172,45 @@ var _ = Describe("Bookkeeper Cluster Version Sync", func() {
 				})
 				It("Error should not be nil", func() {
 					Ω(strings.ContainsAny(err.Error(), "failed to get statefulset ()")).Should(Equal(true))
+				})
+			})
+			Context("checkUpdatedPods", func() {
+				var boolean bool
+				var foundBookeeper *v1alpha1.BookkeeperCluster
+				BeforeEach(func() {
+					foundBookeeper = &v1alpha1.BookkeeperCluster{}
+					_ = client.Get(context.TODO(), req.NamespacedName, foundBookeeper)
+					var pod []*corev1.Pod
+					boolean, err = r.checkUpdatedPods(pod, "0.7.1")
+				})
+				It("Error should be nil and bool value should be true", func() {
+					Ω(err).Should(BeNil())
+					Ω(boolean).Should(Equal(true))
+				})
+			})
+			Context("checkUpdatedPods", func() {
+				var sts *appsv1.StatefulSet
+
+				BeforeEach(func() {
+					sts = &appsv1.StatefulSet{}
+					r.client.Get(context.TODO(), types.NamespacedName{Name: util.StatefulSetNameForBookie(b.Name), Namespace: b.Namespace}, sts)
+					_, err = r.getOneOutdatedPod(sts, "0.6.1")
+				})
+				It("Error should be nil", func() {
+					Ω(err).Should(BeNil())
+				})
+			})
+
+			Context("getStsPodsWithVersion", func() {
+				var sts *appsv1.StatefulSet
+
+				BeforeEach(func() {
+					sts = &appsv1.StatefulSet{}
+					r.client.Get(context.TODO(), types.NamespacedName{Name: util.StatefulSetNameForBookie(b.Name), Namespace: b.Namespace}, sts)
+					_, err = r.getStsPodsWithVersion(sts, "0.6.1")
+				})
+				It("Error should be nil", func() {
+					Ω(err).Should(BeNil())
 				})
 			})
 		})
