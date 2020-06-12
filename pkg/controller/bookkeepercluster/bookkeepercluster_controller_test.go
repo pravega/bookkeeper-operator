@@ -17,6 +17,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/pravega/bookkeeper-operator/pkg/apis/bookkeeper/v1alpha1"
+	log "github.com/sirupsen/logrus"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes/scheme"
@@ -156,9 +157,13 @@ var _ = Describe("BookkeeperCluster Controller", func() {
 					b.Spec.EnvVars = "vars"
 					client.Update(context.TODO(), b)
 					_, err = r.Reconcile(req)
+					now := metav1.Now()
+					b.SetDeletionTimestamp(&now)
+					client.Update(context.TODO(), b)
+					_, err = r.Reconcile(req)
 				})
-				It("should give error", func() {
-					Ω(err).ShouldNot(BeNil())
+				It("should  give error", func() {
+					Ω(err).Should(BeNil())
 				})
 			})
 
@@ -168,6 +173,7 @@ var _ = Describe("BookkeeperCluster Controller", func() {
 					err = r.cleanUpZookeeperMeta(b, "pravega")
 				})
 				It("should give error", func() {
+					log.Printf("prabhu = %v", err)
 					Ω(err).ShouldNot(BeNil())
 				})
 			})
@@ -192,7 +198,7 @@ var _ = Describe("BookkeeperCluster Controller", func() {
 					r.client.Update(context.TODO(), foundBookkeeper)
 					err = r.rollbackFailedUpgrade(foundBookkeeper)
 				})
-				It("should give error", func() {
+				It("should not give error", func() {
 					Ω(err).Should(BeNil())
 				})
 			})
@@ -221,6 +227,14 @@ var _ = Describe("BookkeeperCluster Controller", func() {
 				It("should have false in reconcile result", func() {
 					Ω(res.Requeue).To(Equal(false))
 					Ω(err).To(BeNil())
+				})
+			})
+
+			Context("reconcileClusterStatus", func() {
+				BeforeEach(func() {
+					client = fake.NewFakeClient(b)
+					r = &ReconcileBookkeeperCluster{client: client, scheme: s}
+					r.reconcileClusterStatus(b)
 				})
 			})
 		})

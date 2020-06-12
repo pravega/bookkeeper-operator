@@ -21,7 +21,6 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes/scheme"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -78,13 +77,11 @@ var _ = Describe("Bookkeeper Cluster Version Sync", func() {
 				r = &ReconcileBookkeeperCluster{client: client, scheme: s}
 				_, err = r.Reconcile(req)
 			})
-
 			Context("First reconcile", func() {
 				It("shouldn't error", func() {
 					Ω(err).Should(BeNil())
 				})
 			})
-
 			Context("Initial status", func() {
 				var (
 					foundBookeeper *v1alpha1.BookkeeperCluster
@@ -104,22 +101,7 @@ var _ = Describe("Bookkeeper Cluster Version Sync", func() {
 					Ω(upgradeCondition.Status).Should(Equal(corev1.ConditionFalse))
 				})
 			})
-			Context("syncClusterVersion when cluster in upgrade failed state", func() {
-				var (
-					err            error
-					foundBookeeper *v1alpha1.BookkeeperCluster
-				)
-				BeforeEach(func() {
-					foundBookeeper = &v1alpha1.BookkeeperCluster{}
-					_ = client.Get(context.TODO(), req.NamespacedName, foundBookeeper)
-					foundBookeeper.Status.SetErrorConditionTrue("UpgradeFailed", " ")
-					r.client.Update(context.TODO(), foundBookeeper)
-					err = r.syncClusterVersion(foundBookeeper)
-				})
-				It("Error should be nil", func() {
-					Ω(err).Should(BeNil())
-				})
-			})
+
 			Context("syncClusterVersion when cluster in upgrading state", func() {
 				var (
 					err            error
@@ -158,6 +140,59 @@ var _ = Describe("Bookkeeper Cluster Version Sync", func() {
 					Ω(err).Should(BeNil())
 				})
 			})
+			Context("syncClusterVersion when cluster in upgrade failed state", func() {
+				var (
+					err            error
+					foundBookeeper *v1alpha1.BookkeeperCluster
+				)
+				BeforeEach(func() {
+					foundBookeeper = &v1alpha1.BookkeeperCluster{}
+					_ = client.Get(context.TODO(), req.NamespacedName, foundBookeeper)
+					foundBookeeper.Status.SetErrorConditionTrue("UpgradeFailed", " ")
+					r.client.Update(context.TODO(), foundBookeeper)
+					err = r.syncClusterVersion(foundBookeeper)
+				})
+				It("Error should be nil", func() {
+					Ω(err).Should(BeNil())
+				})
+			})
+			Context("syncClusterVersion when cluster in rollback failed state", func() {
+				var (
+					err            error
+					foundBookeeper *v1alpha1.BookkeeperCluster
+				)
+				BeforeEach(func() {
+					foundBookeeper = &v1alpha1.BookkeeperCluster{}
+					_ = client.Get(context.TODO(), req.NamespacedName, foundBookeeper)
+					foundBookeeper.Status.Init()
+					foundBookeeper.Status.SetErrorConditionTrue("RollbackFailed", " ")
+					r.client.Update(context.TODO(), foundBookeeper)
+					err = r.syncClusterVersion(foundBookeeper)
+				})
+				It("Error should be nil", func() {
+					Ω(err).Should(BeNil())
+				})
+			})
+			Context("syncClusterVersion when syncCompleted return true ", func() {
+				var (
+					err            error
+					foundBookeeper *v1alpha1.BookkeeperCluster
+				)
+				BeforeEach(func() {
+					_, _ = r.Reconcile(req)
+					foundBookeeper = &v1alpha1.BookkeeperCluster{}
+					_ = client.Get(context.TODO(), req.NamespacedName, foundBookeeper)
+					foundBookeeper.Status.TargetVersion = foundBookeeper.Spec.Version
+					foundBookeeper.Status.CurrentVersion = "0.5.1"
+					foundBookeeper.Status.Init()
+					foundBookeeper.Status.SetUpgradingConditionTrue(" ", " ")
+					r.client.Update(context.TODO(), foundBookeeper)
+					err = r.syncClusterVersion(foundBookeeper)
+				})
+				It("Error should be nil", func() {
+					Ω(err).Should(BeNil())
+				})
+			})
 			Context("rollbackClusterVersion", func() {
 				var (
 					err            error
@@ -174,13 +209,31 @@ var _ = Describe("Bookkeeper Cluster Version Sync", func() {
 					Ω(strings.ContainsAny(err.Error(), "failed to get statefulset ()")).Should(Equal(true))
 				})
 			})
-			Context("checkUpdatedPods", func() {
-				var boolean bool
-				var foundBookeeper *v1alpha1.BookkeeperCluster
+			Context("rollbackClusterVersion syncCompleted return true ", func() {
+				var (
+					err            error
+					foundBookeeper *v1alpha1.BookkeeperCluster
+				)
 				BeforeEach(func() {
+					_, _ = r.Reconcile(req)
 					foundBookeeper = &v1alpha1.BookkeeperCluster{}
 					_ = client.Get(context.TODO(), req.NamespacedName, foundBookeeper)
-					var pod []*corev1.Pod
+					foundBookeeper.Status.TargetVersion = foundBookeeper.Spec.Version
+					foundBookeeper.Status.Init()
+					foundBookeeper.Status.UpdateProgress("UpgradeErrorReason", "")
+					r.client.Update(context.TODO(), foundBookeeper)
+					err = r.rollbackClusterVersion(foundBookeeper, "0.6.1")
+				})
+				It("Error should be nil", func() {
+					Ω(err).Should(BeNil())
+				})
+			})
+			Context("checkUpdatedPods", func() {
+				var (
+					boolean bool
+					pod     []*corev1.Pod
+				)
+				BeforeEach(func() {
 					boolean, err = r.checkUpdatedPods(pod, "0.7.1")
 				})
 				It("Error should be nil and bool value should be true", func() {
@@ -188,7 +241,7 @@ var _ = Describe("Bookkeeper Cluster Version Sync", func() {
 					Ω(boolean).Should(Equal(true))
 				})
 			})
-			Context("checkUpdatedPods", func() {
+			Context("getOneOutdatedPod", func() {
 				var sts *appsv1.StatefulSet
 
 				BeforeEach(func() {
@@ -200,7 +253,6 @@ var _ = Describe("Bookkeeper Cluster Version Sync", func() {
 					Ω(err).Should(BeNil())
 				})
 			})
-
 			Context("getStsPodsWithVersion", func() {
 				var sts *appsv1.StatefulSet
 
@@ -211,6 +263,47 @@ var _ = Describe("Bookkeeper Cluster Version Sync", func() {
 				})
 				It("Error should be nil", func() {
 					Ω(err).Should(BeNil())
+				})
+			})
+			Context("syncBookkeeperVersion", func() {
+				var foundBookeeper *v1alpha1.BookkeeperCluster
+				var err, err1, err2, err3 error
+				var b1, b2, b3, b4 bool
+				var sts *appsv1.StatefulSet
+				BeforeEach(func() {
+					_, _ = r.Reconcile(req)
+					b1, err = r.syncBookkeeperVersion(b)
+					foundBookeeper = &v1alpha1.BookkeeperCluster{}
+					_ = client.Get(context.TODO(), req.NamespacedName, foundBookeeper)
+					foundBookeeper.Status.TargetVersion = "0.7.1"
+					r.client.Update(context.TODO(), foundBookeeper)
+					b2, err1 = r.syncBookkeeperVersion(foundBookeeper)
+					foundBookeeper.Status.TargetVersion = foundBookeeper.Spec.Version
+					r.client.Update(context.TODO(), foundBookeeper)
+					b3, err2 = r.syncBookkeeperVersion(foundBookeeper)
+					sts = &appsv1.StatefulSet{}
+					name := util.StatefulSetNameForBookie(foundBookeeper.Name)
+					_ = r.client.Get(context.TODO(), types.NamespacedName{Name: name, Namespace: foundBookeeper.Namespace}, sts)
+					sts.Status.UpdatedReplicas = sts.Status.Replicas - 1
+					r.client.Update(context.TODO(), sts)
+					b4, err3 = r.syncBookkeeperVersion(foundBookeeper)
+
+				})
+				It("Error should not be nil and b1 is false", func() {
+					Ω(b1).Should(Equal(false))
+					Ω(err.Error()).Should(Equal("target version is not set"))
+				})
+				It("Error should be nil and b2 is false", func() {
+					Ω(b2).Should(Equal(false))
+					Ω(err1).Should(BeNil())
+				})
+				It("Error should be nil and b3 is ture", func() {
+					Ω(b3).Should(Equal(true))
+					Ω(err2).Should(BeNil())
+				})
+				It("Error should not be nil and b4 is false", func() {
+					Ω(b4).Should(Equal(false))
+					Ω(err3).ShouldNot(BeNil())
 				})
 			})
 		})
