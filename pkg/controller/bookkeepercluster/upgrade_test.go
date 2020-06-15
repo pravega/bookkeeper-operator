@@ -18,8 +18,10 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/pravega/bookkeeper-operator/pkg/apis/bookkeeper/v1alpha1"
 	"github.com/pravega/bookkeeper-operator/pkg/util"
+	log "github.com/sirupsen/logrus"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes/scheme"
@@ -101,7 +103,6 @@ var _ = Describe("Bookkeeper Cluster Version Sync", func() {
 					Ω(upgradeCondition.Status).Should(Equal(corev1.ConditionFalse))
 				})
 			})
-
 			Context("syncClusterVersion when cluster in upgrading state", func() {
 				var (
 					err            error
@@ -243,14 +244,76 @@ var _ = Describe("Bookkeeper Cluster Version Sync", func() {
 			})
 			Context("getOneOutdatedPod", func() {
 				var sts *appsv1.StatefulSet
-
 				BeforeEach(func() {
 					sts = &appsv1.StatefulSet{}
 					r.client.Get(context.TODO(), types.NamespacedName{Name: util.StatefulSetNameForBookie(b.Name), Namespace: b.Namespace}, sts)
 					_, err = r.getOneOutdatedPod(sts, "0.6.1")
+					log.Printf("value of sts = %v", sts)
 				})
 				It("Error should be nil", func() {
 					Ω(err).Should(BeNil())
+				})
+			})
+			Context("checkUpdatedPods with faulty pod", func() {
+				var (
+					boolean bool
+					pod     []*corev1.Pod
+				)
+				BeforeEach(func() {
+					testpod := &v1.Pod{ObjectMeta: metav1.ObjectMeta{Namespace: "default", Name: "test"}, Spec: v1.PodSpec{Containers: []v1.Container{{Image: "testimage"}}},
+						Status: v1.PodStatus{
+							ContainerStatuses: []v1.ContainerStatus{
+								{
+									Name: "test",
+									State: v1.ContainerState{
+										Waiting: &v1.ContainerStateWaiting{
+											Reason: "CrashLoopBackOff",
+										},
+									},
+								},
+							}},
+					}
+					log.Printf("came till client create")
+					r.client.Create(context.TODO(), testpod)
+					r.client.Get(context.TODO(), types.NamespacedName{Name: "test", Namespace: "default"}, testpod)
+					log.Printf("value of testpod = %v", testpod)
+					pod = append(pod, testpod)
+					boolean, err = r.checkUpdatedPods(pod, "0.7.1")
+				})
+				It("Error should not be nil and bool value should be false", func() {
+					Ω(err).ShouldNot(BeNil())
+					Ω(boolean).Should(Equal(false))
+				})
+			})
+			Context("checkUpdatedPods with faulty pod", func() {
+				var (
+					//boolean bool
+					pod []*corev1.Pod
+				)
+				BeforeEach(func() {
+					testpod := &v1.Pod{ObjectMeta: metav1.ObjectMeta{Namespace: "default"}, Spec: v1.PodSpec{Containers: []v1.Container{{Image: "testimage"}}},
+						Status: v1.PodStatus{
+							Conditions: []v1.PodCondition{
+								{
+									Type:   v1.PodReady,
+									Status: v1.ConditionTrue,
+								},
+							}},
+					}
+					log.Printf("came till client create")
+					r.client.Create(context.TODO(), testpod)
+					r.client.Get(context.TODO(), types.NamespacedName{Name: "test", Namespace: "default"}, testpod)
+					log.Printf("value of testpod = %v", testpod)
+					pod = append(pod, testpod)
+					sts := MakeBookieStatefulSet(b)
+					selector, _ := metav1.LabelSelectorAsSelector(&metav1.LabelSelector{
+						MatchLabels: sts.Spec.Template.Labels,
+					})
+					_, _ = r.getPodsWithVersion(selector, b.Namespace, "0.7.1")
+				})
+				It("Error should not be nil and bool value should be false", func() {
+					//	Ω(err).ShouldNot(BeNil())
+					//Ω(boolean).Should(Equal(false))
 				})
 			})
 			Context("getStsPodsWithVersion", func() {
@@ -266,10 +329,12 @@ var _ = Describe("Bookkeeper Cluster Version Sync", func() {
 				})
 			})
 			Context("syncBookkeeperVersion", func() {
-				var foundBookeeper *v1alpha1.BookkeeperCluster
-				var err, err1, err2, err3 error
-				var b1, b2, b3, b4 bool
-				var sts *appsv1.StatefulSet
+				var (
+					foundBookeeper        *v1alpha1.BookkeeperCluster
+					err, err1, err2, err3 error
+					b1, b2, b3, b4        bool
+					sts                   *appsv1.StatefulSet
+				)
 				BeforeEach(func() {
 					_, _ = r.Reconcile(req)
 					b1, err = r.syncBookkeeperVersion(b)

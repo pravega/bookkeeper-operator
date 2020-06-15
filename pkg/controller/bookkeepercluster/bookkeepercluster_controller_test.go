@@ -18,6 +18,8 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/pravega/bookkeeper-operator/pkg/apis/bookkeeper/v1alpha1"
 	log "github.com/sirupsen/logrus"
+	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes/scheme"
@@ -95,7 +97,6 @@ var _ = Describe("BookkeeperCluster Controller", func() {
 					Ω(foundBookkeeper.Spec.ZookeeperUri).Should(Equal(v1alpha1.DefaultZookeeperUri))
 				})
 			})
-
 			Context("After defaults are applied", func() {
 				BeforeEach(func() {
 					// 2nd reconcile
@@ -115,10 +116,8 @@ var _ = Describe("BookkeeperCluster Controller", func() {
 					Ω(foundBookkeeper.Status.CurrentVersion).Should(Equal(v1alpha1.DefaultBookkeeperVersion))
 				})
 			})
-
-			Context("Cluster deployment", func() {
+			Context("Checking Cluster deployment", func() {
 				BeforeEach(func() {
-					// 2nd reconcile
 					res, err = r.Reconcile(req)
 					foundBookkeeper = &v1alpha1.BookkeeperCluster{}
 					err = client.Get(context.TODO(), req.NamespacedName, foundBookkeeper)
@@ -128,7 +127,6 @@ var _ = Describe("BookkeeperCluster Controller", func() {
 					Ω(err).Should(BeNil())
 				})
 			})
-
 			Context("syncBookieSize", func() {
 				var (
 					err1 error
@@ -150,7 +148,6 @@ var _ = Describe("BookkeeperCluster Controller", func() {
 					Ω(err1).Should(BeNil())
 				})
 			})
-
 			Context("reconcileFinalizers", func() {
 				BeforeEach(func() {
 					b.WithDefaults()
@@ -166,23 +163,57 @@ var _ = Describe("BookkeeperCluster Controller", func() {
 					Ω(err).Should(BeNil())
 				})
 			})
-
-			Context("cleanUpZookeeperMeta", func() {
-				BeforeEach(func() {
-					b.WithDefaults()
-					err = r.cleanUpZookeeperMeta(b, "pravega")
-				})
-				It("should give error", func() {
-					log.Printf("prabhu = %v", err)
-					Ω(err).ShouldNot(BeNil())
-				})
-			})
-
 			Context("syncStatefulSetExternalServices", func() {
 				BeforeEach(func() {
 					b.WithDefaults()
 					s := MakeBookieStatefulSet(b)
 					err = r.syncStatefulSetExternalServices(s)
+				})
+				It("should not give error", func() {
+					Ω(err).Should(BeNil())
+				})
+			})
+			Context("syncStatefulSetExternalServices", func() {
+				var sts *appsv1.StatefulSet
+				BeforeEach(func() {
+					svcDelete := &corev1.Service{
+						ObjectMeta: metav1.ObjectMeta{
+							Name:      "svc-4",
+							Namespace: b.Namespace,
+						},
+					}
+					r.client.Create(context.TODO(), svcDelete)
+					b.WithDefaults()
+					sts = &appsv1.StatefulSet{}
+					sts = MakeBookieStatefulSet(b)
+					r.client.Create(context.TODO(), sts)
+					log.Printf("prabhaker sts = %s", sts)
+					name := b.Name
+					_ = r.client.Get(context.TODO(), types.NamespacedName{Name: name, Namespace: b.Namespace}, sts)
+					err = r.syncStatefulSetExternalServices(sts)
+				})
+				It("should not give error", func() {
+					Ω(err).Should(BeNil())
+				})
+			})
+			Context("syncStatefulSetPvc", func() {
+				var sts *appsv1.StatefulSet
+				BeforeEach(func() {
+					pvc := &corev1.PersistentVolumeClaim{
+						ObjectMeta: metav1.ObjectMeta{
+							Name:      "pvc-4",
+							Namespace: b.Namespace,
+						},
+					}
+					r.client.Create(context.TODO(), pvc)
+					b.WithDefaults()
+					sts = &appsv1.StatefulSet{}
+					sts = MakeBookieStatefulSet(b)
+					r.client.Create(context.TODO(), sts)
+					log.Printf("prabhaker sts = %s", sts)
+					name := b.Name
+					_ = r.client.Get(context.TODO(), types.NamespacedName{Name: name, Namespace: b.Namespace}, sts)
+					err = r.syncStatefulSetPvc(sts)
 				})
 				It("should not give error", func() {
 					Ω(err).Should(BeNil())
@@ -202,7 +233,6 @@ var _ = Describe("BookkeeperCluster Controller", func() {
 					Ω(err).Should(BeNil())
 				})
 			})
-
 			Context("getFinalizerAndClusterName", func() {
 				var str1, str2 string
 				BeforeEach(func() {
@@ -216,7 +246,6 @@ var _ = Describe("BookkeeperCluster Controller", func() {
 					Ω(str2).Should(Equal("pravega-cluster"))
 				})
 			})
-
 			Context("Should have Reconcile Result false when request namespace does not contain bk cluster", func() {
 				BeforeEach(func() {
 					client = fake.NewFakeClient(b)
@@ -229,7 +258,6 @@ var _ = Describe("BookkeeperCluster Controller", func() {
 					Ω(err).To(BeNil())
 				})
 			})
-
 			Context("reconcileClusterStatus", func() {
 				BeforeEach(func() {
 					client = fake.NewFakeClient(b)
@@ -237,6 +265,7 @@ var _ = Describe("BookkeeperCluster Controller", func() {
 					r.reconcileClusterStatus(b)
 				})
 			})
+
 		})
 	})
 })
