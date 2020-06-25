@@ -265,7 +265,16 @@ var _ = Describe("BookkeeperCluster Controller", func() {
 					r.reconcileClusterStatus(b)
 				})
 			})
-
+			Context("cleanUpZookeeperMeta", func() {
+				BeforeEach(func() {
+					b.WithDefaults()
+					err = r.cleanUpZookeeperMeta(b, "pravega")
+				})
+				It("should give error", func() {
+					log.Printf("prabhu = %v", err)
+					Ω(err).ShouldNot(BeNil())
+				})
+			})
 		})
 	})
 })

@@ -285,37 +285,6 @@ var _ = Describe("Bookkeeper Cluster Version Sync", func() {
 					Ω(boolean).Should(Equal(false))
 				})
 			})
-			Context("checkUpdatedPods with faulty pod", func() {
-				var (
-					//boolean bool
-					pod []*corev1.Pod
-				)
-				BeforeEach(func() {
-					testpod := &v1.Pod{ObjectMeta: metav1.ObjectMeta{Namespace: "default"}, Spec: v1.PodSpec{Containers: []v1.Container{{Image: "testimage"}}},
-						Status: v1.PodStatus{
-							Conditions: []v1.PodCondition{
-								{
-									Type:   v1.PodReady,
-									Status: v1.ConditionTrue,
-								},
-							}},
-					}
-					log.Printf("came till client create")
-					r.client.Create(context.TODO(), testpod)
-					r.client.Get(context.TODO(), types.NamespacedName{Name: "test", Namespace: "default"}, testpod)
-					log.Printf("value of testpod = %v", testpod)
-					pod = append(pod, testpod)
-					sts := MakeBookieStatefulSet(b)
-					selector, _ := metav1.LabelSelectorAsSelector(&metav1.LabelSelector{
-						MatchLabels: sts.Spec.Template.Labels,
-					})
-					_, _ = r.getPodsWithVersion(selector, b.Namespace, "0.7.1")
-				})
-				It("Error should not be nil and bool value should be false", func() {
-					//	Ω(err).ShouldNot(BeNil())
-					//Ω(boolean).Should(Equal(false))
-				})
-			})
 			Context("getStsPodsWithVersion", func() {
 				var sts *appsv1.StatefulSet
 
