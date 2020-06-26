@@ -300,7 +300,7 @@ var _ = Describe("Bookkeeper Cluster Version Sync", func() {
 					pod = append(pod, testpod)
 					boolean, err = r.checkUpdatedPods(pod, "0.7.1")
 				})
-				It("Error should not be nil and bool value should be false", func() {
+				It("Error should be nil and bool value should be false", func() {
 					Ω(err).Should(BeNil())
 					Ω(boolean).Should(Equal(false))
 				})

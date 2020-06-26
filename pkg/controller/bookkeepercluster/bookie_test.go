@@ -92,6 +92,13 @@ var _ = Describe("Bookie", func() {
 					Ω(ss.Name).Should(Equal(util.StatefulSetNameForBookie(bk.Name)))
 				})
 
+				It("should have journal and ledgers dir set to the values given by user", func() {
+					sts := bookkeepercluster.MakeBookieStatefulSet(bk)
+					mountledger := sts.Spec.Template.Spec.Containers[0].VolumeMounts[0].MountPath
+					Ω(mountledger).Should(Equal("/bk/ledgers/l0,/bk/ledgers/l1,/bk/ledgers/l2,/bk/ledgers/l3"))
+					mountjournal := sts.Spec.Template.Spec.Containers[0].VolumeMounts[1].MountPath
+					Ω(mountjournal).Should(Equal("/bk/journal/j0,/bk/journal/j1,/bk/journal/j2,/bk/journal/j3"))
+				})
 			})
 		})
 		Context("User is not specifying bookkeeper journal and ledger path ", func() {
@@ -118,6 +125,13 @@ var _ = Describe("Bookie", func() {
 				It("should create a stateful set", func() {
 					ss := bookkeepercluster.MakeBookieStatefulSet(bk)
 					Ω(ss.Name).Should(Equal(util.StatefulSetNameForBookie(bk.Name)))
+				})
+				It("should have journal and ledgers dir set to default value", func() {
+					sts := bookkeepercluster.MakeBookieStatefulSet(bk)
+					mountledger := sts.Spec.Template.Spec.Containers[0].VolumeMounts[0].MountPath
+					Ω(mountledger).Should(Equal("/bk/ledgers"))
+					mountjournal := sts.Spec.Template.Spec.Containers[0].VolumeMounts[1].MountPath
+					Ω(mountjournal).Should(Equal("/bk/journal"))
 				})
 			})
 		})
