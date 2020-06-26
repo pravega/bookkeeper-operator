@@ -12,6 +12,7 @@ package bookkeepercluster
 
 import (
 	"context"
+	"strings"
 	"testing"
 
 	. "github.com/onsi/ginkgo"
@@ -136,7 +137,7 @@ var _ = Describe("BookkeeperCluster Controller", func() {
 				})
 
 				It("should give error", func() {
-					Ω(err).ShouldNot(BeNil())
+					Ω(strings.ContainsAny(err.Error(), "failed to get stateful-set")).Should(Equal(true))
 				})
 				It("should not give error", func() {
 					Ω(err1).Should(BeNil())

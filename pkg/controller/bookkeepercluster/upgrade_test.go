@@ -72,7 +72,6 @@ var _ = Describe("Bookkeeper Cluster Version Sync", func() {
 				client client.Client
 				err    error
 			)
-
 			BeforeEach(func() {
 				client = fake.NewFakeClient(b)
 				r = &ReconcileBookkeeperCluster{client: client, scheme: s}
@@ -278,6 +277,31 @@ var _ = Describe("Bookkeeper Cluster Version Sync", func() {
 				})
 				It("Error should not be nil and bool value should be false", func() {
 					Ω(err).ShouldNot(BeNil())
+					Ω(boolean).Should(Equal(false))
+				})
+			})
+			Context("checkUpdatedPods with non-faulty pod", func() {
+				var (
+					boolean bool
+					pod     []*corev1.Pod
+				)
+				BeforeEach(func() {
+					testpod := &v1.Pod{ObjectMeta: metav1.ObjectMeta{Namespace: "default", Name: "test"}, Spec: v1.PodSpec{Containers: []v1.Container{{Image: "testimage"}}},
+						Status: v1.PodStatus{
+							ContainerStatuses: []v1.ContainerStatus{
+								{
+									Name: "test1",
+								},
+							},
+						},
+					}
+					r.client.Create(context.TODO(), testpod)
+					r.client.Get(context.TODO(), types.NamespacedName{Name: "test", Namespace: "default"}, testpod)
+					pod = append(pod, testpod)
+					boolean, err = r.checkUpdatedPods(pod, "0.7.1")
+				})
+				It("Error should not be nil and bool value should be false", func() {
+					Ω(err).Should(BeNil())
 					Ω(boolean).Should(Equal(false))
 				})
 			})

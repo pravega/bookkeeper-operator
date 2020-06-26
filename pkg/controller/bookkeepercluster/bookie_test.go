@@ -15,7 +15,7 @@ import (
 
 	"github.com/pravega/bookkeeper-operator/pkg/apis/bookkeeper/v1alpha1"
 	"github.com/pravega/bookkeeper-operator/pkg/controller/bookkeepercluster"
-
+	"github.com/pravega/bookkeeper-operator/pkg/util"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -45,7 +45,6 @@ var _ = Describe("Bookie", func() {
 
 			var (
 				customReq *corev1.ResourceRequirements
-				err       error
 			)
 			BeforeEach(func() {
 				customReq = &corev1.ResourceRequirements{
@@ -72,71 +71,54 @@ var _ = Describe("Bookie", func() {
 				}
 				bk.WithDefaults()
 			})
-			Context("First reconcile", func() {
-				It("shouldn't error", func() {
-					Ω(err).Should(BeNil())
-				})
-			})
 			Context("Bookkeeper", func() {
-
 				It("should create a headless service", func() {
-					_ = bookkeepercluster.MakeBookieHeadlessService(bk)
-					Ω(err).Should(BeNil())
+					headlessservice := bookkeepercluster.MakeBookieHeadlessService(bk)
+					Ω(headlessservice.Name).Should(Equal(util.HeadlessServiceNameForBookie(bk.Name)))
 				})
 
 				It("should create a pod disruption budget", func() {
-					_ = bookkeepercluster.MakeBookiePodDisruptionBudget(bk)
-					Ω(err).Should(BeNil())
+					pdb := bookkeepercluster.MakeBookiePodDisruptionBudget(bk)
+					Ω(pdb.Name).Should(Equal(util.PdbNameForBookie(bk.Name)))
 				})
 
 				It("should create a config-map", func() {
-					_ = bookkeepercluster.MakeBookieConfigMap(bk)
-					Ω(err).Should(BeNil())
+					cm := bookkeepercluster.MakeBookieConfigMap(bk)
+					Ω(cm.Name).Should(Equal(util.ConfigMapNameForBookie(bk.Name)))
 				})
 
 				It("should create a stateful set", func() {
-					_ = bookkeepercluster.MakeBookieStatefulSet(bk)
-					Ω(err).Should(BeNil())
+					ss := bookkeepercluster.MakeBookieStatefulSet(bk)
+					Ω(ss.Name).Should(Equal(util.StatefulSetNameForBookie(bk.Name)))
 				})
 
 			})
 		})
 		Context("User is not specifying bookkeeper journal and ledger path ", func() {
-
-			var (
-				err error
-			)
 			BeforeEach(func() {
 				bk.Spec = v1alpha1.BookkeeperClusterSpec{}
 				bk.WithDefaults()
 			})
-			Context("First reconcile", func() {
-				It("shouldn't error", func() {
-					Ω(err).Should(BeNil())
-				})
-			})
 			Context("Bookkeeper", func() {
-
 				It("should create a headless service", func() {
-					_ = bookkeepercluster.MakeBookieHeadlessService(bk)
-					Ω(err).Should(BeNil())
+					headlessService := bookkeepercluster.MakeBookieHeadlessService(bk)
+					Ω(headlessService.Name).Should(Equal(util.HeadlessServiceNameForBookie(bk.Name)))
 				})
 
 				It("should create a pod disruption budget", func() {
-					_ = bookkeepercluster.MakeBookiePodDisruptionBudget(bk)
-					Ω(err).Should(BeNil())
+					pdb := bookkeepercluster.MakeBookiePodDisruptionBudget(bk)
+					Ω(pdb.Name).Should(Equal(util.PdbNameForBookie(bk.Name)))
 				})
 
 				It("should create a config-map", func() {
-					_ = bookkeepercluster.MakeBookieConfigMap(bk)
-					Ω(err).Should(BeNil())
+					cm := bookkeepercluster.MakeBookieConfigMap(bk)
+					Ω(cm.Name).Should(Equal(util.ConfigMapNameForBookie(bk.Name)))
 				})
 
 				It("should create a stateful set", func() {
-					_ = bookkeepercluster.MakeBookieStatefulSet(bk)
-					Ω(err).Should(BeNil())
+					ss := bookkeepercluster.MakeBookieStatefulSet(bk)
+					Ω(ss.Name).Should(Equal(util.StatefulSetNameForBookie(bk.Name)))
 				})
-
 			})
 		})
 	})
