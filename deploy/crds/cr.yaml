@@ -1,7 +1,7 @@
 apiVersion: "bookkeeper.pravega.io/v1alpha1"
 kind: "BookkeeperCluster"
 metadata:
-  name: "pravega-bk"
+  name: "bookkeeper"
 spec:
   version: 0.7.0
   zookeeperUri: zk-client:2181
@@ -9,7 +9,7 @@ spec:
     repository: pravega/bookkeeper
     pullPolicy: IfNotPresent
   replicas: 3
-  envVars: pravega-bk-configmap
+  envVars: bookkeeper-configmap
   autoRecovery: true
   storage:
     ledgerVolumeClaimTemplate:

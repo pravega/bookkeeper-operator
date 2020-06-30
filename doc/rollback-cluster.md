@@ -24,10 +24,10 @@ Status: True
 Reason: UpgradeFailed
 Message: <Details of exception/cause of failure>
 ```
-After an Upgrade Failure the output of `kubectl describe pravegacluster pravega` would look like this:
+After an Upgrade Failure the output of `kubectl describe bk bookkeeper` would look like this:
 
 ```
-$> kubectl describe  bk pravega-bk
+$> kubectl describe bk bookkeeper
 . . .
 Spec:
 . . .
@@ -46,7 +46,7 @@ Conditions:
     Type:                  PodsReady
     Last Transition Time:  2019-09-06T09:00:13Z
     Last Update Time:      2019-09-06T09:00:13Z
-    Message:               failed to sync segmentstore version. pod pravega-pravega-segmentstore-0 update failed because of ImagePullBackOff
+    Message:               pod bookkeeper-bookie-0 update failed because of ImagePullBackOff
     Reason:                UpgradeFailed
     Status:                True
     Type:                  Error
@@ -75,7 +75,7 @@ Once the Rollback completes, this condition is set to false.
 
 During a Rollback, the Cluster Status should look something like:
 ```
-$> kubectl describe bk pravega-bk
+$> kubectl describe bk bookkeeper
 . . .
 Status:
   Conditions:
@@ -89,7 +89,7 @@ Status:
     Type:                  PodsReady
     Last Transition Time:  2019-09-20T10:41:10Z
     Last Update Time:      2019-09-20T10:41:10Z
-    Message:               failed to sync segmentstore version. pod pravega-pravega-segmentstore-0 update failed because of ImagePullBackOff
+    Message:               pod bookkeeper-bookie-0 update failed because of ImagePullBackOff
     Reason:                UpgradeFailed
     Status:                True
     Type:                  Error
@@ -162,7 +162,7 @@ Status:
     Type:                  PodsReady
     Last Transition Time:  2019-09-20T09:46:24Z
     Last Update Time:      2019-09-20T09:50:57Z
-    Message:               failed to sync bookkeeper version. pod pravega-bookie-0 update failed because of ImagePullBackOff
+    Message:               pod bookkeeper-bookie-0 update failed because of ImagePullBackOff
     Reason:                RollbackFailed
     Status:                True
     Type:                  Error

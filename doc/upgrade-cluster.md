@@ -14,9 +14,9 @@ The activity diagram below shows the overall upgrade process started by an end-u
 Your Bookkeeper cluster should be in a healthy state. You can check your cluster health by listing it and checking that all members are ready.
 
 ```
-$ kubectl get BookkeeperCluster
+$ kubectl get bk
 NAME        VERSION   DESIRED MEMBERS   READY MEMBERS   AGE
-pravega-bk  0.6.1        7                 7            11m
+bookkeeper  0.6.1        7                 7            11m
 ```
 
 ## Upgrade Path Matrix
@@ -86,22 +86,22 @@ BookKeeper upgrade process is as follows:
 You can monitor the upgrade process by listing the Bookkeeper clusters. If a desired version is shown, it means that the operator is working on updating the version.
 
 ```
-$ kubectl get BookkeeperCluster
-NAME      VERSION   DESIRED VERSION   DESIRED MEMBERS   READY MEMBERS       AGE
-example   0.4.0     0.5.0                 4                 3               1h
+$ kubectl get bk
+NAME         VERSION   DESIRED VERSION   DESIRED MEMBERS   READY MEMBERS       AGE
+bookkeeper   0.4.0     0.5.0                 4                 3               1h
 ```
 
 When the upgrade process has finished, the version will be updated.
 
 ```
-$ kubectl get BookkeeperCluster
-NAME      VERSION   DESIRED MEMBERS   READY MEMBERS   AGE
-example   0.5.0     4                 4               1h
+$ kubectl get bk
+NAME         VERSION   DESIRED MEMBERS   READY MEMBERS   AGE
+bookkeeper   0.5.0     4                 4               1h
 ```
 
 The command `kubectl describe` can be used to track progress of the upgrade.
 ```
-$ kubectl describe BookkeeperCluster example
+$ kubectl describe bk bookkeeper
 ...
 Status:
   Conditions:
@@ -125,7 +125,7 @@ The `Reason` field in Upgrading Condition shows the component currently being up
 If upgrade has failed, please check the `Status` section to understand the reason for failure.
 
 ```
-$ kubectl describe BookkeeperCluster example
+$ kubectl describe bk bookkeeper
 ...
 Status:
   Conditions:
@@ -137,7 +137,7 @@ Status:
     Type:                  PodsReady
     Last Transition Time:  2019-04-01T19:43:08+02:00
     Last Update Time:      2019-04-01T19:43:08+02:00
-    Message:               failed to sync bookkeeper version. pod example-bookie-0 is restarting
+    Message:               pod bookkeeper-bookie-0 update failed because of ImagePullBackOff
     Reason:                UpgradeFailed
     Status:                True
     Type:                  Error
@@ -145,12 +145,11 @@ Status:
   Current Version:         0.4.0
   Members:
     Ready:
-      example-bookie-1
-      example-bookie-2
-      example-bookie-2
-      example-bookie-2
+      bookkeeper-bookie-1
+      bookkeeper-bookie-2
+      bookkeeper-bookie-3
     Unready:
-      example-bookie-0
+      bookkeeper-bookie-0
   Ready Replicas:  3
   Replicas:        4
 ```
@@ -160,16 +159,16 @@ You can also find useful information at the operator logs.
 ```
 ...
 INFO[5884] syncing cluster version from 0.4.0 to 0.5.0-1
-INFO[5885] Reconciling BookkeeperCluster default/example
-INFO[5886] updating statefulset (example-bookie) template image to 'adrianmo/bookkeeper:0.5.0-1'
-INFO[5896] Reconciling BookkeeperCluster default/example
-INFO[5897] statefulset (example-bookie) status: 0 updated, 3 ready, 3 target
-INFO[5897] upgrading pod: example-bookie-0
-INFO[5899] Reconciling BookkeeperCluster default/example
-INFO[5900] statefulset (example-bookie) status: 1 updated, 2 ready, 3 target
-INFO[5929] Reconciling BookkeeperCluster default/example
-INFO[5930] statefulset (example-bookie) status: 1 updated, 2 ready, 3 target
-INFO[5930] error syncing cluster version, upgrade failed. failed to sync bookkeeper version. pod example-bookie-0 is restarting
+INFO[5885] Reconciling BookkeeperCluster default/bookkeeper
+INFO[5886] updating statefulset (bookkeeper-bookie) template image to 'pravega/bookkeeper:0.5.0-1'
+INFO[5896] Reconciling BookkeeperCluster default/bookkeeper
+INFO[5897] statefulset (bookkeeper-bookie) status: 0 updated, 3 ready, 3 target
+INFO[5897] updating pod: bookkeeper-bookie-0
+INFO[5899] Reconciling BookkeeperCluster default/bookkeeper
+INFO[5900] statefulset (bookkeeper-bookie) status: 0 updated, 2 ready, 3 target
+INFO[5929] Reconciling BookkeeperCluster default/bookkeeper
+INFO[5930] statefulset (bookkeeper-bookie) status: 0 updated, 2 ready, 3 target
+INFO[5930] error syncing cluster version, upgrade failed. pod bookkeeper-bookie-0 update failed because of ImagePullBackOff
 ...
 ```
 
