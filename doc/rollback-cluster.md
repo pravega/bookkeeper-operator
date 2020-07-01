@@ -114,7 +114,7 @@ Status:
 . . .
 ```
 Here the `RollbackInProgress` condition being `true` indicates that a Rollback is in Progress.
-Also `Reason` and `Message` feilds of this condition indicate the component being rolled back and number of updated replicas respectively.
+Also `Reason` and `Message` fields of this condition indicate the component being rolled back and number of updated replicas respectively.
 
 A `versionHistory` field in the BookkeeperClusterSpec maintains the history of upgrades.
 
