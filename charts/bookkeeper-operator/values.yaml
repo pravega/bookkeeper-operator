@@ -4,7 +4,7 @@
 
 image:
   repository: pravega/bookkeeper-operator
-  tag: 0.1.1
+  tag: 0.1.2
   pullPolicy: IfNotPresent
 
 ## Install RBAC roles and bindings.
