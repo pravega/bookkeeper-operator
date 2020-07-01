@@ -37,7 +37,14 @@ bookkeeper  0.6.1        7                 7            11m
 
 ## Trigger an upgrade
 
-To initiate an upgrade process, a user has to update the `spec.version` field on the `BookkeeperCluster` custom resource. This can be done in three different ways using the `kubectl` command.
+### Upgrading via Helm
+The upgrade can be triggered via helm using the following command
+```
+$ helm upgrade <bookkeeper cluster release name> <location of new operator charts> --timeout 600s
+```
+
+### Upgrading manually
+To initiate the manual upgrade process, a user has to update the `spec.version` field on the `BookkeeperCluster` custom resource. This can be done in three different ways using the `kubectl` command.
 1. `kubectl edit BookkeeperCluster <name>`, modify the `version` value in the YAML resource, save, and exit.
 2. If you have the custom resource defined in a local YAML file, e.g. `bookkeeper.yaml`, you can modify the `version` value, and reapply the resource with `kubectl apply -f bookkeeper.yaml`.
 3. `kubectl patch BookkeeperCluster <name> --type='json' -p='[{"op": "replace", "path": "/spec/version", "value": "X.Y.Z"}]'`.
