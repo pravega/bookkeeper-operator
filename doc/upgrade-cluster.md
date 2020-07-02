@@ -42,7 +42,7 @@ bookkeeper  0.6.1        7                 7            11m
 
 The upgrade can be triggered via helm using the following command
 ```
-$ helm upgrade <bookkeeper cluster release name> <location of new operator charts> --timeout 600s
+$ helm upgrade <bookkeeper cluster release name> <location of modified charts> --timeout 600s
 ```
 
 ### Upgrading manually
