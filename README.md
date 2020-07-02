@@ -38,7 +38,7 @@ The Bookkeeper Operator manages Bookkeeper clusters deployed to Kubernetes and a
 
 - Kubernetes 1.15+
 - Helm 3+
-- An existing Apache Zookeeper 3.5 cluster. This can be easily deployed using our [Zookeeper operator](https://github.com/pravega/zookeeper-operator)
+- An existing Apache Zookeeper 3.6.1 cluster. This can be easily deployed using our [Zookeeper operator](https://github.com/pravega/zookeeper-operator)
 
 ## Quickstart
 

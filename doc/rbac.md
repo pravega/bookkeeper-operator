@@ -46,7 +46,7 @@ bookkeeper   28m
 ```
 
 ```
-$ kubectl -n pravega-io get pods
+$ kubectl -n pravega-io get pods -l bookkeeper_cluster=bookkeeper
 NAME                                             READY     STATUS    RESTARTS   AGE
 bookkeeper-bookie-0                              1/1       Running   0          29m
 bookkeeper-bookie-1                              1/1       Running   0          29m

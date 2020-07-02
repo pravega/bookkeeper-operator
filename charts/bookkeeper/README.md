@@ -10,7 +10,7 @@ This chart creates a Bookkeeper cluster in [Kubernetes](http://kubernetes.io) us
 
   - Kubernetes 1.15+ with Beta APIs
   - Helm 3+
-  - An existing Apache Zookeeper 3.5 cluster. This can be easily deployed using our [Zookeeper Operator](https://github.com/pravega/zookeeper-operator)
+  - An existing Apache Zookeeper 3.6.1 cluster. This can be easily deployed using our [Zookeeper Operator](https://github.com/pravega/zookeeper-operator)
   - Bookkeeper Operator. You can install it using its own [Helm chart](https://github.com/pravega/bookkeeper-operator/tree/master/charts/bookkeeper-operator)
 
 ## Installing the Chart

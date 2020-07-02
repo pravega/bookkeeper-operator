@@ -60,7 +60,7 @@ where `0.6.0-2252.b6f6512` is the version we tried upgrading to and `0.6.0-2239.
 
 ## Manual Rollback Trigger
 
-A Rollback is triggered when a Bookkeeper Cluster is in `UpgradeFailed` Error State and a user manually updates version feild in the BookkeeperCluster spec to point to the last stable cluster version.
+A Rollback is triggered when a Bookkeeper Cluster is in `UpgradeFailed` Error State and a user manually updates version field in the BookkeeperCluster spec to point to the last stable cluster version.
 
 A Rollback involves moving all components in the cluster back to the last stable cluster version. As with upgrades, the operator rolls back one component at a time and one pod at a time to preserve high-availability.
 
