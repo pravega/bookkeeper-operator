@@ -23,7 +23,7 @@ const (
 
 	// DefaultPravegaVersion is the default tag used for for the Pravega
 	// Docker image
-	DefaultBookkeeperVersion = "0.6.1"
+	DefaultBookkeeperVersion = "0.7.0"
 	// DefaultBookkeeperImageRepository is the default Docker repository for
 
 	// the BookKeeper image
