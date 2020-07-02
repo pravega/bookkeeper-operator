@@ -16,13 +16,13 @@ The project is currently alpha. While no breaking API changes are currently plan
     * [Install a sample Bookkeeper Cluster](#install-a-sample-bookkeeper-cluster)
     * [Scale a Bookkeeper Cluster](#scale-a-bookkeeper-cluster)
     * [Upgrade a Bookkeeper Cluster](#upgrade-a-bookkeeper-cluster)
+    * [Upgrade the Operator](#upgrade-the-operator)
     * [Uninstall the Bookkeeper Cluster](#uninstall-the-bookkeeper-cluster)
     * [Uninstall the Operator](#uninstall-the-operator)
     * [Manual installation](#manual-installation)
  * [Configuration](#configuration)
  * [Development](#development)
 * [Releases](#releases)
-* [Upgrade the Operator](#upgrade-the-operator)
 
 ## Overview
 
@@ -38,7 +38,7 @@ The Bookkeeper Operator manages Bookkeeper clusters deployed to Kubernetes and a
 
 - Kubernetes 1.15+
 - Helm 3+
-- An existing Apache Zookeeper 3.5 cluster. This can be easily deployed using our [Zookeeper operator](https://github.com/pravega/zookeeper-operator)
+- An existing Apache Zookeeper 3.6.1 cluster. This can be easily deployed using our [Zookeeper operator](https://github.com/pravega/zookeeper-operator)
 
 ## Quickstart
 
@@ -75,10 +75,10 @@ If the Bookkeeper cluster is expected to work with Pravega, we need to create a 
 
 The name of this ConfigMap needs to be mentioned in the field `envVars` present in the BookKeeper Spec. For more details about this ConfigMap refer to [this](doc/bookkeeper-options.md#bookkeeper-custom-configuration).
 
-Helm can be used to install a sample Bookkeeper cluster with the release name `pravega-bk`.
+Helm can be used to install a sample Bookkeeper cluster with the release name `bookkeeper`.
 
 ```
-$ helm install pravega-bk charts/bookkeeper --set zookeeperUri=[ZOOKEEPER_HOST] --set pravegaClusterName=[CLUSTER_NAME]
+$ helm install bookkeeper charts/bookkeeper --set zookeeperUri=[ZOOKEEPER_HOST] --set pravegaClusterName=[CLUSTER_NAME]
 ```
 
 where:
@@ -93,7 +93,7 @@ Verify that the cluster instances and its components are being created.
 ```
 $ kubectl get bk
 NAME                   VERSION   DESIRED MEMBERS   READY MEMBERS      AGE
-pravega-bk             0.7.0     3                 1                  25s
+bookkeeper             0.7.0     3                 1                  25s
 ```
 
 After a couple of minutes, all cluster members should become ready.
@@ -101,26 +101,26 @@ After a couple of minutes, all cluster members should become ready.
 ```
 $ kubectl get bk
 NAME                   VERSION   DESIRED MEMBERS   READY MEMBERS     AGE
-pravega-bk             0.7.0     3                 3                 2m
+bookkeeper             0.7.0     3                 3                 2m
 ```
 
 ```
-$ kubectl get all -l bookkeeper_cluster=pravega-bk
+$ kubectl get all -l bookkeeper_cluster=bookkeeper
 NAME                                              READY   STATUS    RESTARTS   AGE
-pod/pravega-bk-bookie-0                           1/1     Running   0          2m
-pod/pravega-bk-bookie-1                           1/1     Running   0          2m
-pod/pravega-bk-bookie-2                           1/1     Running   0          2m
+pod/bookkeeper-bookie-0                           1/1     Running   0          2m
+pod/bookkeeper-bookie-1                           1/1     Running   0          2m
+pod/bookkeeper-bookie-2                           1/1     Running   0          2m
 
 NAME                                            TYPE        CLUSTER-IP    EXTERNAL-IP   PORT(S)              AGE
-service/pravega-bk-bookie-headless              ClusterIP   None          <none>        3181/TCP             2m
+service/bookkeeper-bookie-headless              ClusterIP   None          <none>        3181/TCP             2m
 
 NAME                                            DESIRED   CURRENT     AGE
-statefulset.apps/pravega-bk-bookie              3         3           2m
+statefulset.apps/bookkeeper-bookie              3         3           2m
 ```
 
 By default, a `BookkeeperCluster` is reachable using this kind of headless service URL for each pod:
 ```
-http://pravega-bk-bookie-0.pravega-bk-bookie-headless.pravega-bk-bookie:3181
+http://bookkeeper-bookie-0.bookkeeper-bookie-headless.bookkeeper-bookie:3181
 ```
 
 ### Scale a Bookkeeper cluster
@@ -130,18 +130,30 @@ You can scale Bookkeeper cluster by updating the `replicas` field in the Bookkee
 Example of patching the Bookkeeper Cluster resource to scale the server instances to 4.
 
 ```
-kubectl patch bk pravega-bk --type='json' -p='[{"op": "replace", "path": "/spec/replicas", "value": 4}]'
+kubectl patch bk bookkeeper --type='json' -p='[{"op": "replace", "path": "/spec/replicas", "value": 4}]'
 ```
 
 ### Upgrade a Bookkeeper cluster
 
 Check out the [upgrade guide](doc/upgrade-cluster.md).
 
+## Upgrade the Operator
+
+Bookkeeper operator can be upgraded via helm using the following command
+```
+$ helm upgrade bookkeeper-operator <location of modified operator charts>
+```
+Here `bookkeeper-operator` is the release name of the operator. It can also be upgraded manually by modifying the image tag using the following command
+```
+$ kubectl edit deploy bookkeeper-operator
+```
+
 ### Uninstall the Bookkeeper cluster
 
 ```
-$ helm uninstall pravega-bk
+$ helm uninstall bookkeeper
 ```
+Here `bookkeeper` is the bookkeeper cluster release name.
 
 Once the Bookkeeper cluster has been deleted, make sure to check that the zookeeper metadata has been cleaned up before proceeding with the deletion of the operator. This can be confirmed with the presence of the following log message in the operator logs.
 ```
@@ -152,13 +164,13 @@ However, if the operator fails to delete this metadata from zookeeper, you will 
 ```
 failed to cleanup <bookkeeper-cluster-name> metadata from zookeeper (znode path: /pravega/<pravega-cluster-name>): <error-msg>
 ```
-The operator additionally sends out a `ZKMETA_CLEANUP_ERROR` event to notify the user about this failure. The user can check this event by doing `kubectl get events`. The following is the sample describe output of the event that is generated by the operator in such a case
 
+The operator additionally sends out a `ZKMETA_CLEANUP_ERROR` event to notify the user about this failure. The user can check this event by doing `kubectl get events`. The following is the sample describe output of the event that is generated by the operator in such a case
 ```
 Name:             ZKMETA_CLEANUP_ERROR-nn6sd
 Namespace:        default
 Labels:           app=bookkeeper-cluster
-                  bookkeeper_cluster=pravega-bk
+                  bookkeeper_cluster=bookkeeper
 Annotations:      <none>
 API Version:      v1
 Event Time:       <nil>
@@ -170,7 +182,7 @@ Involved Object:
   Namespace:     default
 Kind:            Event
 Last Timestamp:  2020-04-27T16:53:34Z
-Message:         failed to cleanup pravega-bk metadata from zookeeper (znode path: /pravega/pravega): failed to delete zookeeper znodes for (pravega-bk): failed to connect to zookeeper: lookup zookeeper-client on 10.100.200.2:53: no such host
+Message:         failed to cleanup bookkeeper metadata from zookeeper (znode path: /pravega/pravega): failed to delete zookeeper znodes for (bookkeeper): failed to connect to zookeeper: lookup zookeeper-client on 10.100.200.2:53: no such host
 Metadata:
   Creation Timestamp:  2020-04-27T16:53:34Z
   Generate Name:       ZKMETA_CLEANUP_ERROR-
@@ -193,6 +205,7 @@ Events:  <none>
 ```
 $ helm uninstall bookkeeper-operator
 ```
+Here `bookkeeper-operator` is the operator release name.
 
 ### Manual installation
 
@@ -209,9 +222,3 @@ Check out the [development guide](doc/development.md).
 ## Releases  
 
 The latest Bookkeeper releases can be found on the [Github Release](https://github.com/pravega/bookkeeper-operator/releases) project page.
-
-## Upgrade the Operator
-Bookkeeper operator can be upgraded by modifying the image tag using
-```
-$ kubectl edit deploy bookkeeper-operator
-```

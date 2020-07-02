@@ -77,11 +77,11 @@ Once all these have been installed, you can use the following YAML template to i
 apiVersion: "bookkeeper.pravega.io/v1alpha1"
 kind: "BookkeeperCluster"
 metadata:
-  name: "pravega-bk"
+  name: "bookkeeper"
 spec:
   version: 0.7.0
   zookeeperUri: [ZOOKEEPER_HOST]
-  envVars: pravega-bk-configmap
+  envVars: bookkeeper-configmap
   replicas: 3
   image:
     repository: pravega/bookkeeper
@@ -105,7 +105,7 @@ Verify that the cluster instances and its components are being created.
 ```
 $ kubectl get bk
 NAME         VERSION   DESIRED MEMBERS    READY MEMBERS      AGE
-pravega-bk   0.7.0     3                  0                  25s
+bookkeeper   0.7.0     3                  0                  25s
 ```
 
 ### Uninstall the Bookkeeper cluster manually
@@ -129,7 +129,7 @@ The operator additionally sends out a `ZKMETA_CLEANUP_ERROR` event to notify the
 Name:             ZKMETA_CLEANUP_ERROR-nn6sd
 Namespace:        default
 Labels:           app=bookkeeper-cluster
-                  bookkeeper_cluster=pravega-bk
+                  bookkeeper_cluster=bookkeeper
 Annotations:      <none>
 API Version:      v1
 Event Time:       <nil>
@@ -141,7 +141,7 @@ Involved Object:
   Namespace:     default
 Kind:            Event
 Last Timestamp:  2020-04-27T16:53:34Z
-Message:         failed to cleanup pravega-bk metadata from zookeeper (znode path: /pravega/pravega): failed to delete zookeeper znodes for (pravega-bk): failed to connect to zookeeper: lookup zookeeper-client on 10.100.200.2:53: no such host
+Message:         failed to cleanup bookkeeper metadata from zookeeper (znode path: /pravega/pravega): failed to delete zookeeper znodes for (bookkeeper): failed to connect to zookeeper: lookup zookeeper-client on 10.100.200.2:53: no such host
 Metadata:
   Creation Timestamp:  2020-04-27T16:53:34Z
   Generate Name:       ZKMETA_CLEANUP_ERROR-

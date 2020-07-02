@@ -9,7 +9,7 @@ This chart bootstraps a [Bookkeeper Operator](https://github.com/pravega/bookkee
 ## Prerequisites
   - Kubernetes 1.15+ with Beta APIs
   - Helm 3+
-  - An existing Apache Zookeeper 3.5 cluster. This can be easily deployed using our [Zookeeper Operator](https://github.com/pravega/zookeeper-operator)
+  - An existing Apache Zookeeper 3.6.1 cluster. This can be easily deployed using our [Zookeeper Operator](https://github.com/pravega/zookeeper-operator)
 
 ## Installing the Chart
 
@@ -38,7 +38,7 @@ The following table lists the configurable parameters of the Bookkeeper operator
 | Parameter | Description | Default |
 | ----- | ----------- | ------ |
 | `image.repository` | Image repository | `pravega/bookkeeper-operator` |
-| `image.tag` | Image tag | `0.1.1` |
+| `image.tag` | Image tag | `0.1.2` |
 | `image.pullPolicy` | Image pull policy | `IfNotPresent` |
 | `crd.create` | Create bookkeeper CRD | `true` |
 | `rbac.create` | Create RBAC resources | `true` |

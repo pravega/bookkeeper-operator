@@ -24,10 +24,10 @@ Status: True
 Reason: UpgradeFailed
 Message: <Details of exception/cause of failure>
 ```
-After an Upgrade Failure the output of `kubectl describe pravegacluster pravega` would look like this:
+After an Upgrade Failure the output of `kubectl describe bk bookkeeper` would look like this:
 
 ```
-$> kubectl describe  bk pravega-bk
+$> kubectl describe bk bookkeeper
 . . .
 Spec:
 . . .
@@ -46,7 +46,7 @@ Conditions:
     Type:                  PodsReady
     Last Transition Time:  2019-09-06T09:00:13Z
     Last Update Time:      2019-09-06T09:00:13Z
-    Message:               failed to sync segmentstore version. pod pravega-pravega-segmentstore-0 update failed because of ImagePullBackOff
+    Message:               pod bookkeeper-bookie-0 update failed because of ImagePullBackOff
     Reason:                UpgradeFailed
     Status:                True
     Type:                  Error
@@ -60,13 +60,26 @@ where `0.6.0-2252.b6f6512` is the version we tried upgrading to and `0.6.0-2239.
 
 ## Manual Rollback Trigger
 
-A Rollback is triggered when a Bookkeeper Cluster is in `UpgradeFailed` Error State and a user manually updates version feild in the BookkeeperCluster spec to point to the last stable cluster version.
+A Rollback is triggered when a Bookkeeper Cluster is in `UpgradeFailed` Error State and a user manually updates version field in the BookkeeperCluster spec to point to the last stable cluster version.
 
 A Rollback involves moving all components in the cluster back to the last stable cluster version. As with upgrades, the operator rolls back one component at a time and one pod at a time to preserve high-availability.
 
 Note:
 1. A Rollback to only the last stable cluster version is supported at this point.
 2. Changing the cluster spec version to the previous cluster version, when cluster is not in `UpgradeFailed` state, will not trigger a rollback.
+
+## Rollback via Helm
+
+The following command prints the historical revisions of a particular helm release
+```
+$ helm history <release-name>
+```
+
+Rollback can be triggered via helm using the following command
+```
+$ helm rollback <cluster release name> <revision number>
+```
+Rollback will be successfully triggered only if the previous revision number is provided.
 
 ## Rollback Implementation
 
@@ -75,7 +88,7 @@ Once the Rollback completes, this condition is set to false.
 
 During a Rollback, the Cluster Status should look something like:
 ```
-$> kubectl describe bk pravega-bk
+$> kubectl describe bk bookkeeper
 . . .
 Status:
   Conditions:
@@ -89,7 +102,7 @@ Status:
     Type:                  PodsReady
     Last Transition Time:  2019-09-20T10:41:10Z
     Last Update Time:      2019-09-20T10:41:10Z
-    Message:               failed to sync segmentstore version. pod pravega-pravega-segmentstore-0 update failed because of ImagePullBackOff
+    Message:               pod bookkeeper-bookie-0 update failed because of ImagePullBackOff
     Reason:                UpgradeFailed
     Status:                True
     Type:                  Error
@@ -101,7 +114,7 @@ Status:
 . . .
 ```
 Here the `RollbackInProgress` condition being `true` indicates that a Rollback is in Progress.
-Also `Reason` and `Message` feilds of this condition indicate the component being rolled back and number of updated replicas respectively.
+Also `Reason` and `Message` fields of this condition indicate the component being rolled back and number of updated replicas respectively.
 
 A `versionHistory` field in the BookkeeperClusterSpec maintains the history of upgrades.
 
@@ -162,7 +175,7 @@ Status:
     Type:                  PodsReady
     Last Transition Time:  2019-09-20T09:46:24Z
     Last Update Time:      2019-09-20T09:50:57Z
-    Message:               failed to sync bookkeeper version. pod pravega-bookie-0 update failed because of ImagePullBackOff
+    Message:               pod bookkeeper-bookie-0 update failed because of ImagePullBackOff
     Reason:                RollbackFailed
     Status:                True
     Type:                  Error

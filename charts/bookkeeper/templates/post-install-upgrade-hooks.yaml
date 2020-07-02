@@ -93,7 +93,7 @@ metadata:
     "helm.sh/hook-weight": "2"
     "helm.sh/hook-delete-policy": hook-succeeded, before-hook-creation, hook-failed
 spec:
-  backoffLimit: 60
+  backoffLimit: {{ .Values.hooks.backoffLimit }}
   template:
     metadata:
       name: {{ template "bookkeeper.fullname" . }}-post-install-upgrade

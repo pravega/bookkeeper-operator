@@ -23,8 +23,14 @@ We truncate at 63 chars because some Kubernetes name fields are limited to this 
 {{- end -}}
 {{- end -}}
 
+{{/*
+Common labels
+*/}}
 {{- define "bookkeeper-operator.commonLabels" -}}
-app.kubernetes.io/name: "{{ template "bookkeeper-operator.name" . }}"
-app.kubernetes.io/version: "{{ .Chart.AppVersion }}"
+app.kubernetes.io/name: {{ include "bookkeeper-operator.name" . }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
 helm.sh/chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
 {{- end -}}
