@@ -19,7 +19,7 @@ import (
 
 const (
 	// DefaultZookeeperUri is the default ZooKeeper URI in the form of "hostname:port"
-	DefaultZookeeperUri = "zk-client:2181"
+	DefaultZookeeperUri = "zookeeper-client:2181"
 
 	// DefaultPravegaVersion is the default tag used for for the Pravega
 	// Docker image

@@ -4,7 +4,7 @@ metadata:
   name: "bookkeeper"
 spec:
   version: 0.7.0
-  zookeeperUri: zk-client:2181
+  zookeeperUri: zookeeper-client:2181
 
   image:
     repository: pravega/bookkeeper

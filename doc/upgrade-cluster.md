@@ -16,25 +16,12 @@ Your Bookkeeper cluster should be in a healthy state. You can check your cluster
 ```
 $ kubectl get bk
 NAME        VERSION   DESIRED MEMBERS   READY MEMBERS   AGE
-bookkeeper  0.6.1        7                 7            11m
+bookkeeper  0.4.0        7                 7            11m
 ```
 
-## Upgrade Path Matrix
+## Valid Upgrade Paths
 
-| BASE VERSION | TARGET VERSION                          |
-| ------------ | ----------------                        |
-| 0.1.0        | 0.1.0                                   |
-| 0.2.0        | 0.2.0                                   |
-| 0.3.0        | 0.3.0, 0.3.1, 0.3.2                     |
-| 0.3.1        | 0.3.1, 0.3.2                            |
-| 0.3.2        | 0.3.2                                   |
-| 0.4.0        | 0.4.0                                   |
-| 0.5.0        | 0.5.0, 0.5.1, 0.6.0, 0.6.1, 0.7.0, 0.7.1|
-| 0.5.1        | 0.5.1, 0.6.0, 0.6.1, 0.7.0, 0.7.1       |
-| 0.6.0        | 0.6.0, 0.6.1, 0.7.0, 0.7.1              |
-| 0.6.1        | 0.6.1, 0.7.0, 0.7.1                     |
-| 0.7.0        | 0.7.0, 0.7.1                            |
-| 0.7.1        | 0.7.1                                   |
+To understand the valid upgrade paths for a pravega cluster, refer to the [version map](https://github.com/pravega/bookkeeper-operator/blob/master/deploy/version_map.yaml). The key indicates the base version of the cluster, and the value against each key indicates the list of valid versions this base version can be upgraded to.
 
 ## Trigger an upgrade
 
