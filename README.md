@@ -83,7 +83,7 @@ $ helm install bookkeeper charts/bookkeeper --set zookeeperUri=[ZOOKEEPER_HOST] 
 
 where:
 
-- **[ZOOKEEPER_HOST]** is the Zookeeper service endpoint of your Zookeeper deployment (e.g. `zk-client:2181`). It expects the zookeeper service URL in the given format `<service-name>:<port-number>`
+- **[ZOOKEEPER_HOST]** is the Zookeeper service endpoint of your Zookeeper deployment (e.g. `zookeeper-client:2181`). It expects the zookeeper service URL in the given format `<service-name>:<port-number>`
 - **[CLUSTER_NAME]** is the name of the Pravega cluster (i.e. this field is optional and needs to be provided only if we expect this bookkeeper cluster to work with [Pravega](https://github.com/pravega/pravega)).
 
 Check out the [Bookkeeper Helm Chart](charts/bookkeeper) for more a complete list of installation parameters.

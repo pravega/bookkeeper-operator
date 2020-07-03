@@ -90,7 +90,7 @@ spec:
 
 where:
 
-- `[ZOOKEEPER_HOST]` is the Zookeeper service endpoint of your Zookeeper deployment (e.g. `zk-client:2181`). It expects the zookeeper service URL in the given format `<service-name>:<port-number>`
+- `[ZOOKEEPER_HOST]` is the Zookeeper service endpoint of your Zookeeper deployment (e.g. `zookeeper-client:2181`). It expects the zookeeper service URL in the given format `<service-name>:<port-number>`
 
 Check out other sample CR files in the [`example`](../example) directory.
 
