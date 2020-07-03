@@ -1,3 +1,33 @@
 apiVersion: v1
-entries: {}
-generated: "2020-07-03T11:12:52.881788588+08:00"
+entries:
+  bookkeeper:
+  - apiVersion: v2
+    appVersion: 0.7.0
+    created: "2020-07-03T11:21:24.109757983+08:00"
+    description: Bookkeeper Helm chart for Kubernetes
+    digest: 85da0bea92fbf2a705a90091c1107650a112a99f13e1c0742363776dfcc2678d
+    home: https://github.com/apache/bookkeeper
+    icon: https://bookkeeper.apache.org/images/bookkeeper_logo_blk.png
+    keywords:
+    - log storage
+    - stream storage
+    name: bookkeeper
+    urls:
+    - bookkeeper-0.7.0.tgz
+    version: 0.7.0
+  bookkeeper-operator:
+  - apiVersion: v2
+    appVersion: 0.1.2
+    created: "2020-07-03T11:21:24.110210748+08:00"
+    description: Bookkeeper Operator Helm chart for Kubernetes
+    digest: f8eaf584c76a8aa7002a7d4fac310a4a44f90152aeea3465bf016de17f37cfd1
+    home: https://github.com/pravega/bookkeeper-operator
+    icon: https://bookkeeper.apache.org/images/bookkeeper_logo_blk.png
+    keywords:
+    - log storage
+    - stream storage
+    name: bookkeeper-operator
+    urls:
+    - bookkeeper-operator-0.1.2.tgz
+    version: 0.1.2
+generated: "2020-07-03T11:21:24.109008237+08:00"
