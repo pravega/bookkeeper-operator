@@ -97,7 +97,7 @@ func (bk *BookkeeperCluster) WithDefaults() (changed bool) {
 type BookkeeperClusterSpec struct {
 	// ZookeeperUri specifies the hostname/IP address and port in the format
 	// "hostname:port".
-	// By default, the value "zk-client:2181" is used, that corresponds to the
+	// By default, the value "zookeeper-client:2181" is used, that corresponds to the
 	// default Zookeeper service created by the Pravega Zookkeeper operator
 	// available at: https://github.com/pravega/zookeeper-operator
 	ZookeeperUri string `json:"zookeeperUri"`
