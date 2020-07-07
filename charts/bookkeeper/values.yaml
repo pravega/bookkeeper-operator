@@ -21,11 +21,11 @@ autoRecovery: true
 
 resources:
   requests:
-    cpu: 500m
-    memory: 1Gi
+    cpu: 1000m
+    memory: 4Gi
   limits:
-    cpu: 1
-    memory: 2Gi
+    cpu: 2000m
+    memory: 4Gi
 
 storage:
   ledger:
@@ -39,10 +39,26 @@ storage:
     volumeSize: 10Gi
 
 jvmOptions:
-  memoryOpts: []
+  memoryOpts: ["-Xms1g", "-XX:MaxDirectMemorySize=2g"]
   gcOpts: []
   gcLoggingOpts: []
   extraOpts: []
 
 options:
-  # useHostNameAsBookieID: "true"
+  useHostNameAsBookieID: "true"
+  ## We need an agressive data compaction policy in Bookkeeper, given that we may have IO heavy workloads that may fill up the disks.
+  ## For more information on these parameters, please see https://github.com/pravega/pravega/issues/4008.
+  minorCompactionThreshold: "0.4"
+  minorCompactionInterval: "1800"
+  majorCompactionThreshold: "0.8"
+  majorCompactionInterval: "43200"
+  isForceGCAllowWhenNoSpace: "true"
+  ## Use multiple journal and ledger directories to try exploiting more parallelism at the drive level.
+  journalDirectories: "/bk/journal/j0,/bk/journal/j1,/bk/journal/j2,/bk/journal/j3"
+  ledgerDirectories: "/bk/ledgers/l0,/bk/ledgers/l1,/bk/ledgers/l2,/bk/ledgers/l3"
+  ## We have validated that this simpler ledger type prevents Bookie restarts due to heap OOM compared to the default SortedLedgerStorage.
+  ## As we do not read from Bookkeeper (only during container recovery), this ledger type looks more efficient given our requirements.
+  ledgerStorageClass: "org.apache.bookkeeper.bookie.InterleavedLedgerStorage"
+  ## Only use these parameters if you want Bookkeeper to publish metrics (via Prometheus).
+  # enableStatistics: "true"
+  # statsProviderClass: "org.apache.bookkeeper.stats.prometheus.PrometheusMetricsProvider"
