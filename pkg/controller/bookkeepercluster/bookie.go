@@ -12,8 +12,8 @@ package bookkeepercluster
 
 import (
 	"fmt"
-	"strings"
 	"strconv"
+	"strings"
 
 	"github.com/pravega/bookkeeper-operator/pkg/apis/bookkeeper/v1alpha1"
 	"github.com/pravega/bookkeeper-operator/pkg/util"
@@ -119,24 +119,24 @@ func makeBookiePodSpec(bk *v1alpha1.BookkeeperCluster) *corev1.PodSpec {
 	var ok bool
 
 	if _, ok = bk.Spec.Options["ledgerDirectories"]; ok {
-		ledgerDirs = strings.Split(bk.Spec.Options["ledgerDirectories"],",")
+		ledgerDirs = strings.Split(bk.Spec.Options["ledgerDirectories"], ",")
 	} else {
 		// default value if user did not set ledgerDirectories in options
-		ledgerDirs = append(ledgerDirs,"/bk/ledgers")
+		ledgerDirs = append(ledgerDirs, "/bk/ledgers")
 	}
 
 	if _, ok = bk.Spec.Options["journalDirectories"]; ok {
-		journalDirs = strings.Split(bk.Spec.Options["journalDirectories"],",")
+		journalDirs = strings.Split(bk.Spec.Options["journalDirectories"], ",")
 	} else {
 		// default value if user did not set journalDirectories in options
-		journalDirs = append(journalDirs,"/bk/journal")
+		journalDirs = append(journalDirs, "/bk/journal")
 	}
 
 	if _, ok = bk.Spec.Options["indexDirectories"]; ok {
-		indexDirs = strings.Split(bk.Spec.Options["indexDirectories"],",")
+		indexDirs = strings.Split(bk.Spec.Options["indexDirectories"], ",")
 	} else {
 		// default value if user did not set indexDirectories in options
-		indexDirs = append(indexDirs,"/bk/index")
+		indexDirs = append(indexDirs, "/bk/index")
 	}
 
 	podSpec := &corev1.PodSpec{
@@ -151,9 +151,9 @@ func makeBookiePodSpec(bk *v1alpha1.BookkeeperCluster) *corev1.PodSpec {
 						ContainerPort: 3181,
 					},
 				},
-				EnvFrom: environment,
-				VolumeMounts: createVolumeMount(ledgerDirs,journalDirs,indexDirs),
-				Resources: *bk.Spec.Resources,
+				EnvFrom:      environment,
+				VolumeMounts: createVolumeMount(ledgerDirs, journalDirs, indexDirs),
+				Resources:    *bk.Spec.Resources,
 				ReadinessProbe: &corev1.Probe{
 					Handler: corev1.Handler{
 						Exec: &corev1.ExecAction{
@@ -201,32 +201,32 @@ func makeBookiePodSpec(bk *v1alpha1.BookkeeperCluster) *corev1.PodSpec {
 
 func createVolumeMount(ledgerDirs []string, journalDirs []string, indexDirs []string) []corev1.VolumeMount {
 	var volumeMounts []corev1.VolumeMount
-	for i,ledger := range ledgerDirs {
-		name := JournalDiskName+strconv.Itoa(i)
+	for i, ledger := range ledgerDirs {
+		name := JournalDiskName + strconv.Itoa(i)
 		v := corev1.VolumeMount{
 			Name:      LedgerDiskName,
 			MountPath: ledger,
 			SubPath:   name,
 		}
-		volumeMounts = append(volumeMounts,v)
+		volumeMounts = append(volumeMounts, v)
 	}
-	for i,journal := range journalDirs {
-		name := JournalDiskName+strconv.Itoa(i)
+	for i, journal := range journalDirs {
+		name := JournalDiskName + strconv.Itoa(i)
 		v := corev1.VolumeMount{
 			Name:      JournalDiskName,
 			MountPath: journal,
 			SubPath:   name,
 		}
-		volumeMounts = append(volumeMounts,v)
+		volumeMounts = append(volumeMounts, v)
 	}
-	for i,index := range indexDirs {
-		name := IndexDiskName+strconv.Itoa(i)
+	for i, index := range indexDirs {
+		name := IndexDiskName + strconv.Itoa(i)
 		v := corev1.VolumeMount{
 			Name:      IndexDiskName,
 			MountPath: index,
 			SubPath:   name,
 		}
-		volumeMounts = append(volumeMounts,v)
+		volumeMounts = append(volumeMounts, v)
 	}
 	return volumeMounts
 }
