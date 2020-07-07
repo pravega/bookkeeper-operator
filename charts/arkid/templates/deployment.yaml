@@ -36,7 +36,7 @@ spec:
           image: "{{ .Values.image.webServer.repository }}:{{ .Values.image.webServer.tag }}"
           imagePullPolicy: {{ .Values.image.webServer.pullPolicy }}
           command: ["/bin/sh"]
-          args: ["-c","python manage.py migrate --fake-initial && supervisord"]
+          args: ["-c","python manage.py makemigrations && python manage.py migrate && supervisord"]
           ports:
             - name: http
               containerPort: 80
