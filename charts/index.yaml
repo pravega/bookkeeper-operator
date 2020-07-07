@@ -3,7 +3,22 @@ entries:
   arkid:
   - apiVersion: v1
     appVersion: 1.3.2
-    created: "2020-07-06T18:38:55.464905904+08:00"
+    created: "2020-07-07T12:03:09.848653788+08:00"
+    description: ArkID is an enterprise SSO solutions, it supports LDAP, OpenID, SAML,
+      OAuth and more
+    digest: 82df605db1a00b37be5d524471d734f2df350fef399f3ffc02db876b597ec69b
+    home: https://github.com/longguikeji/arkid-charts
+    icon: https://raw.githubusercontent.com/skoogi/charts/assets/assets/logo.png
+    maintainers:
+    - email: yanghan@longguikeji.com
+      name: yanghan
+    name: arkid
+    urls:
+    - arkid-1.3.4.tgz
+    version: 1.3.4
+  - apiVersion: v1
+    appVersion: 1.3.2
+    created: "2020-07-07T12:03:09.847620077+08:00"
     description: ArkID is an enterprise SSO solutions, it supports LDAP, OpenID, SAML,
       OAuth and more
     digest: 57841e8c1d8dd180b4343d3dc5300af01b33b8e1a092b5766c5ad713514c1d40
@@ -18,7 +33,7 @@ entries:
     version: 1.3.3
   - apiVersion: v1
     appVersion: 1.3.2
-    created: "2020-07-06T18:38:55.463900199+08:00"
+    created: "2020-07-07T12:03:09.846600471+08:00"
     description: ArkID is an enterprise SSO solutions, it supports LDAP, OpenID, SAML,
       OAuth and more
     digest: 9b18ed33c2a6ff5244b2c88699e1e9fc763b9d277a13b8c245017277c02c4c06
@@ -34,7 +49,7 @@ entries:
   bookkeeper:
   - apiVersion: v2
     appVersion: 0.7.0
-    created: "2020-07-06T18:38:55.465436793+08:00"
+    created: "2020-07-07T12:03:09.849208488+08:00"
     description: Bookkeeper Helm chart for Kubernetes
     digest: 85da0bea92fbf2a705a90091c1107650a112a99f13e1c0742363776dfcc2678d
     home: https://github.com/apache/bookkeeper
@@ -49,7 +64,7 @@ entries:
   bookkeeper-operator:
   - apiVersion: v2
     appVersion: 0.1.2
-    created: "2020-07-06T18:38:55.465964286+08:00"
+    created: "2020-07-07T12:03:09.85957146+08:00"
     description: Bookkeeper Operator Helm chart for Kubernetes
     digest: f8eaf584c76a8aa7002a7d4fac310a4a44f90152aeea3465bf016de17f37cfd1
     home: https://github.com/pravega/bookkeeper-operator
@@ -61,4 +76,4 @@ entries:
     urls:
     - bookkeeper-operator-0.1.2.tgz
     version: 0.1.2
-generated: "2020-07-06T18:38:55.46255236+08:00"
+generated: "2020-07-07T12:03:09.845118958+08:00"
