@@ -35,6 +35,8 @@ spec:
         - name: "{{ .Chart.Name }}-{{ .Values.image.webServer.name }}"
           image: "{{ .Values.image.webServer.repository }}:{{ .Values.image.webServer.tag }}"
           imagePullPolicy: {{ .Values.image.webServer.pullPolicy }}
+          command: ["/bin/sh"]
+          args: ["-c","python manage.py migrate --fake-initial && supervisord"]
           ports:
             - name: http
               containerPort: 80
