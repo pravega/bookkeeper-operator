@@ -202,7 +202,7 @@ func makeBookiePodSpec(bk *v1alpha1.BookkeeperCluster) *corev1.PodSpec {
 func createVolumeMount(ledgerDirs []string, journalDirs []string, indexDirs []string) []corev1.VolumeMount {
 	var volumeMounts []corev1.VolumeMount
 	for i, ledger := range ledgerDirs {
-		name := JournalDiskName + strconv.Itoa(i)
+		name := LedgerDiskName + strconv.Itoa(i)
 		v := corev1.VolumeMount{
 			Name:      LedgerDiskName,
 			MountPath: ledger,
