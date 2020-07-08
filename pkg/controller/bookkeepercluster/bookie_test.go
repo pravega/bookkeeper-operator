@@ -67,6 +67,7 @@ var _ = Describe("Bookie", func() {
 					Options: map[string]string{
 						"journalDirectories": "/bk/journal/j0,/bk/journal/j1,/bk/journal/j2,/bk/journal/j3",
 						"ledgerDirectories":  "/bk/ledgers/l0,/bk/ledgers/l1,/bk/ledgers/l2,/bk/ledgers/l3",
+						"indexDirectories":   "/bk/index/i0,/bk/index/i1",
 					},
 				}
 				bk.WithDefaults()
@@ -110,6 +111,10 @@ var _ = Describe("Bookie", func() {
 					Ω(mountjournal1).Should(Equal("/bk/journal/j1"))
 					Ω(mountjournal2).Should(Equal("/bk/journal/j2"))
 					Ω(mountjournal3).Should(Equal("/bk/journal/j3"))
+					mountindex0 := sts.Spec.Template.Spec.Containers[0].VolumeMounts[8].MountPath
+					mountindex1 := sts.Spec.Template.Spec.Containers[0].VolumeMounts[9].MountPath
+					Ω(mountindex0).Should(Equal("/bk/index/i0"))
+					Ω(mountindex1).Should(Equal("/bk/index/i1"))
 				})
 			})
 		})
