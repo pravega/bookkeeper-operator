@@ -46,17 +46,17 @@ The following table lists the configurable parameters of the Bookkeeper chart an
 | `zookeeperUri` | Zookeeper client service URI | `zookeeper-client:2181` |
 | `pravegaClusterName` | Name of the pravega cluster | `pravega` |
 | `autoRecovery`| Enable bookkeeper auto-recovery | `true` |
-| `resources.requests.cpu` | Requests for CPU resources | `500m` |
-| `resources.requests.memory` | Requests for memory resources | `1Gi` |
-| `resources.limits.cpu` | Limits for CPU resources | `1` |
-| `resources.limits.memory` | Limits for memory resources | `2Gi` |
+| `resources.requests.cpu` | Requests for CPU resources | `1000m` |
+| `resources.requests.memory` | Requests for memory resources | `4Gi` |
+| `resources.limits.cpu` | Limits for CPU resources | `2000m` |
+| `resources.limits.memory` | Limits for memory resources | `4Gi` |
 | `storage.ledger.className` | Storage class name for bookkeeper ledgers | `standard` |
 | `storage.ledger.volumeSize` | Requested size for bookkeeper ledger persistent volumes | `10Gi` |
 | `storage.journal.className` | Storage class name for bookkeeper journals | `standard` |
 | `storage.journal.volumeSize` | Requested size for bookkeeper journal persistent volumes | `10Gi` |
 | `storage.index.className` | Storage class name for bookkeeper index | `standard` |
 | `storage.index.volumeSize` | Requested size for bookkeeper index persistent volumes | `10Gi` |
-| `jvmOptions.memoryOpts` | Memory Options passed to the JVM for bookkeeper performance tuning | `[]` |
+| `jvmOptions.memoryOpts` | Memory Options passed to the JVM for bookkeeper performance tuning | `["-Xms1g", "-XX:MaxDirectMemorySize=2g"]` |
 | `jvmOptions.gcOpts` | Garbage Collector (GC) Options passed to the JVM for bookkeeper bookkeeper performance tuning | `[]` |
 | `jvmOptions.gcLoggingOpts` | GC Logging Options passed to the JVM for bookkeeper performance tuning | `[]` |
 | `jvmOptions.extraOpts` | Extra Options passed to the JVM for bookkeeper performance tuning | `[]` |

@@ -67,6 +67,7 @@ var _ = Describe("Bookie", func() {
 					Options: map[string]string{
 						"journalDirectories": "/bk/journal/j0,/bk/journal/j1,/bk/journal/j2,/bk/journal/j3",
 						"ledgerDirectories":  "/bk/ledgers/l0,/bk/ledgers/l1,/bk/ledgers/l2,/bk/ledgers/l3",
+						"indexDirectories":   "/bk/index/i0,/bk/index/i1",
 					},
 				}
 				bk.WithDefaults()
@@ -94,10 +95,26 @@ var _ = Describe("Bookie", func() {
 
 				It("should have journal and ledgers dir set to the values given by user", func() {
 					sts := bookkeepercluster.MakeBookieStatefulSet(bk)
-					mountledger := sts.Spec.Template.Spec.Containers[0].VolumeMounts[0].MountPath
-					Ω(mountledger).Should(Equal("/bk/ledgers/l0,/bk/ledgers/l1,/bk/ledgers/l2,/bk/ledgers/l3"))
-					mountjournal := sts.Spec.Template.Spec.Containers[0].VolumeMounts[1].MountPath
-					Ω(mountjournal).Should(Equal("/bk/journal/j0,/bk/journal/j1,/bk/journal/j2,/bk/journal/j3"))
+					mountledger0 := sts.Spec.Template.Spec.Containers[0].VolumeMounts[0].MountPath
+					mountledger1 := sts.Spec.Template.Spec.Containers[0].VolumeMounts[1].MountPath
+					mountledger2 := sts.Spec.Template.Spec.Containers[0].VolumeMounts[2].MountPath
+					mountledger3 := sts.Spec.Template.Spec.Containers[0].VolumeMounts[3].MountPath
+					Ω(mountledger0).Should(Equal("/bk/ledgers/l0"))
+					Ω(mountledger1).Should(Equal("/bk/ledgers/l1"))
+					Ω(mountledger2).Should(Equal("/bk/ledgers/l2"))
+					Ω(mountledger3).Should(Equal("/bk/ledgers/l3"))
+					mountjournal0 := sts.Spec.Template.Spec.Containers[0].VolumeMounts[4].MountPath
+					mountjournal1 := sts.Spec.Template.Spec.Containers[0].VolumeMounts[5].MountPath
+					mountjournal2 := sts.Spec.Template.Spec.Containers[0].VolumeMounts[6].MountPath
+					mountjournal3 := sts.Spec.Template.Spec.Containers[0].VolumeMounts[7].MountPath
+					Ω(mountjournal0).Should(Equal("/bk/journal/j0"))
+					Ω(mountjournal1).Should(Equal("/bk/journal/j1"))
+					Ω(mountjournal2).Should(Equal("/bk/journal/j2"))
+					Ω(mountjournal3).Should(Equal("/bk/journal/j3"))
+					mountindex0 := sts.Spec.Template.Spec.Containers[0].VolumeMounts[8].MountPath
+					mountindex1 := sts.Spec.Template.Spec.Containers[0].VolumeMounts[9].MountPath
+					Ω(mountindex0).Should(Equal("/bk/index/i0"))
+					Ω(mountindex1).Should(Equal("/bk/index/i1"))
 				})
 			})
 		})
@@ -132,6 +149,8 @@ var _ = Describe("Bookie", func() {
 					Ω(mountledger).Should(Equal("/bk/ledgers"))
 					mountjournal := sts.Spec.Template.Spec.Containers[0].VolumeMounts[1].MountPath
 					Ω(mountjournal).Should(Equal("/bk/journal"))
+					indexjournal := sts.Spec.Template.Spec.Containers[0].VolumeMounts[2].MountPath
+					Ω(indexjournal).Should(Equal("/bk/index"))
 				})
 			})
 		})
