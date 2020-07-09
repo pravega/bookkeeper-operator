@@ -30,10 +30,10 @@ resources:
 storage:
   ledger:
     className: standard
-    volumeSize: 10Gi
+    volumeSize: 100Gi
   journal:
     className: standard
-    volumeSize: 10Gi
+    volumeSize: 100Gi
   index:
     className: standard
     volumeSize: 10Gi

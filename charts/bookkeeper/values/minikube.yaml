@@ -1,0 +1,26 @@
+replicas: 1
+
+resources:
+  requests:
+    cpu: 500m
+    memory: 1Gi
+  limits:
+    cpu: 500m
+    memory: 2Gi
+
+storage:
+  ledger:
+    className: standard
+    volumeSize: 10Gi
+  journal:
+    className: standard
+    volumeSize: 10Gi
+  index:
+    className: standard
+    volumeSize: 10Gi
+
+jvmOptions:
+  memoryOpts: []
+  gcOpts: []
+  gcLoggingOpts: []
+  extraOpts: []
