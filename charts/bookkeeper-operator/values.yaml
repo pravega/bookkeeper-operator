@@ -26,3 +26,9 @@ testmode: false
 ## Specifies which namespace the Operator should watch over.
 ## An empty string means all namespaces.
 watchNamespace: ""
+
+hooks:
+  image:
+    repository: lachlanevenson/k8s-kubectl
+    tag: v1.16.10
+  backoffLimit: 10
