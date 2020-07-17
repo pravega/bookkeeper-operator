@@ -44,5 +44,6 @@ The following table lists the configurable parameters of the Bookkeeper operator
 | `rbac.create` | Create RBAC resources | `true` |
 | `serviceAccount.create` | Create service account | `true` |
 | `serviceAccount.name` | Name for the service account | `bookkeeper-operator` |
-| `testmode` | Enable test mode | `false` |
+| `testmode.enabled` | Enable test mode | `false` |
+| `testmode.version` | Major version number of the alternate bookkeeper image we want the operator to deploy, if test mode is enabled | `""` |
 | `watchNamespace` | Namespaces to be watched  | `""` |
