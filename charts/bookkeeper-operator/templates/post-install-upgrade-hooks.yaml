@@ -63,7 +63,13 @@ data:
     set -e
     sleep 30
 
-    if [ -z "$(kubectl api-resources | grep bookkeeperclusters)" ]; then
+    if [ -z "$(kubectl api-resources | grep BookkeeperCluster )" ]; then
+        exit 1
+    fi
+
+    replicas=`kubectl get BookkeeperCluster -n {{ .Release.Namespace }} {{ template "bookkeeper-operator.fullname" . }} -o jsonpath='{.status.replicas}'`
+    readyReplicas=`kubectl get BookkeeperCluster -n {{ .Release.Namespace }} {{ template "bookkeeper-operator.fullname" . }} -o jsonpath='{.status.readyReplicas}'
+    if [ $readyReplicas != $replicas ]; then
         exit 1
     fi
 ---
