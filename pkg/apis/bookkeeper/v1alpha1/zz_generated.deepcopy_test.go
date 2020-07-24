@@ -75,7 +75,7 @@ var _ = Describe("DeepCopy", func() {
 			bk1.Spec.Probes.ReadinessProbe.InitialDelaySeconds = 0
 			bk1.Spec.Probes.LivenessProbe.FailureThreshold = 1
 			bk1.Spec.Probes.ReadinessProbe.DeepCopyInto(bk2.Spec.Probes.ReadinessProbe)
-			bk1.Spec.Probes.LivenessProbe.DeepCopyInto(bk2.Spec.Probes.LivenessProbe)
+			bk2.Spec.Probes.LivenessProbe = bk1.Spec.Probes.LivenessProbe.DeepCopy()
 			Ω(bk2.Spec.Probes.ReadinessProbe.InitialDelaySeconds).To(Equal(int32(0)))
 			Ω(bk2.Spec.Probes.LivenessProbe.FailureThreshold).To(Equal(int32(1)))
 		})
