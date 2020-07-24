@@ -72,6 +72,9 @@ var _ = Describe("DeepCopy", func() {
 		It("checking value of bk2 probes", func() {
 			Ω(bk2.Spec.Probes.ReadinessProbe.InitialDelaySeconds).To(Equal(int32(5)))
 			Ω(bk2.Spec.Probes.LivenessProbe.FailureThreshold).To(Equal(int32(2)))
+			bk1.Spec.Probes.ReadinessProbe.InitialDelaySeconds = 0
+			bk1.Spec.Probes.ReadinessProbe.DeepCopyInto(bk2.Spec.Probes.ReadinessProbe)
+			Ω(bk2.Spec.Probes.ReadinessProbe.InitialDelaySeconds).To(Equal(int32(0)))
 		})
 		It("checking bk2 jvm option as 1g", func() {
 			Ω(bk2.Spec.JVMOptions.MemoryOpts[0]).To(Equal("1g"))
