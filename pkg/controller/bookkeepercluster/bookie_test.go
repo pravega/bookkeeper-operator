@@ -67,17 +67,17 @@ var _ = Describe("Bookie", func() {
 					Probes: &v1alpha1.Probes{
 						ReadinessProbe: &v1alpha1.Probe{
 							InitialDelaySeconds: 10,
-							PeriodSeconds: 5,
-							FailureThreshold: 5,
-							SuccessThreshold: 1,
-							TimeoutSeconds: 2,
+							PeriodSeconds:       5,
+							FailureThreshold:    5,
+							SuccessThreshold:    1,
+							TimeoutSeconds:      2,
 						},
 						LivenessProbe: &v1alpha1.Probe{
 							InitialDelaySeconds: 10,
-							PeriodSeconds: 5,
-							FailureThreshold: 5,
-							SuccessThreshold: 1,
-							TimeoutSeconds: 2,
+							PeriodSeconds:       5,
+							FailureThreshold:    5,
+							SuccessThreshold:    1,
+							TimeoutSeconds:      2,
 						},
 					},
 					Options: map[string]string{
