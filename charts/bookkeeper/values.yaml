@@ -19,6 +19,20 @@ zookeeperUri: zookeeper-client:2181
 pravegaClusterName: pravega
 autoRecovery: true
 
+probes: {}
+  # readiness:
+  #   initialDelaySeconds: 20
+  #   periodSeconds: 10
+  #   failureThreshold: 9
+  #   successThreshold: 1
+  #   timeoutSeconds: 5
+  # liveness:
+  #   initialDelaySeconds: 60
+  #   periodSeconds: 15
+  #   failureThreshold: 4
+  #   successThreshold: 1
+  #   timeoutSeconds: 5
+
 resources:
   requests:
     cpu: 1000m

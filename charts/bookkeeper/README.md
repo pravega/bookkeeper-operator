@@ -46,6 +46,7 @@ The following table lists the configurable parameters of the Bookkeeper chart an
 | `zookeeperUri` | Zookeeper client service URI | `zookeeper-client:2181` |
 | `pravegaClusterName` | Name of the pravega cluster | `pravega` |
 | `autoRecovery`| Enable bookkeeper auto-recovery | `true` |
+| `probes` | Timeout configuration of the readiness and liveness probes for the bookkeeper pods | `{}` |
 | `resources.requests.cpu` | Requests for CPU resources | `1000m` |
 | `resources.requests.memory` | Requests for memory resources | `4Gi` |
 | `resources.limits.cpu` | Limits for CPU resources | `2000m` |
