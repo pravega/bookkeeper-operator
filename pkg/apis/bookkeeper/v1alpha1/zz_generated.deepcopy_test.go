@@ -45,6 +45,9 @@ var _ = Describe("DeepCopy", func() {
 			bk1.Spec.Image.PullPolicy = "PullIfNotPresent"
 			bk1.Spec.Image.DeepCopyInto(bk2.Spec.Image)
 			bk1.Spec.Image.Repository = "bk/exmple"
+			bk1.Spec.Probes.ReadinessProbe.InitialDelaySeconds = 5
+			bk1.Spec.Probes.LivenessProbe.FailureThreshold = 2
+			bk2.Spec.Probes = bk1.Spec.Probes.DeepCopy()
 			bk1.Spec.JVMOptions.MemoryOpts = []string{"1g"}
 			bk2.Spec.JVMOptions = bk1.Spec.JVMOptions.DeepCopy()
 			bk2.Spec.Storage = bk1.Spec.Storage.DeepCopy()
@@ -65,6 +68,16 @@ var _ = Describe("DeepCopy", func() {
 		})
 		It("value of str3 and str4 should be equal", func() {
 			Ω(str3).To(Equal(str4))
+		})
+		It("checking value of bk2 probes", func() {
+			Ω(bk2.Spec.Probes.ReadinessProbe.InitialDelaySeconds).To(Equal(int32(5)))
+			Ω(bk2.Spec.Probes.LivenessProbe.FailureThreshold).To(Equal(int32(2)))
+			bk1.Spec.Probes.ReadinessProbe.InitialDelaySeconds = 0
+			bk1.Spec.Probes.LivenessProbe.FailureThreshold = 1
+			bk1.Spec.Probes.ReadinessProbe.DeepCopyInto(bk2.Spec.Probes.ReadinessProbe)
+			bk2.Spec.Probes.LivenessProbe = bk1.Spec.Probes.LivenessProbe.DeepCopy()
+			Ω(bk2.Spec.Probes.ReadinessProbe.InitialDelaySeconds).To(Equal(int32(0)))
+			Ω(bk2.Spec.Probes.LivenessProbe.FailureThreshold).To(Equal(int32(1)))
 		})
 		It("checking bk2 jvm option as 1g", func() {
 			Ω(bk2.Spec.JVMOptions.MemoryOpts[0]).To(Equal("1g"))

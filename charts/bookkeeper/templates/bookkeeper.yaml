@@ -14,6 +14,25 @@ spec:
   zookeeperUri: {{ .Values.zookeeperUri }}
   envVars: {{ template "bookkeeper.fullname" . }}-configmap
   autoRecovery: {{ .Values.autoRecovery }}
+  {{- if .Values.probes }}
+  probes:
+    {{- if .Values.probes.readiness }}
+    readinessProbe:
+      initialDelaySeconds: {{ .Values.probes.readiness.initialDelaySeconds }}
+      periodSeconds: {{ .Values.probes.readiness.periodSeconds }}
+      failureThreshold: {{ .Values.probes.readiness.failureThreshold }}
+      successThreshold: {{ .Values.probes.readiness.successThreshold }}
+      timeoutSeconds: {{ .Values.probes.readiness.timeoutSeconds }}
+    {{- end }}
+    {{- if .Values.probes.liveness }}
+    livenessProbe:
+      initialDelaySeconds: {{ .Values.probes.liveness.initialDelaySeconds }}
+      periodSeconds: {{ .Values.probes.liveness.periodSeconds }}
+      failureThreshold: {{ .Values.probes.liveness.failureThreshold }}
+      successThreshold: {{ .Values.probes.liveness.successThreshold }}
+      timeoutSeconds: {{ .Values.probes.liveness.timeoutSeconds }}
+    {{- end }}
+  {{- end }}
   {{- if .Values.resources }}
   resources:
     requests:

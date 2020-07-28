@@ -161,9 +161,11 @@ func makeBookiePodSpec(bk *v1alpha1.BookkeeperCluster) *corev1.PodSpec {
 						},
 					},
 					// Bookie pods should start fast. We give it up to 1.5 minute to become ready.
-					InitialDelaySeconds: 20,
-					PeriodSeconds:       10,
-					FailureThreshold:    9,
+					InitialDelaySeconds: bk.Spec.Probes.ReadinessProbe.InitialDelaySeconds,
+					PeriodSeconds:       bk.Spec.Probes.ReadinessProbe.PeriodSeconds,
+					FailureThreshold:    bk.Spec.Probes.ReadinessProbe.FailureThreshold,
+					SuccessThreshold:    bk.Spec.Probes.ReadinessProbe.SuccessThreshold,
+					TimeoutSeconds:      bk.Spec.Probes.ReadinessProbe.TimeoutSeconds,
 				},
 				LivenessProbe: &corev1.Probe{
 					Handler: corev1.Handler{
@@ -175,9 +177,11 @@ func makeBookiePodSpec(bk *v1alpha1.BookkeeperCluster) *corev1.PodSpec {
 					// before becoming ready.
 					// If the pod fails the health check during 1 minute, Kubernetes
 					// will restart it.
-					InitialDelaySeconds: 60,
-					PeriodSeconds:       15,
-					FailureThreshold:    4,
+					InitialDelaySeconds: bk.Spec.Probes.LivenessProbe.InitialDelaySeconds,
+					PeriodSeconds:       bk.Spec.Probes.LivenessProbe.PeriodSeconds,
+					FailureThreshold:    bk.Spec.Probes.LivenessProbe.FailureThreshold,
+					SuccessThreshold:    bk.Spec.Probes.LivenessProbe.SuccessThreshold,
+					TimeoutSeconds:      bk.Spec.Probes.LivenessProbe.TimeoutSeconds,
 				},
 			},
 		},

@@ -64,6 +64,22 @@ var _ = Describe("Bookie", func() {
 					EnvVars:            "bk-configmap",
 					AutoRecovery:       &boolFalse,
 					Resources:          customReq,
+					Probes: &v1alpha1.Probes{
+						ReadinessProbe: &v1alpha1.Probe{
+							InitialDelaySeconds: 10,
+							PeriodSeconds:       5,
+							FailureThreshold:    5,
+							SuccessThreshold:    1,
+							TimeoutSeconds:      2,
+						},
+						LivenessProbe: &v1alpha1.Probe{
+							InitialDelaySeconds: 10,
+							PeriodSeconds:       5,
+							FailureThreshold:    5,
+							SuccessThreshold:    1,
+							TimeoutSeconds:      2,
+						},
+					},
 					Options: map[string]string{
 						"journalDirectories": "/bk/journal/j0,/bk/journal/j1,/bk/journal/j2,/bk/journal/j3",
 						"ledgerDirectories":  "/bk/ledgers/l0,/bk/ledgers/l1,/bk/ledgers/l2,/bk/ledgers/l3",
@@ -116,6 +132,29 @@ var _ = Describe("Bookie", func() {
 					Ω(mountindex0).Should(Equal("/bk/index/i0"))
 					Ω(mountindex1).Should(Equal("/bk/index/i1"))
 				})
+
+				It("should have probe timeout values set to the values given by user", func() {
+					rp_i := bk.Spec.Probes.ReadinessProbe.InitialDelaySeconds
+					rp_p := bk.Spec.Probes.ReadinessProbe.PeriodSeconds
+					rp_f := bk.Spec.Probes.ReadinessProbe.FailureThreshold
+					rp_s := bk.Spec.Probes.ReadinessProbe.SuccessThreshold
+					rp_t := bk.Spec.Probes.ReadinessProbe.TimeoutSeconds
+					Ω(rp_i).Should(Equal(int32(10)))
+					Ω(rp_p).Should(Equal(int32(5)))
+					Ω(rp_f).Should(Equal(int32(5)))
+					Ω(rp_s).Should(Equal(int32(1)))
+					Ω(rp_t).Should(Equal(int32(2)))
+					lp_i := bk.Spec.Probes.LivenessProbe.InitialDelaySeconds
+					lp_p := bk.Spec.Probes.LivenessProbe.PeriodSeconds
+					lp_f := bk.Spec.Probes.LivenessProbe.FailureThreshold
+					lp_s := bk.Spec.Probes.LivenessProbe.SuccessThreshold
+					lp_t := bk.Spec.Probes.LivenessProbe.TimeoutSeconds
+					Ω(lp_i).Should(Equal(int32(10)))
+					Ω(lp_p).Should(Equal(int32(5)))
+					Ω(lp_f).Should(Equal(int32(5)))
+					Ω(lp_s).Should(Equal(int32(1)))
+					Ω(lp_t).Should(Equal(int32(2)))
+				})
 			})
 		})
 		Context("User is not specifying bookkeeper journal and ledger path ", func() {
@@ -151,6 +190,29 @@ var _ = Describe("Bookie", func() {
 					Ω(mountjournal).Should(Equal("/bk/journal"))
 					indexjournal := sts.Spec.Template.Spec.Containers[0].VolumeMounts[2].MountPath
 					Ω(indexjournal).Should(Equal("/bk/index"))
+				})
+
+				It("should have probe timeout values set to their default value", func() {
+					rp_i := bk.Spec.Probes.ReadinessProbe.InitialDelaySeconds
+					rp_p := bk.Spec.Probes.ReadinessProbe.PeriodSeconds
+					rp_f := bk.Spec.Probes.ReadinessProbe.FailureThreshold
+					rp_s := bk.Spec.Probes.ReadinessProbe.SuccessThreshold
+					rp_t := bk.Spec.Probes.ReadinessProbe.TimeoutSeconds
+					Ω(rp_i).Should(Equal(int32(20)))
+					Ω(rp_p).Should(Equal(int32(10)))
+					Ω(rp_f).Should(Equal(int32(9)))
+					Ω(rp_s).Should(Equal(int32(1)))
+					Ω(rp_t).Should(Equal(int32(5)))
+					lp_i := bk.Spec.Probes.LivenessProbe.InitialDelaySeconds
+					lp_p := bk.Spec.Probes.LivenessProbe.PeriodSeconds
+					lp_f := bk.Spec.Probes.LivenessProbe.FailureThreshold
+					lp_s := bk.Spec.Probes.LivenessProbe.SuccessThreshold
+					lp_t := bk.Spec.Probes.LivenessProbe.TimeoutSeconds
+					Ω(lp_i).Should(Equal(int32(60)))
+					Ω(lp_p).Should(Equal(int32(15)))
+					Ω(lp_f).Should(Equal(int32(4)))
+					Ω(lp_s).Should(Equal(int32(1)))
+					Ω(lp_t).Should(Equal(int32(5)))
 				})
 			})
 		})

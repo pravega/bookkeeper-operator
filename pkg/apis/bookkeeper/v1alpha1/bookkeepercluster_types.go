@@ -60,6 +60,46 @@ const (
 
 	// DefaultBookkeeperLimitMemory is the limit memory limit for BookKeeper
 	DefaultBookkeeperLimitMemory = "2Gi"
+
+	// DefaultReadinessProbeInitialDelaySeconds is the default initial delay (in seconds)
+	// for the readiness probe
+	DefaultReadinessProbeInitialDelaySeconds = 20
+
+	// DefaultReadinessProbePeriodSeconds is the default probe period (in seconds)
+	// for the readiness probe
+	DefaultReadinessProbePeriodSeconds = 10
+
+	// DefaultReadinessProbeFailureThreshold is the default probe failure threshold
+	// for the readiness probe
+	DefaultReadinessProbeFailureThreshold = 9
+
+	// DefaultReadinessProbeSuccessThreshold is the default probe success threshold
+	// for the readiness probe
+	DefaultReadinessProbeSuccessThreshold = 1
+
+	// DefaultReadinessProbeTimeoutSeconds is the default probe timeout (in seconds)
+	// for the readiness probe
+	DefaultReadinessProbeTimeoutSeconds = 5
+
+	// DefaultLivenessProbeInitialDelaySeconds is the default initial delay (in seconds)
+	// for the liveness probe
+	DefaultLivenessProbeInitialDelaySeconds = 60
+
+	// DefaultLivenessProbePeriodSeconds is the default probe period (in seconds)
+	// for the liveness probe
+	DefaultLivenessProbePeriodSeconds = 15
+
+	// DefaultLivenessProbeFailureThreshold is the default probe failure threshold
+	// for the liveness probe
+	DefaultLivenessProbeFailureThreshold = 4
+
+	// DefaultLivenessProbeSuccessThreshold is the default probe success threshold
+	// for the liveness probe
+	DefaultLivenessProbeSuccessThreshold = 1
+
+	// DefaultLivenessProbeTimeoutSeconds is the default probe timeout (in seconds)
+	// for the liveness probe
+	DefaultLivenessProbeTimeoutSeconds = 5
 )
 
 func init() {
@@ -120,6 +160,10 @@ type BookkeeperClusterSpec struct {
 	// ServiceAccountName configures the service account used on BookKeeper instances
 	ServiceAccountName string `json:"serviceAccountName,omitempty"`
 
+	// Probes specifies the timeout values for the Readiness and Liveness Probes
+	// for the bookkeeper pods.
+	Probes *Probes `json:"probes"`
+
 	// BookieResources specifies the request and limit of resources that bookie can have.
 	// BookieResources includes CPU and memory resources
 	Resources *v1.ResourceRequirements `json:"resources,omitempty"`
@@ -168,6 +212,43 @@ func (s *BookkeeperImageSpec) withDefaults() (changed bool) {
 	}
 
 	return changed
+}
+
+type Probes struct {
+	ReadinessProbe *Probe `json:"readinessProbe"`
+	LivenessProbe  *Probe `json:"livenessProbe"`
+}
+
+func (s *Probes) withDefaults() (changed bool) {
+	if s.ReadinessProbe == nil {
+		changed = true
+		s.ReadinessProbe = &Probe{}
+		s.ReadinessProbe.InitialDelaySeconds = DefaultReadinessProbeInitialDelaySeconds
+		s.ReadinessProbe.PeriodSeconds = DefaultReadinessProbePeriodSeconds
+		s.ReadinessProbe.FailureThreshold = DefaultReadinessProbeFailureThreshold
+		s.ReadinessProbe.SuccessThreshold = DefaultReadinessProbeSuccessThreshold
+		s.ReadinessProbe.TimeoutSeconds = DefaultReadinessProbeTimeoutSeconds
+	}
+
+	if s.LivenessProbe == nil {
+		changed = true
+		s.LivenessProbe = &Probe{}
+		s.LivenessProbe.InitialDelaySeconds = DefaultLivenessProbeInitialDelaySeconds
+		s.LivenessProbe.PeriodSeconds = DefaultLivenessProbePeriodSeconds
+		s.LivenessProbe.FailureThreshold = DefaultLivenessProbeFailureThreshold
+		s.LivenessProbe.SuccessThreshold = DefaultLivenessProbeSuccessThreshold
+		s.LivenessProbe.TimeoutSeconds = DefaultLivenessProbeTimeoutSeconds
+	}
+
+	return changed
+}
+
+type Probe struct {
+	InitialDelaySeconds int32 `json:"initialDelaySeconds"`
+	PeriodSeconds       int32 `json:"periodSeconds"`
+	FailureThreshold    int32 `json:"failureThreshold"`
+	SuccessThreshold    int32 `json:"successThreshold"`
+	TimeoutSeconds      int32 `json:"timeoutSeconds"`
 }
 
 type JVMOptions struct {
@@ -289,6 +370,14 @@ func (s *BookkeeperClusterSpec) withDefaults() (changed bool) {
 		changed = true
 		boolTrue := true
 		s.AutoRecovery = &boolTrue
+	}
+
+	if s.Probes == nil {
+		changed = true
+		s.Probes = &Probes{}
+	}
+	if s.Probes.withDefaults() {
+		changed = true
 	}
 
 	if s.Resources == nil {
