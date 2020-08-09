@@ -152,7 +152,7 @@ func makeBookiePodSpec(bk *v1alpha1.BookkeeperCluster) *corev1.PodSpec {
 					},
 				},
 				EnvFrom:      environment,
-				VolumeMounts: createVolumeMount(ledgerDirs, journalDirs, indexDirs),
+				VolumeMounts: createVolumeMount(bk, ledgerDirs, journalDirs, indexDirs),
 				Resources:    *bk.Spec.Resources,
 				ReadinessProbe: &corev1.Probe{
 					Handler: corev1.Handler{
@@ -203,35 +203,65 @@ func makeBookiePodSpec(bk *v1alpha1.BookkeeperCluster) *corev1.PodSpec {
 	return podSpec
 }
 
-func createVolumeMount(ledgerDirs []string, journalDirs []string, indexDirs []string) []corev1.VolumeMount {
+func createVolumeMount(bk *v1alpha1.BookkeeperCluster, ledgerDirs []string, journalDirs []string, indexDirs []string) []corev1.VolumeMount {
 	var volumeMounts []corev1.VolumeMount
-	for i, ledger := range ledgerDirs {
-		name := LedgerDiskName + strconv.Itoa(i)
+
+	if len(ledgerDirs) > 1 {
+		for i, ledger := range ledgerDirs {
+			name := LedgerDiskName + strconv.Itoa(i)
+			v := corev1.VolumeMount{
+				Name:      LedgerDiskName,
+				MountPath: ledger,
+				SubPath:   name,
+			}
+			volumeMounts = append(volumeMounts, v)
+		}
+	} else {
 		v := corev1.VolumeMount{
 			Name:      LedgerDiskName,
-			MountPath: ledger,
-			SubPath:   name,
+			MountPath: ledgerDirs[0],
 		}
 		volumeMounts = append(volumeMounts, v)
 	}
-	for i, journal := range journalDirs {
-		name := JournalDiskName + strconv.Itoa(i)
+	if len(journalDirs) > 1 {
+		for i, journal := range journalDirs {
+			name := JournalDiskName + strconv.Itoa(i)
+			v := corev1.VolumeMount{
+				Name:      JournalDiskName,
+				MountPath: journal,
+				SubPath:   name,
+			}
+			volumeMounts = append(volumeMounts, v)
+		}
+	} else {
 		v := corev1.VolumeMount{
 			Name:      JournalDiskName,
-			MountPath: journal,
-			SubPath:   name,
+			MountPath: journalDirs[0],
 		}
 		volumeMounts = append(volumeMounts, v)
 	}
-	for i, index := range indexDirs {
-		name := IndexDiskName + strconv.Itoa(i)
+	if len(indexDirs) > 1 {
+		for i, index := range indexDirs {
+			name := IndexDiskName + strconv.Itoa(i)
+			v := corev1.VolumeMount{
+				Name:      IndexDiskName,
+				MountPath: index,
+				SubPath:   name,
+			}
+			volumeMounts = append(volumeMounts, v)
+		}
+	} else {
 		v := corev1.VolumeMount{
 			Name:      IndexDiskName,
-			MountPath: index,
-			SubPath:   name,
+			MountPath: indexDirs[0],
 		}
 		volumeMounts = append(volumeMounts, v)
 	}
+	v := corev1.VolumeMount{
+		Name:      heapDumpName,
+		MountPath: heapDumpDir,
+	}
+	volumeMounts = append(volumeMounts, v)
 	return volumeMounts
 }
 
