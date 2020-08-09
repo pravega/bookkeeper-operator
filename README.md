@@ -147,6 +147,13 @@ Here `bookkeeper-operator` is the release name of the operator. It can also be u
 ```
 $ kubectl edit deploy bookkeeper-operator
 ```
+> Note: while upgrading from an Bookkeeper operator version below 0.1.2 to 0.1.2 or above check the bookkeeper manifest and if you have mentioned multiple ledgers then change it to "/bk/ledgers", below is the example how to do that and then only upgrade the bookkeeper-operator
+
+```
+options:
+  ledgerDirectories: "/bk/ledgers"
+
+```
 
 ### Uninstall the Bookkeeper cluster
 
