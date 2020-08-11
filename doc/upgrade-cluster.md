@@ -19,14 +19,6 @@ NAME        VERSION   DESIRED MEMBERS   READY MEMBERS   AGE
 bookkeeper  0.4.0        7                 7            11m
 ```
 
-> Note: With the BookKeeper-Operator 0.1.2 or above, When upgrading the BookkeeperClusterbelow 0.6.0 to above or equal to 0.6.0 first check that the manifest for the bookkeeper deployment either should not have multiple ledger indexDirectoriesor if they have it change it to "/bk/ledgers" before upgrading the cluster below is the examples
-
-```
-options:
-  ledgerDirectories: "/bk/ledgers"
-
-```
-
 ## Valid Upgrade Paths
 
 To understand the valid upgrade paths for a pravega cluster, refer to the [version map](https://github.com/pravega/bookkeeper-operator/blob/master/deploy/version_map.yaml). The key indicates the base version of the cluster, and the value against each key indicates the list of valid versions this base version can be upgraded to.

@@ -205,8 +205,7 @@ func makeBookiePodSpec(bk *v1alpha1.BookkeeperCluster) *corev1.PodSpec {
 
 func createVolumeMount(bk *v1alpha1.BookkeeperCluster, ledgerDirs []string, journalDirs []string, indexDirs []string) []corev1.VolumeMount {
 	var volumeMounts []corev1.VolumeMount
-
-	if len(ledgerDirs) > 1 && !strings.EqualFold(ledgerDirs[0], "/bk/ledgers") {
+	if len(ledgerDirs) > 0 && !strings.EqualFold(ledgerDirs[0], "/bk/ledgers") {
 		for i, ledger := range ledgerDirs {
 			name := LedgerDiskName + strconv.Itoa(i)
 			v := corev1.VolumeMount{
@@ -223,7 +222,7 @@ func createVolumeMount(bk *v1alpha1.BookkeeperCluster, ledgerDirs []string, jour
 		}
 		volumeMounts = append(volumeMounts, v)
 	}
-	if len(journalDirs) > 1 && !strings.EqualFold(journalDirs[0], "/bk/journal") {
+	if len(journalDirs) > 0 && !strings.EqualFold(journalDirs[0], "/bk/journal") {
 		for i, journal := range journalDirs {
 			name := JournalDiskName + strconv.Itoa(i)
 			v := corev1.VolumeMount{
@@ -240,7 +239,7 @@ func createVolumeMount(bk *v1alpha1.BookkeeperCluster, ledgerDirs []string, jour
 		}
 		volumeMounts = append(volumeMounts, v)
 	}
-	if len(indexDirs) > 1 && !strings.EqualFold(indexDirs[0], "/bk/index") {
+	if len(indexDirs) > 0 && !strings.EqualFold(indexDirs[0], "/bk/index") {
 		for i, index := range indexDirs {
 			name := IndexDiskName + strconv.Itoa(i)
 			v := corev1.VolumeMount{
