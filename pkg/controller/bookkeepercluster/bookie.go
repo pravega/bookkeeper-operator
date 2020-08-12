@@ -152,7 +152,7 @@ func makeBookiePodSpec(bk *v1alpha1.BookkeeperCluster) *corev1.PodSpec {
 					},
 				},
 				EnvFrom:      environment,
-				VolumeMounts: createVolumeMount(bk, ledgerDirs, journalDirs, indexDirs),
+				VolumeMounts: createVolumeMount(ledgerDirs, journalDirs, indexDirs),
 				Resources:    *bk.Spec.Resources,
 				ReadinessProbe: &corev1.Probe{
 					Handler: corev1.Handler{
@@ -203,7 +203,7 @@ func makeBookiePodSpec(bk *v1alpha1.BookkeeperCluster) *corev1.PodSpec {
 	return podSpec
 }
 
-func createVolumeMount(bk *v1alpha1.BookkeeperCluster, ledgerDirs []string, journalDirs []string, indexDirs []string) []corev1.VolumeMount {
+func createVolumeMount(ledgerDirs []string, journalDirs []string, indexDirs []string) []corev1.VolumeMount {
 	var volumeMounts []corev1.VolumeMount
 	if len(ledgerDirs) > 0 && !strings.EqualFold(ledgerDirs[0], "/bk/ledgers") {
 		for i, ledger := range ledgerDirs {
