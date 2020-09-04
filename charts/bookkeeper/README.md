@@ -32,7 +32,7 @@ $ helm uninstall my-release
 ```
 
 The command removes all the Kubernetes components associated with the chart and deletes the release.
-
+> Note: If you are setting blockOwnerDeletion to false during installtion, PVC's won't be removed automatically while uninstalling bookkeepercluster. Pvcs has to be deleted manually.
 ## Configuration
 
 The following table lists the configurable parameters of the Bookkeeper chart and their default values.
@@ -46,6 +46,7 @@ The following table lists the configurable parameters of the Bookkeeper chart an
 | `zookeeperUri` | Zookeeper client service URI | `zookeeper-client:2181` |
 | `pravegaClusterName` | Name of the pravega cluster | `pravega` |
 | `autoRecovery`| Enable bookkeeper auto-recovery | `true` |
+| `blockOwnerDeletion`| Enable blockOwnerDeletion | `true` |
 | `probes` | Timeout configuration of the readiness and liveness probes for the bookkeeper pods | `{}` |
 | `resources.requests.cpu` | Requests for CPU resources | `1000m` |
 | `resources.requests.memory` | Requests for memory resources | `4Gi` |
