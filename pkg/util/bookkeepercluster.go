@@ -17,8 +17,8 @@ import (
 	"strings"
 
 	v "github.com/hashicorp/go-version"
-	"github.com/pravega/bookkeeper-operator/pkg/apis/bookkeeper/v1alpha1"
-	"k8s.io/api/core/v1"
+
+	v1 "k8s.io/api/core/v1"
 )
 
 var (
@@ -47,19 +47,6 @@ func StatefulSetNameForBookie(clusterName string) string {
 
 func HeadlessServiceNameForBookie(clusterName string) string {
 	return fmt.Sprintf("%s-bookie-headless", clusterName)
-}
-
-func LabelsForBookie(bookkeeperCluster *v1alpha1.BookkeeperCluster) map[string]string {
-	labels := LabelsForBookkeeperCluster(bookkeeperCluster)
-	labels["component"] = "bookie"
-	return labels
-}
-
-func LabelsForBookkeeperCluster(bookkeeperCluster *v1alpha1.BookkeeperCluster) map[string]string {
-	return map[string]string{
-		"app":                "bookkeeper-cluster",
-		"bookkeeper_cluster": bookkeeperCluster.Name,
-	}
 }
 
 func IsOrphan(k8sObjectName string, replicas int32) bool {
@@ -114,21 +101,6 @@ func GetStringWithPrefix(slice []string, str string) (result string) {
 		}
 	}
 	return ""
-}
-
-func GetClusterExpectedSize(p *v1alpha1.BookkeeperCluster) (size int) {
-	return int(p.Spec.Replicas)
-}
-
-func BookkeeperImage(p *v1alpha1.BookkeeperCluster) (image string) {
-	return fmt.Sprintf("%s:%s", p.Spec.Image.Repository, p.Spec.Version)
-}
-
-func BookkeeperTargetImage(p *v1alpha1.BookkeeperCluster) (string, error) {
-	if p.Status.TargetVersion == "" {
-		return "", fmt.Errorf("target version is not set")
-	}
-	return fmt.Sprintf("%s:%s", p.Spec.Image.Repository, p.Status.TargetVersion), nil
 }
 
 func GetPodVersion(pod *v1.Pod) string {

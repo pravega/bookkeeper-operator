@@ -251,6 +251,21 @@ var _ = Describe("BookkeeperCluster Controller", func() {
 					Ω(err).To(BeNil())
 				})
 			})
+			Context("reconcileFinalizers", func() {
+				BeforeEach(func() {
+					b.WithDefaults()
+					client.Update(context.TODO(), b)
+					err = r.reconcileFinalizers(b)
+					now := metav1.Now()
+					b.SetDeletionTimestamp(&now)
+					client.Update(context.TODO(), b)
+					err = r.reconcileFinalizers(b)
+
+				})
+				It("should give error due to failure in connecting to zookeeper", func() {
+					Expect(err).To(HaveOccurred())
+				})
+			})
 			Context("cleanUpZookeeperMeta", func() {
 				BeforeEach(func() {
 					b.WithDefaults()

@@ -41,7 +41,7 @@ func MakeBookieHeadlessService(bk *v1alpha1.BookkeeperCluster) *corev1.Service {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      util.HeadlessServiceNameForBookie(bk.Name),
 			Namespace: bk.Namespace,
-			Labels:    util.LabelsForBookie(bk),
+			Labels:    bk.LabelsForBookie(),
 		},
 		Spec: corev1.ServiceSpec{
 			Ports: []corev1.ServicePort{
@@ -50,7 +50,7 @@ func MakeBookieHeadlessService(bk *v1alpha1.BookkeeperCluster) *corev1.Service {
 					Port: 3181,
 				},
 			},
-			Selector:  util.LabelsForBookie(bk),
+			Selector:  bk.LabelsForBookie(),
 			ClusterIP: corev1.ClusterIPNone,
 		},
 	}
@@ -65,7 +65,7 @@ func MakeBookieStatefulSet(bk *v1alpha1.BookkeeperCluster) *appsv1.StatefulSet {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      util.StatefulSetNameForBookie(bk.Name),
 			Namespace: bk.Namespace,
-			Labels:    util.LabelsForBookie(bk),
+			Labels:    bk.LabelsForBookie(),
 		},
 		Spec: appsv1.StatefulSetSpec{
 			ServiceName:         util.HeadlessServiceNameForBookie(bk.Name),
@@ -76,7 +76,7 @@ func MakeBookieStatefulSet(bk *v1alpha1.BookkeeperCluster) *appsv1.StatefulSet {
 			},
 			Template: MakeBookiePodTemplate(bk),
 			Selector: &metav1.LabelSelector{
-				MatchLabels: util.LabelsForBookie(bk),
+				MatchLabels: bk.LabelsForBookie(),
 			},
 			VolumeClaimTemplates: makeBookieVolumeClaimTemplates(bk),
 		},
@@ -86,7 +86,7 @@ func MakeBookieStatefulSet(bk *v1alpha1.BookkeeperCluster) *appsv1.StatefulSet {
 func MakeBookiePodTemplate(bk *v1alpha1.BookkeeperCluster) corev1.PodTemplateSpec {
 	return corev1.PodTemplateSpec{
 		ObjectMeta: metav1.ObjectMeta{
-			Labels:      util.LabelsForBookie(bk),
+			Labels:      bk.LabelsForBookie(),
 			Annotations: map[string]string{"bookkeeper.version": bk.Spec.Version},
 		},
 		Spec: *makeBookiePodSpec(bk),
@@ -143,7 +143,7 @@ func makeBookiePodSpec(bk *v1alpha1.BookkeeperCluster) *corev1.PodSpec {
 		Containers: []corev1.Container{
 			{
 				Name:            "bookie",
-				Image:           util.BookkeeperImage(bk),
+				Image:           bk.BookkeeperImage(),
 				ImagePullPolicy: bk.Spec.Image.PullPolicy,
 				Ports: []corev1.ContainerPort{
 					{
@@ -390,7 +390,7 @@ func MakeBookiePodDisruptionBudget(bk *v1alpha1.BookkeeperCluster) *policyv1beta
 		Spec: policyv1beta1.PodDisruptionBudgetSpec{
 			MaxUnavailable: &maxUnavailable,
 			Selector: &metav1.LabelSelector{
-				MatchLabels: util.LabelsForBookie(bk),
+				MatchLabels: bk.LabelsForBookie(),
 			},
 		},
 	}
