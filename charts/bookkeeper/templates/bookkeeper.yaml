@@ -14,7 +14,7 @@ spec:
   zookeeperUri: {{ .Values.zookeeperUri }}
   envVars: {{ template "bookkeeper.fullname" . }}-configmap
   autoRecovery: {{ .Values.autoRecovery }}
-  blockOwnerDeletion: {{ .Values.blockOwnerDeletion }}
+  blockOwnerDeletion: {{ default true .Values.blockOwnerDeletion }}
   {{- if .Values.probes }}
   probes:
     {{- if .Values.probes.readiness }}
