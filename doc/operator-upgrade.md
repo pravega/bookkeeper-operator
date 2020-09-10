@@ -15,8 +15,7 @@ $ kubectl edit deploy bookkeeper-operator
 ### Pre-requisites
 
 For upgrading Operator to version 0.1.3, the following must be true:
-1. The Kubernetes Server version must be at least 1.15, (WebhookConversion is a beta feature in Kubernetes 1.15)
-See: https://kubernetes.io/docs/tasks/access-kubernetes-api/custom-resources/custom-resource-definition-versioning/#webhook-conversion
+1. The Kubernetes Server version must be at least 1.15, with Beta APIs
 
 2. Cert-Manager v0.15.0+ or some other certificate management solution must be deployed for managing webhook service certificates. The upgrade trigger script assumes that the user has [cert-manager](https://cert-manager.io/docs/installation/kubernetes/) installed but any other cert management solution can also be used and script would need to be modified accordingly.
 To install cert-manager check [this](https://cert-manager.io/docs/installation/kubernetes/).
@@ -39,3 +38,6 @@ The upgrade to Operator 0.1.3 can be triggered using the following command
 ```
 helm upgrade <operator release name> <location of 0.1.3 charts>  --set webhookCert.generate=false --set webhookCert.certName=<cert-name> --set webhookCert.secretName=<secret-name>
 ```
+#### Upgrade manually
+
+To manually trigger the upgrade to Operator 0.1.3, run the script `operatorUpgrade.sh` under [tools](https://github.com/pravega/bookkeeper-operator/blob/master/tools) folder. This script patches the and creates necessary K8s artifacts, needed by 0.1.3 Operator, prior to triggering the upgrade by updating the image tag in Operator deployment.
