@@ -3,8 +3,8 @@
 ## Declare variables to be passed into your templates.
 
 image:
-  repository: kjanisha/bookkeeper-operator
-  tag: openapi
+  repository: pravega/bookkeeper-operator
+  tag: 0.1.2 
   pullPolicy: IfNotPresent
 
 ## Install RBAC roles and bindings.
