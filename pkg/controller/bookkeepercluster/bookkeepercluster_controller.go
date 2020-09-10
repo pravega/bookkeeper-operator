@@ -192,6 +192,12 @@ func (r *ReconcileBookkeeperCluster) deployBookie(p *bookkeeperv1alpha1.Bookkeep
 	controllerutil.SetControllerReference(p, statefulSet, r.scheme)
 	for i := range statefulSet.Spec.VolumeClaimTemplates {
 		controllerutil.SetControllerReference(p, &statefulSet.Spec.VolumeClaimTemplates[i], r.scheme)
+		if *p.Spec.BlockOwnerDeletion == false {
+			refs := statefulSet.Spec.VolumeClaimTemplates[i].OwnerReferences
+			for i := range refs {
+				refs[i].BlockOwnerDeletion = p.Spec.BlockOwnerDeletion
+			}
+		}
 	}
 	err = r.client.Create(context.TODO(), statefulSet)
 	if err != nil && !errors.IsAlreadyExists(err) {

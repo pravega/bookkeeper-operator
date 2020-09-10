@@ -23,7 +23,6 @@ import (
 	"github.com/pravega/bookkeeper-operator/pkg/controller/config"
 	"github.com/pravega/bookkeeper-operator/pkg/util"
 	corev1 "k8s.io/api/core/v1"
-
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -209,6 +208,11 @@ type BookkeeperClusterSpec struct {
 	//
 	// If version is not set, default is "0.4.0".
 	Version string `json:"version"`
+	// If true, AND if the owner has the "foregroundDeletion" finalizer, then
+	// the owner cannot be deleted from the key-value store until this
+	// reference is removed.
+	// Defaults to true
+	BlockOwnerDeletion *bool `json:"blockOwnerDeletion,omitempty"`
 }
 
 // BookkeeperImageSpec defines the fields needed for a BookKeeper Docker image
@@ -429,6 +433,13 @@ func (s *BookkeeperClusterSpec) withDefaults() (changed bool) {
 		s.Version = DefaultBookkeeperVersion
 		changed = true
 	}
+
+	if s.BlockOwnerDeletion == nil {
+		changed = true
+		boolTrue := true
+		s.BlockOwnerDeletion = &boolTrue
+	}
+
 	return changed
 }
 

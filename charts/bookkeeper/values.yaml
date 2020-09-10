@@ -18,6 +18,7 @@ replicas: 3
 zookeeperUri: zookeeper-client:2181
 pravegaClusterName: pravega
 autoRecovery: true
+blockOwnerDeletion: true
 
 probes: {}
   # readiness:

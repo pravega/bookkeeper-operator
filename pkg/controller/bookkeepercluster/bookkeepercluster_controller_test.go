@@ -125,8 +125,11 @@ var _ = Describe("BookkeeperCluster Controller", func() {
 			Context("syncBookieSize", func() {
 				var (
 					err1 error
+					flag bool
 				)
 				BeforeEach(func() {
+					flag = false
+					b.Spec.BlockOwnerDeletion = &flag
 					b.WithDefaults()
 					//to ensure the client get for BookKeepercluster fails
 					err = r.syncBookieSize(b)
