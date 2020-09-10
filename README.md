@@ -128,15 +128,6 @@ Check out the [upgrade guide](doc/upgrade-cluster.md).
 
 For upgrading the bookkeeper operator check the document [operator-upgrade](doc/operator-upgrade.md)
 
-Bookkeeper operator can be upgraded via helm using the following command
-```
-$ helm upgrade bookkeeper-operator <location of modified operator charts>
-```
-Here `bookkeeper-operator` is the release name of the operator. It can also be upgraded manually by modifying the image tag using the following command
-```
-$ kubectl edit deploy bookkeeper-operator
-```
-
 ### Uninstall the Bookkeeper cluster
 
 ```

@@ -21,7 +21,7 @@ See: https://kubernetes.io/docs/tasks/access-kubernetes-api/custom-resources/cus
 2. Cert-Manager v0.15.0+ or some other certificate management solution must be deployed for managing webhook service certificates. The upgrade trigger script assumes that the user has [cert-manager](https://cert-manager.io/docs/installation/kubernetes/) installed but any other cert management solution can also be used and script would need to be modified accordingly.
 To install cert-manager check [this](https://cert-manager.io/docs/installation/kubernetes/).
 
-3. Install an Issuer and a Certificate (either self-signed or CA signed) in the same namespace as the Pravega Operator (refer to [this](https://github.com/pravega/pravega-operator/blob/master/deploy/certificate.yaml) manifest to create a self-signed certificate in the default namespace).
+3. Install an Issuer and a Certificate (either self-signed or CA signed) in the same namespace as the Pravega Operator (refer to [this](https://github.com/pravega/bookkeeper-operator/blob/master/deploy/certificate.yaml) manifest to create a self-signed certificate in the default namespace).
 > The name of the certificate (*webhookCert.certName*), the name of the secret created by this certificate (*webhookCert.secretName*), the tls.crt (*webhookCert.crt*) and tls.key (*webhookCert.key*) need to be specified against the corresponding fields in the values.yaml file, or can be provided with the upgrade command as shown [here](#triggering-the-upgrade).
 The values *tls.crt* and *tls.key* are contained in the secret which is created by the certificate and can be obtained using the following command
 ```
