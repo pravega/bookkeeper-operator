@@ -16,7 +16,7 @@ spec:
       serviceAccountName: bookkeeper-operator
       containers:
         - name: bookkeeper-operator
-          image: pravega/bookkeeper-operator:latest
+          image: kjanisha/bookkeeper-operator:openapi
           ports:
           - containerPort: 60000
             name: metrics
@@ -33,9 +33,15 @@ spec:
             - name: OPERATOR_NAME
               value: "bookkeeper-operator"
           volumeMounts:
+            - name: webhook-cert
+              mountPath: "/tmp/k8s-webhook-server/serving-certs"
+              readOnly: true
             - name: versions-volume
               mountPath: "/tmp/config"
       volumes:
+        - name: webhook-cert
+          secret:
+            secretName: selfsigned-cert-tls-bk
         - name: versions-volume
           configMap:
             name: bk-supported-versions-map

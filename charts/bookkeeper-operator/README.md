@@ -8,15 +8,23 @@ This chart bootstraps a [Bookkeeper Operator](https://github.com/pravega/bookkee
 
 ## Prerequisites
   - Kubernetes 1.15+ with Beta APIs
-  - Helm 3+
+  - Helm 3.2.1+
   - An existing Apache Zookeeper 3.6.1 cluster. This can be easily deployed using our [Zookeeper Operator](https://github.com/pravega/zookeeper-operator)
+  - Cert-Manager v0.15.0+ or some other certificate management solution in order to manage the webhook service certificates. This can be easily deployed by referring to [this](https://cert-manager.io/docs/installation/kubernetes/)
+- An Issuer and a Certificate (either self-signed or CA signed) in the same namespace that the Bookkeeper Operator will be installed (refer to [this](https://github.com/pravega/bookkeeper-operator/blob/master/deploy/certificate.yaml) manifest to create a self-signed certificate in the default namespace)
+> The name of the certificate (*webhookCert.certName*), the name of the secret created by this certificate (*webhookCert.secretName*), the tls.crt (*webhookCert.crt*) and tls.key (*webhookCert.key*) need to be specified against the corresponding fields in the values.yaml file, or can be provided with the install command as shown [here](#installing-the-chart).
+The values *tls.crt* and *tls.key* are contained in the secret which is created by the certificate and can be obtained using the following command
+```
+kubectl get secret <secret-name> -o yaml | grep tls.
+```
+
 
 ## Installing the Chart
 
 To install the chart with the release name `my-release`:
 
 ```
-$ helm install my-release bookkeeper-operator
+$ helm install my-release bookkeeper-operator --set webhookCert.generate=false --set webhookCert.certName=<cert-name> --set webhookCert.secretName=<secret-name>
 ```
 
 The command deploys bookkeeper operator on the Kubernetes cluster in the default configuration. The [configuration](#configuration) section lists the parameters that can be configured during installation.
@@ -46,4 +54,9 @@ The following table lists the configurable parameters of the Bookkeeper operator
 | `serviceAccount.name` | Name for the service account | `bookkeeper-operator` |
 | `testmode.enabled` | Enable test mode | `false` |
 | `testmode.version` | Major version number of the alternate bookkeeper image we want the operator to deploy, if test mode is enabled | `""` |
+| `webhookCert.crt` | tls.crt value corresponding to the certificate | |
+| `webhookCert.key` | tls.key value corresponding to the certificate | |
+| `webhookCert.generate` | Whether to generate the certificate and the issuer (set to false while using self-signed certificates) | `false` |
+| `webhookCert.certName` | Name of the certificate, if generate is set to false | `selfsigned-cert` |
+| `webhookCert.secretName` | Name of the secret created by the certificate, if generate is set to false | `selfsigned-cert-tls` |
 | `watchNamespace` | Namespaces to be watched  | `""` |

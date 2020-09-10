@@ -37,7 +37,7 @@ The Bookkeeper Operator manages Bookkeeper clusters deployed to Kubernetes and a
 ## Requirements
 
 - Kubernetes 1.15+
-- Helm 3+
+- Helm 3.2.1+
 - An existing Apache Zookeeper 3.6.1 cluster. This can be easily deployed using our [Zookeeper operator](https://github.com/pravega/zookeeper-operator)
 
 ## Quickstart
@@ -46,20 +46,7 @@ The Bookkeeper Operator manages Bookkeeper clusters deployed to Kubernetes and a
 
 > Note: If you are running on Google Kubernetes Engine (GKE), please [check this first](doc/development.md#installation-on-google-kubernetes-engine).
 
-Use Helm to quickly deploy a Bookkeeper operator with the release name `bookkeeper-operator`.
-
-```
-$ helm install bookkeeper-operator charts/bookkeeper-operator
-```
-
-Verify that the Bookkeeper Operator is running.
-
-```
-$ kubectl get deploy
-NAME                          DESIRED   CURRENT   UP-TO-DATE   AVAILABLE     AGE
-bookkeeper-operator              1         1         1            1          17s
-```
-
+We recommend using helm to deploy a Bookkeeper Operator. Check out the [helm installation](charts/bookkeeper-operator/README.md) document for instructions.
 #### Install the Operator in Test Mode
  The Operator can be run in `test mode` if we want to deploy the Bookkeeper Cluster on minikube or on a cluster with very limited resources by setting `testmode: true` in `values.yaml` file. Operator running in test mode skips the minimum replica requirement checks. Test mode provides a bare minimum setup and is not recommended to be used in production environments.
 
