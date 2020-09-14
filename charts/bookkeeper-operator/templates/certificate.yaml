@@ -15,7 +15,7 @@ spec:
 apiVersion: cert-manager.io/v1alpha2
 kind: Certificate
 metadata:
-  name: {{ template "bookkeeper-operator.fullname" . }}-cert
+  name: {{ template "bookkeeper-operator.fullname" . }}-cert-bk
   namespace: {{ .Release.Namespace }}
   labels:
 {{ include "bookkeeper-operator.commonLabels" . | indent 4 }}
@@ -23,7 +23,7 @@ spec:
   isCA: true
   duration: 8760h
   renewBefore: 360h
-  secretName: {{ template "bookkeeper-operator.fullname" . }}-cert-tls
+  secretName: {{ template "bookkeeper-operator.fullname" . }}-cert-tls-bk
   commonName: bookkeeper-webhook-svc.{{ .Release.Namespace }}.svc.cluster.local
   dnsNames:
     - bookkeeper-webhook-svc
