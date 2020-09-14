@@ -1,0 +1,46 @@
+{{- if .Values.webhookCert.generate }}
+apiVersion: cert-manager.io/v1alpha2
+kind: Issuer
+metadata:
+  name: {{ template "bookkeeper-operator.fullname" . }}-issuer
+  namespace: {{ .Release.Namespace }}
+  labels:
+{{ include "bookkeeper-operator.commonLabels" . | indent 4 }}
+spec:
+  ca:
+    secretName: {{ template "bookkeeper-operator.fullname" . }}-key-pair
+{{- end }}
+---
+{{- if .Values.webhookCert.generate }}
+apiVersion: cert-manager.io/v1alpha2
+kind: Certificate
+metadata:
+  name: {{ template "bookkeeper-operator.fullname" . }}-cert-bk
+  namespace: {{ .Release.Namespace }}
+  labels:
+{{ include "bookkeeper-operator.commonLabels" . | indent 4 }}
+spec:
+  isCA: true
+  duration: 8760h
+  renewBefore: 360h
+  secretName: {{ template "bookkeeper-operator.fullname" . }}-cert-tls-bk
+  commonName: bookkeeper-webhook-svc.{{ .Release.Namespace }}.svc.cluster.local
+  dnsNames:
+    - bookkeeper-webhook-svc
+    - bookkeeper-webhook-svc.{{ .Release.Namespace }}.svc.cluster.local
+    - bookkeeper-webhook-svc.{{ .Release.Namespace }}.svc
+  issuerRef:
+    name: {{ template "bookkeeper-operator.fullname" . }}-issuer
+{{- end }}
+---
+{{- if .Values.webhookCert.generate }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ template "bookkeeper-operator.fullname" . }}-key-pair
+  namespace: {{ .Release.Namespace }}
+type: kubernetes.io/tls
+data:
+  tls.crt: {{ .Values.webhookCert.crt }}
+  tls.key: {{ .Values.webhookCert.key }}
+{{- end }}

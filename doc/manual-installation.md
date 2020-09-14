@@ -10,6 +10,19 @@
 
 > Note: If you are running on Google Kubernetes Engine (GKE), please [check this first](#installation-on-google-kubernetes-engine).
 
+In case you dont have a cert-manager, Install the cert-manager v0.15.0+ from the following link:-
+
+https://cert-manager.io/docs/installation/kubernetes/
+
+Install the issuer and certificate
+```
+$ kubectl create -f deploy/certificate.yaml
+```
+Install the webhook
+```
+$ kubectl create -f deploy/webhook.yaml  
+```
+
 Register the Bookkeeper cluster custom resource definition (CRD).
 
 ```

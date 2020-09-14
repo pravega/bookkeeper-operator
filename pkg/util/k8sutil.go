@@ -11,20 +11,10 @@
 package util
 
 import (
-	"context"
 	"fmt"
-	"os"
-	"time"
-
-	"github.com/pravega/bookkeeper-operator/pkg/apis/bookkeeper/v1alpha1"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
-	k8s "github.com/operator-framework/operator-sdk/pkg/k8sutil"
-	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/apimachinery/pkg/util/wait"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 func DownwardAPIEnv() []corev1.EnvVar {
@@ -79,35 +69,6 @@ func PodAntiAffinity(component string, clusterName string) *corev1.Affinity {
 	}
 }
 
-// Wait for pods in cluster to be terminated
-func WaitForClusterToTerminate(kubeClient client.Client, p *v1alpha1.BookkeeperCluster) (err error) {
-	listOptions := &client.ListOptions{
-		Namespace:     p.Namespace,
-		LabelSelector: labels.SelectorFromSet(LabelsForBookkeeperCluster(p)),
-	}
-
-	err = wait.Poll(5*time.Second, 2*time.Minute, func() (done bool, err error) {
-		podList := &corev1.PodList{}
-		err = kubeClient.List(context.TODO(), listOptions, podList)
-		if err != nil {
-			return false, err
-		}
-
-		var names []string
-		for i := range podList.Items {
-			pod := &podList.Items[i]
-			names = append(names, pod.Name)
-		}
-
-		if len(names) != 0 {
-			return false, nil
-		}
-		return true, nil
-	})
-
-	return err
-}
-
 func IsPodReady(pod *corev1.Pod) bool {
 	for _, condition := range pod.Status.Conditions {
 		if condition.Type == corev1.PodReady && condition.Status == corev1.ConditionTrue {
@@ -123,60 +84,4 @@ func IsPodFaulty(pod *corev1.Pod) (bool, error) {
 		return true, fmt.Errorf("pod %s update failed because of %s", pod.Name, pod.Status.ContainerStatuses[0].State.Waiting.Reason)
 	}
 	return false, nil
-}
-
-func NewEvent(name string, p *v1alpha1.BookkeeperCluster, reason string, message string, eventType string) *corev1.Event {
-	now := metav1.Now()
-	operatorName, _ := k8s.GetOperatorName()
-	generateName := name + "-"
-	event := corev1.Event{
-		ObjectMeta: metav1.ObjectMeta{
-			GenerateName: generateName,
-			Namespace:    p.Namespace,
-			Labels:       LabelsForBookkeeperCluster(p),
-		},
-		InvolvedObject: corev1.ObjectReference{
-			APIVersion:      "bookkeeper.pravega.io/v1alpha1",
-			Kind:            "BookkeeperCluster",
-			Name:            p.GetName(),
-			Namespace:       p.GetNamespace(),
-			ResourceVersion: p.GetResourceVersion(),
-			UID:             p.GetUID(),
-		},
-		Reason:              reason,
-		Message:             message,
-		FirstTimestamp:      now,
-		LastTimestamp:       now,
-		Type:                eventType,
-		ReportingController: operatorName,
-		ReportingInstance:   os.Getenv("POD_NAME"),
-	}
-	return &event
-}
-
-func NewApplicationEvent(name string, p *v1alpha1.BookkeeperCluster, reason string, message string, eventType string) *corev1.Event {
-	now := metav1.Now()
-	operatorName, _ := k8s.GetOperatorName()
-	generateName := name + "-"
-	event := corev1.Event{
-		ObjectMeta: metav1.ObjectMeta{
-			GenerateName: generateName,
-			Namespace:    p.Namespace,
-			Labels:       LabelsForBookkeeperCluster(p),
-		},
-		InvolvedObject: corev1.ObjectReference{
-			APIVersion: "app.k8s.io/v1beta1",
-			Kind:       "Application",
-			Name:       "bookkeeper-cluster",
-			Namespace:  p.GetNamespace(),
-		},
-		Reason:              reason,
-		Message:             message,
-		FirstTimestamp:      now,
-		LastTimestamp:       now,
-		Type:                eventType,
-		ReportingController: operatorName,
-		ReportingInstance:   os.Getenv("POD_NAME"),
-	}
-	return &event
 }

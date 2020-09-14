@@ -273,7 +273,7 @@ func (r *ReconcileBookkeeperCluster) reconcileFinalizers(bk *bookkeeperv1alpha1.
 			if err = r.cleanUpZookeeperMeta(bk, pravegaClusterName); err != nil {
 				// emit an event for zk metadata cleanup failure
 				message := fmt.Sprintf("failed to cleanup %s metadata from zookeeper (znode path: /pravega/%s): %v", bk.Name, pravegaClusterName, err)
-				event := util.NewApplicationEvent("ZKMETA_CLEANUP_ERROR", bk, "ZK Metadata Cleanup Failed", message, "Error")
+				event := bk.NewApplicationEvent("ZKMETA_CLEANUP_ERROR", "ZK Metadata Cleanup Failed", message, "Error")
 				pubErr := r.client.Create(context.TODO(), event)
 				if pubErr != nil {
 					log.Printf("Error publishing zk metadata cleanup failure event to k8s. %v", pubErr)
@@ -286,11 +286,11 @@ func (r *ReconcileBookkeeperCluster) reconcileFinalizers(bk *bookkeeperv1alpha1.
 }
 
 func (r *ReconcileBookkeeperCluster) cleanUpZookeeperMeta(bk *bookkeeperv1alpha1.BookkeeperCluster, pravegaClusterName string) (err error) {
-	if err = util.WaitForClusterToTerminate(r.client, bk); err != nil {
+	if err = bk.WaitForClusterToTerminate(r.client); err != nil {
 		return fmt.Errorf("failed to wait for cluster pods termination (%s): %v", bk.Name, err)
 	}
 
-	if err = util.DeleteAllZnodes(bk, pravegaClusterName); err != nil {
+	if err = util.DeleteAllZnodes(bk.Spec.ZookeeperUri, bk.Namespace, pravegaClusterName); err != nil {
 		return fmt.Errorf("failed to delete zookeeper znodes for (%s): %v", bk.Name, err)
 	}
 	return nil
@@ -309,7 +309,7 @@ func (r *ReconcileBookkeeperCluster) syncStatefulSetPvc(sts *appsv1.StatefulSet)
 		Namespace:     sts.Namespace,
 		LabelSelector: selector,
 	}
-	err = r.client.List(context.TODO(), pvclistOps, pvcList)
+	err = r.client.List(context.TODO(), pvcList, pvclistOps)
 	if err != nil {
 		return err
 	}
@@ -345,12 +345,12 @@ func (r *ReconcileBookkeeperCluster) syncStatefulSetExternalServices(sts *appsv1
 		Namespace:     sts.Namespace,
 		LabelSelector: selector,
 	}
-	err = r.client.List(context.TODO(), servicelistOps, serviceList)
+	err = r.client.List(context.TODO(), serviceList, servicelistOps)
 	if err != nil {
 		return err
 	}
-
 	for _, svcItem := range serviceList.Items {
+
 		if util.IsOrphan(svcItem.Name, *sts.Spec.Replicas) {
 			svcDelete := &corev1.Service{
 				ObjectMeta: metav1.ObjectMeta{
@@ -372,13 +372,13 @@ func (r *ReconcileBookkeeperCluster) reconcileClusterStatus(bk *bookkeeperv1alph
 
 	bk.Status.Init()
 
-	expectedSize := util.GetClusterExpectedSize(bk)
+	expectedSize := bk.GetClusterExpectedSize()
 	listOps := &client.ListOptions{
 		Namespace:     bk.Namespace,
-		LabelSelector: labels.SelectorFromSet(util.LabelsForBookkeeperCluster(bk)),
+		LabelSelector: labels.SelectorFromSet(bk.LabelsForBookkeeperCluster()),
 	}
 	podList := &corev1.PodList{}
-	err := r.client.List(context.TODO(), listOps, podList)
+	err := r.client.List(context.TODO(), podList, listOps)
 	if err != nil {
 		return err
 	}

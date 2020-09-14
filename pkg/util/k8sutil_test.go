@@ -12,13 +12,8 @@ package util
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/pravega/bookkeeper-operator/pkg/apis/bookkeeper/v1alpha1"
-	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes/scheme"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
 var _ = Describe("k8sutil", func() {
@@ -93,61 +88,5 @@ var _ = Describe("k8sutil", func() {
 			Ω(result1).To(Equal(false))
 		})
 	})
-	Context("NewEvent", func() {
-		var bk *v1alpha1.BookkeeperCluster
-		var event *corev1.Event
-		BeforeEach(func() {
-			bk = &v1alpha1.BookkeeperCluster{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "default",
-				},
-			}
-			bk.WithDefaults()
-			message := "upgrade failed"
-			event = NewEvent("bookie", bk, "UPGRADE_ERROR", message, "Error")
-		})
 
-		It("Event size should not be zero", func() {
-			Ω(event.Size()).ShouldNot(Equal(0))
-		})
-	})
-	Context("NewApplicationEvent", func() {
-		var bk *v1alpha1.BookkeeperCluster
-		var event *corev1.Event
-		BeforeEach(func() {
-			bk = &v1alpha1.BookkeeperCluster{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "default",
-				},
-			}
-			bk.WithDefaults()
-			message := "upgrade failed"
-			event = NewApplicationEvent("bookie", bk, "UPGRADE_ERROR", message, "Error")
-		})
-		It("Event size should not be zero", func() {
-			Ω(event.Size()).ShouldNot(Equal(0))
-		})
-	})
-	Context("WaitForClusterToTerminate", func() {
-		var bk, bk1 *v1alpha1.BookkeeperCluster
-		var client client.Client
-		var err error
-		BeforeEach(func() {
-
-			bk = &v1alpha1.BookkeeperCluster{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "default",
-				},
-			}
-			bk.WithDefaults()
-			s := scheme.Scheme
-			s.AddKnownTypes(v1alpha1.SchemeGroupVersion, bk)
-			s.AddKnownTypes(v1alpha1.SchemeGroupVersion, bk1)
-			client = fake.NewFakeClient(bk)
-			err = WaitForClusterToTerminate(client, bk)
-		})
-		It("should  be nil", func() {
-			Ω(err).Should(BeNil())
-		})
-	})
 })
