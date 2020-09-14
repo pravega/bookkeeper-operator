@@ -57,6 +57,6 @@ The following table lists the configurable parameters of the Bookkeeper operator
 | `webhookCert.crt` | tls.crt value corresponding to the certificate | |
 | `webhookCert.key` | tls.key value corresponding to the certificate | |
 | `webhookCert.generate` | Whether to generate the certificate and the issuer (set to false while using self-signed certificates) | `false` |
-| `webhookCert.certName` | Name of the certificate, if generate is set to false | `selfsigned-cert` |
-| `webhookCert.secretName` | Name of the secret created by the certificate, if generate is set to false | `selfsigned-cert-tls` |
+| `webhookCert.certName` | Name of the certificate, if generate is set to false | `selfsigned-cert-bk` |
+| `webhookCert.secretName` | Name of the secret created by the certificate, if generate is set to false | `selfsigned-cert-tls-bk` |
 | `watchNamespace` | Namespaces to be watched  | `""` |

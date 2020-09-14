@@ -48,7 +48,7 @@ spec:
       - name: webhook-cert
         secret:
           {{- if .Values.webhookCert.generate }}
-          secretName: {{ template "bookkeeper-operator.fullname" . }}-cert-tls
+          secretName: {{ template "bookkeeper-operator.fullname" . }}-cert-tls-bk
           {{- else }}
           secretName: {{ .Values.webhookCert.secretName }}
           {{- end }}

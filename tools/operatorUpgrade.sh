@@ -19,6 +19,18 @@ local op_name=`kubectl describe deploy ${op_deployment_name} -n ${namespace}| gr
 
 local op_image=$3
 
+sed -i "s/namespace.*/namespace: $namespace"/ ./manifest_files/certificate.yaml
+
+local temp_string_for_dns=bookkeeper-webhook-svc.${namespace}
+
+sed -i "s/bookkeeper-webhook-svc.default/${temp_string_for_dns}"/ ./manifest_files/certificate.yaml
+
+#Installing the certificate
+kubectl apply -f  ./manifest_files/certificate.yaml
+
+#Reverting the changes back in the certificate.yaml file
+sed -i "s/${temp_string_for_dns}/pravega-webhook-svc.default"/ ./manifest_files/certificate.yaml
+
 sed -i "s|cert.*|cert-manager.io/inject-ca-from: $namespace/selfsigned-cert-bk|" ./manifest_files/webhook.yaml
 
 sed -i "s/namespace.*/namespace: $namespace "/ ./manifest_files/webhook.yaml
@@ -37,4 +49,4 @@ kubectl patch deployment $op_name --namespace ${namespace} --type merge --patch 
 
 }
 
-UpgradingToBookkeeperoperator $1 $2 $3 
+UpgradingToBookkeeperoperator $1 $2 $3

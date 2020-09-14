@@ -12,8 +12,8 @@ spec:
               apiVersion: v1
               fieldPath: metadata.name
         - name: OPERATOR_NAME
-          value: bkop-bookkeeper-operator 
-        image: kjanisha/bookkeeper-operator:openapi
+          value: bkop-bookkeeper-operator
+        image: pravega/bookkeeper-operator:0.1.2
         imagePullPolicy: Always
         name: bkop-bookkeeper-operator
         ports:
@@ -35,4 +35,4 @@ spec:
           secretName: selfsigned-cert-tls-bk
       - name: versions-volume
         configMap:
-          name: bk-supported-versions-map 
+          name: bk-supported-versions-map

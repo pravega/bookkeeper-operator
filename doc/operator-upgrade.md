@@ -40,4 +40,4 @@ helm upgrade <operator release name> <location of 0.1.3 charts>  --set webhookCe
 ```
 #### Upgrade manually
 
-To manually trigger the upgrade to Operator 0.1.3, run the script `operatorUpgrade.sh` under [tools](https://github.com/pravega/bookkeeper-operator/blob/master/tools) folder. This script patches the and creates necessary K8s artifacts, needed by 0.1.3 Operator, prior to triggering the upgrade by updating the image tag in Operator deployment.
+To manually trigger the upgrade to Operator 0.1.3, run the script `operatorUpgrade.sh` under [tools](https://github.com/pravega/bookkeeper-operator/blob/master/tools) folder. This script installs certificate, patches and creates necessary K8s artifacts, needed by 0.1.3 Operator, prior to triggering the upgrade by updating the image tag in Operator deployment.
