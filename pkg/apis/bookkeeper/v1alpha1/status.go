@@ -46,22 +46,30 @@ type BookkeeperClusterStatus struct {
 	VersionHistory []string `json:"versionHistory,omitempty"`
 
 	// Replicas is the number of desired replicas in the cluster
+	// +optional
 	Replicas int32 `json:"replicas"`
 
 	// CurrentReplicas is the number of current replicas in the cluster
+	// +optional
 	CurrentReplicas int32 `json:"currentReplicas"`
 
 	// ReadyReplicas is the number of ready replicas in the cluster
+	// +optional
 	ReadyReplicas int32 `json:"readyReplicas"`
 
 	// Members is the Bookkeeper members in the cluster
+	// +optional
 	Members MembersStatus `json:"members"`
 }
 
 // MembersStatus is the status of the members of the cluster with both
 // ready and unready node membership lists
 type MembersStatus struct {
-	Ready   []string `json:"ready"`
+	// +optional
+	// +nullable
+	Ready []string `json:"ready"`
+	// +optional
+	// +nullable
 	Unready []string `json:"unready"`
 }
 
@@ -69,9 +77,11 @@ type MembersStatus struct {
 // Comply with k8s API conventions
 type ClusterCondition struct {
 	// Type of Bookkeeper cluster condition.
+	// +optional
 	Type ClusterConditionType `json:"type"`
 
 	// Status of the condition, one of True, False, Unknown.
+	// +optional
 	Status corev1.ConditionStatus `json:"status"`
 
 	// The reason for the condition's last transition.

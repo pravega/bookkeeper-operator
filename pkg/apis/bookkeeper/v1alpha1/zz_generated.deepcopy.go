@@ -41,7 +41,7 @@ func (in *BookkeeperCluster) DeepCopyObject() runtime.Object {
 func (in *BookkeeperClusterList) DeepCopyInto(out *BookkeeperClusterList) {
 	*out = *in
 	out.TypeMeta = in.TypeMeta
-	out.ListMeta = in.ListMeta
+	in.ListMeta.DeepCopyInto(&out.ListMeta)
 	if in.Items != nil {
 		in, out := &in.Items, &out.Items
 		*out = make([]BookkeeperCluster, len(*in))
@@ -109,6 +109,11 @@ func (in *BookkeeperClusterSpec) DeepCopyInto(out *BookkeeperClusterSpec) {
 		in, out := &in.JVMOptions, &out.JVMOptions
 		*out = new(JVMOptions)
 		(*in).DeepCopyInto(*out)
+	}
+	if in.BlockOwnerDeletion != nil {
+		in, out := &in.BlockOwnerDeletion, &out.BlockOwnerDeletion
+		*out = new(bool)
+		**out = **in
 	}
 	return
 }
