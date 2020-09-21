@@ -10,7 +10,7 @@
 
 // Package v1alpha1 contains API Schema definitions for the pravega v1alpha1 API group
 // +k8s:deepcopy-gen=package,register
-// +groupName=pravega.pravega.io
+// +groupName=bookkeeper.pravega.io
 package v1alpha1
 
 import (

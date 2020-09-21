@@ -136,6 +136,17 @@ type BookkeeperClusterList struct {
 
 // BookkeeperCluster is the Schema for the BookkeeperClusters API
 // +k8s:openapi-gen=true
+// Generate CRD using kubebuilder
+
+// +kubebuilder:object:root=true
+// +kubebuilder:subresource:status
+// +kubebuilder:resource:shortName=bk
+// +kubebuilder:printcolumn:name="Version",type=string,JSONPath=`.status.currentVersion`,description="The current bookkeeper version"
+// +kubebuilder:printcolumn:name="Desired Version",type=string,JSONPath=`.spec.version`,description="The desired bookkeeper version"
+// +kubebuilder:printcolumn:name="Desired Members",type=integer,JSONPath=`.status.replicas`,description="The number of desired bookkeeper members"
+// +kubebuilder:printcolumn:name="Ready Members",type=integer,JSONPath=`.status.readyReplicas`,description="The number of ready bookkeeper members"
+// +kubebuilder:printcolumn:name="Age",type=date,JSONPath=`.metadata.creationTimestamp`
+
 type BookkeeperCluster struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -157,21 +168,28 @@ type BookkeeperClusterSpec struct {
 	// By default, the value "zookeeper-client:2181" is used, that corresponds to the
 	// default Zookeeper service created by the Pravega Zookkeeper operator
 	// available at: https://github.com/pravega/zookeeper-operator
+	// +optional
 	ZookeeperUri string `json:"zookeeperUri"`
 
 	// Image defines the BookKeeper Docker image to use.
 	// By default, "pravega/bookkeeper" will be used.
+	// +optional
 	Image *BookkeeperImageSpec `json:"image"`
 
 	// Replicas defines the number of BookKeeper replicas.
 	// Minimum is 3. Defaults to 3.
+	// If testmode is enabled, 1 replica is allowed.
+	// +kubebuilder:validation:Minimum=1
+	// +optional
 	Replicas int32 `json:"replicas"`
 
 	// Storage configures the storage for BookKeeper
+	// +optional
 	Storage *BookkeeperStorageSpec `json:"storage"`
 
 	// AutoRecovery indicates whether or not BookKeeper auto recovery is enabled.
 	// Defaults to true.
+	// +optional
 	AutoRecovery *bool `json:"autoRecovery"`
 
 	// ServiceAccountName configures the service account used on BookKeeper instances
@@ -179,6 +197,7 @@ type BookkeeperClusterSpec struct {
 
 	// Probes specifies the timeout values for the Readiness and Liveness Probes
 	// for the bookkeeper pods.
+	// +optional
 	Probes *Probes `json:"probes"`
 
 	// BookieResources specifies the request and limit of resources that bookie can have.
@@ -188,11 +207,13 @@ type BookkeeperClusterSpec struct {
 	// Options is the Bookkeeper configuration that is to override the bk_server.conf
 	// in bookkeeper. Some examples can be found here
 	// https://github.com/apache/bookkeeper/blob/master/docker/README.md
+	// +optional
 	Options map[string]string `json:"options"`
 
 	// JVM is the JVM options for bookkeeper. It will be passed to the JVM for performance tuning.
 	// If this field is not specified, the operator will use a set of default
 	// options that is good enough for general deployment.
+	// +optional
 	JVMOptions *JVMOptions `json:"jvmOptions"`
 
 	// Provides the name of the configmap created by the user to provide additional key-value pairs
@@ -207,6 +228,7 @@ type BookkeeperClusterSpec struct {
 	// Only Bookkeeper released versions are supported: https://hub.docker.com/r/pravega/bookkeeper/tags
 	//
 	// If version is not set, default is "0.4.0".
+	// +optional
 	Version string `json:"version"`
 	// If true, AND if the owner has the "foregroundDeletion" finalizer, then
 	// the owner cannot be deleted from the key-value store until this
@@ -217,7 +239,7 @@ type BookkeeperClusterSpec struct {
 
 // BookkeeperImageSpec defines the fields needed for a BookKeeper Docker image
 type BookkeeperImageSpec struct {
-	ImageSpec
+	ImageSpec `json:"imageSpec,omitempty"`
 }
 
 func (s *BookkeeperImageSpec) withDefaults() (changed bool) {
@@ -237,8 +259,10 @@ func (s *BookkeeperImageSpec) withDefaults() (changed bool) {
 }
 
 type Probes struct {
+	// +optional
 	ReadinessProbe *Probe `json:"readinessProbe"`
-	LivenessProbe  *Probe `json:"livenessProbe"`
+	// +optional
+	LivenessProbe *Probe `json:"livenessProbe"`
 }
 
 func (s *Probes) withDefaults() (changed bool) {
@@ -266,18 +290,32 @@ func (s *Probes) withDefaults() (changed bool) {
 }
 
 type Probe struct {
+	// +kubebuilder:validation:Minimum=0
+	// +optional
 	InitialDelaySeconds int32 `json:"initialDelaySeconds"`
-	PeriodSeconds       int32 `json:"periodSeconds"`
-	FailureThreshold    int32 `json:"failureThreshold"`
-	SuccessThreshold    int32 `json:"successThreshold"`
-	TimeoutSeconds      int32 `json:"timeoutSeconds"`
+	// +kubebuilder:validation:Minimum=0
+	// +optional
+	PeriodSeconds int32 `json:"periodSeconds"`
+	// +kubebuilder:validation:Minimum=0
+	// +optional
+	FailureThreshold int32 `json:"failureThreshold"`
+	// +kubebuilder:validation:Minimum=0
+	// +optional
+	SuccessThreshold int32 `json:"successThreshold"`
+	// +kubebuilder:validation:Minimum=0
+	// +optional
+	TimeoutSeconds int32 `json:"timeoutSeconds"`
 }
 
 type JVMOptions struct {
-	MemoryOpts    []string `json:"memoryOpts"`
-	GcOpts        []string `json:"gcOpts"`
+	// +optional
+	MemoryOpts []string `json:"memoryOpts"`
+	// +optional
+	GcOpts []string `json:"gcOpts"`
+	// +optional
 	GcLoggingOpts []string `json:"gcLoggingOpts"`
-	ExtraOpts     []string `json:"extraOpts"`
+	// +optional
+	ExtraOpts []string `json:"extraOpts"`
 }
 
 func (s *JVMOptions) withDefaults() (changed bool) {
@@ -309,16 +347,19 @@ type BookkeeperStorageSpec struct {
 	// LedgerVolumeClaimTemplate is the spec to describe PVC for the BookKeeper ledger
 	// This field is optional. If no PVC spec and there is no default storage class,
 	// stateful containers will use emptyDir as volume
+	// +optional
 	LedgerVolumeClaimTemplate *corev1.PersistentVolumeClaimSpec `json:"ledgerVolumeClaimTemplate"`
 
 	// JournalVolumeClaimTemplate is the spec to describe PVC for the BookKeeper journal
 	// This field is optional. If no PVC spec and there is no default storage class,
 	// stateful containers will use emptyDir as volume
+	// +optional
 	JournalVolumeClaimTemplate *corev1.PersistentVolumeClaimSpec `json:"journalVolumeClaimTemplate"`
 
 	// IndexVolumeClaimTemplate is the spec to describe PVC for the BookKeeper index
 	// This field is optional. If no PVC spec and there is no default storage class,
 	// stateful containers will use emptyDir as volume
+	// +optional
 	IndexVolumeClaimTemplate *corev1.PersistentVolumeClaimSpec `json:"indexVolumeClaimTemplate"`
 }
 
@@ -449,7 +490,7 @@ type ImageSpec struct {
 
 	// Deprecated: Use `spec.Version` instead
 	Tag string `json:"tag,omitempty"`
-
+	// +kubebuilder:validation:Enum="Always";"Never";"IfNotPresent"
 	PullPolicy corev1.PullPolicy `json:"pullPolicy"`
 }
 
