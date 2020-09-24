@@ -1,6 +1,6 @@
 # Bookkeeper cluster upgrade
 
-This document shows how to upgrade a Pravega cluster managed by the operator to a desired version while preserving the cluster's state and data whenever possible.
+This document shows how to upgrade a bookkeeper cluster managed by the bookkeeper operator to a desired version while preserving the cluster's state and data whenever possible.
 
 ## Overview
 
@@ -21,23 +21,24 @@ bookkeeper  0.4.0        7                 7            11m
 
 ## Valid Upgrade Paths
 
-To understand the valid upgrade paths for a pravega cluster, refer to the [version map](https://github.com/pravega/bookkeeper-operator/blob/master/deploy/version_map.yaml). The key indicates the base version of the cluster, and the value against each key indicates the list of valid versions this base version can be upgraded to.
+To understand the valid upgrade paths for a bookkeeper cluster, refer to the [version map](https://github.com/pravega/bookkeeper-operator/blob/master/deploy/version_map.yaml). The key indicates the base version of the cluster, and the value against each key indicates the list of valid versions this base version can be upgraded to.
 
 ## Trigger an upgrade
 
 ### Upgrading via Helm
 
-The upgrade can be triggered via helm using the following command
+The upgrade of the bookkeeper cluster from a version **[OLD_VERSION]** to **[NEW_VERSION]** can be triggered via helm using the following command
 ```
-$ helm upgrade <bookkeeper cluster release name> <location of modified charts> --timeout 600s
+$ helm upgrade [BOOKKEEPER_RELEASE_NAME] pravega/bookkeeper --version=[NEW_VERSION] --set version=[NEW_VERSION] --reuse-values --timeout 600s
 ```
+**Note:** By specifying the `--reuse-values` option, the configuration of all parameters are retained across upgrades. However if some values need to be modified during the upgrade, the `--set` flag can be used to specify the new configuration for these parameters. Also, by skipping the `reuse-values` flag, the values of all parameters are reset to the default configuration that has been specified in the published charts for version [NEW_VERSION].
 
 ### Upgrading manually
 
 To initiate the upgrade process manually, a user has to update the `spec.version` field on the `BookkeeperCluster` custom resource. This can be done in three different ways using the `kubectl` command.
-1. `kubectl edit BookkeeperCluster <name>`, modify the `version` value in the YAML resource, save, and exit.
+1. `kubectl edit BookkeeperCluster [CLUSTER_NAME]`, modify the `version` value in the YAML resource, save, and exit.
 2. If you have the custom resource defined in a local YAML file, e.g. `bookkeeper.yaml`, you can modify the `version` value, and reapply the resource with `kubectl apply -f bookkeeper.yaml`.
-3. `kubectl patch BookkeeperCluster <name> --type='json' -p='[{"op": "replace", "path": "/spec/version", "value": "X.Y.Z"}]'`.
+3. `kubectl patch BookkeeperCluster [CLUSTER_NAME] --type='json' -p='[{"op": "replace", "path": "/spec/version", "value": "X.Y.Z"}]'`.
 After the `version` field is updated, the operator will detect the version change and it will trigger the upgrade process.
 
 ## Upgrade process

@@ -15,24 +15,34 @@ This chart creates a Bookkeeper cluster in [Kubernetes](http://kubernetes.io) us
 
 ## Installing the Chart
 
-To install the chart with the release name `my-release`:
+To install the bookkeeper chart, use the following commands:
 
 ```
-$ helm install my-release bookkeeper
+$ helm repo add pravega https://charts.pravega.io
+$ helm repo update
+$ helm install [RELEASE_NAME] pravega/bookkeeper --version=[VERSION] --set zookeeperUri=[ZOOKEEPER_HOST] --set pravegaClusterName=[PRAVEGA_CLUSTER_NAME] -n [NAMESPACE]
 ```
+where:
+- **[RELEASE_NAME]** is the release name for the bookkeeper chart
+- **[CLUSTER_NAME]** is the name of the bookkeeper cluster so created (if [RELEASE_NAME] contains the string `bookkeeper`, `[CLUSTER_NAME] = [RELEASE_NAME]`, else `[CLUSTER_NAME] = [RELEASE_NAME]-bookkeeper`. The [CLUSTER_NAME] can however be overridden by providing `--set fullnameOverride=[CLUSTER_NAME]` along with the helm install command)
+- **[PRAVEGA_CLUSTER_NAME]** is the name of the pravega cluster (this field is optional and needs to be provided only if we expect the bookkeeper cluster to work with [Pravega](https://github.com/pravega/pravega) and if we wish to override its default value which is `pravega`)
+- **[VERSION]** can be any stable release version for bookkeeper from 0.5.0 onwards
+- **[ZOOKEEPER_HOST]** is the zookeeper service endpoint of your zookeeper cluster deployment (default value of this field is `zookeeper-client:2181`)
+- **[NAMESPACE]** is the namespace in which you wish to deploy the bookkeeper cluster (default value for this field is `default`) The bookkeeper cluster must be installed in the same namespace as the zookeeper cluster.
 
-The command deploys bookkeeper on the Kubernetes cluster in the default configuration. The [configuration](#configuration) section lists the parameters that can be configured during installation.
+This command deploys bookkeeper on the Kubernetes cluster in its default configuration. The [configuration](#configuration) section lists the parameters that can be configured during installation.
 
 ## Uninstalling the Chart
 
-To uninstall/delete the `my-release` deployment:
+To uninstall/delete the bookkeeper chart, use the following command:
 
 ```
-$ helm uninstall my-release
+$ helm uninstall [RELEASE_NAME]
 ```
 
-The command removes all the Kubernetes components associated with the chart and deletes the release.
-> Note: If you are setting blockOwnerDeletion to false during installtion, PVC's won't be removed automatically while uninstalling bookkeepercluster. PVCs have to be deleted manually.
+This command removes all the Kubernetes components associated with the chart and deletes the release.
+> Note: If blockOwnerDeletion had been set to false during bookkeeper installation, the PVCs won't be removed automatically while uninstalling the bookkeeper chart, and would need to be deleted manually.
+
 ## Configuration
 
 The following table lists the configurable parameters of the Bookkeeper chart and their default values.

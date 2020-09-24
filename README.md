@@ -26,7 +26,7 @@ The project is currently alpha. While no breaking API changes are currently plan
 
 ## Overview
 
-[Bookkeeper](https://bookkeeper.apache.org/) A scalable, fault-tolerant, and low-latency storage service optimized for real-time workloads.
+[Bookkeeper](https://bookkeeper.apache.org/) is a scalable, fault-tolerant, and low-latency storage service optimized for real-time workloads.
 
 The Bookkeeper Operator manages Bookkeeper clusters deployed to Kubernetes and automates tasks related to operating a Bookkeeper cluster.
 
@@ -42,40 +42,26 @@ The Bookkeeper Operator manages Bookkeeper clusters deployed to Kubernetes and a
 
 ## Quickstart
 
+We recommend using our [helm charts](charts) for all installation and upgrades (but not for rollbacks at the moment since helm rollbacks are still experimental). The helm charts for bookkeeper operator (version 0.1.2 onwards) and bookkeeper cluster (version 0.5.0 onwards) are published in [https://charts.pravega.io](https://charts.pravega.io/). To add this repository to your Helm repos, use the following command:
+```
+helm repo add pravega https://charts.pravega.io
+```
+There are manual deployment, upgrade and rollback options available as well.
+
 ### Install the Operator
 
 > Note: If you are running on Google Kubernetes Engine (GKE), please [check this first](doc/development.md#installation-on-google-kubernetes-engine).
 
-We recommend using helm to deploy a Bookkeeper Operator. Check out the [helm installation](charts/bookkeeper-operator/README.md) document for instructions.
+To understand how to deploy a Bookkeeper Operator using helm, refer to [this](charts/bookkeeper-operator#installing-the-chart).
+
 #### Install the Operator in Test Mode
  The Operator can be run in `test mode` if we want to deploy the Bookkeeper Cluster on minikube or on a cluster with very limited resources by setting `testmode: true` in `values.yaml` file. Operator running in test mode skips the minimum replica requirement checks. Test mode provides a bare minimum setup and is not recommended to be used in production environments.
 
 ### Install a sample Bookkeeper cluster
-> Note that the Bookkeeper cluster must be installed in the same namespace as the Zookeeper cluster.
 
-If the Bookkeeper cluster is expected to work with Pravega, we need to create a ConfigMap which needs to have the following values
+To understand how to deploy a bookkeeper cluster using helm, refer to [this](charts/bookkeeper#installing-the-chart).
 
-| KEY | VALUE |
-|---|---|
-| *PRAVEGA_CLUSTER_NAME* | Name of Pravega Cluster using this BookKeeper Cluster |
-| *WAIT_FOR* | Zookeeper URL |
-
-The name of this ConfigMap needs to be mentioned in the field `envVars` present in the BookKeeper Spec. For more details about this ConfigMap refer to [this](doc/bookkeeper-options.md#bookkeeper-custom-configuration).
-
-Helm can be used to install a sample Bookkeeper cluster with the release name `bookkeeper`.
-
-```
-$ helm install bookkeeper charts/bookkeeper --set zookeeperUri=[ZOOKEEPER_HOST] --set pravegaClusterName=[CLUSTER_NAME]
-```
-
-where:
-
-- **[ZOOKEEPER_HOST]** is the Zookeeper service endpoint of your Zookeeper deployment (e.g. `zookeeper-client:2181`). It expects the zookeeper service URL in the given format `<service-name>:<port-number>`
-- **[CLUSTER_NAME]** is the name of the Pravega cluster (i.e. this field is optional and needs to be provided only if we expect this bookkeeper cluster to work with [Pravega](https://github.com/pravega/pravega)).
-
-Check out the [Bookkeeper Helm Chart](charts/bookkeeper) for more a complete list of installation parameters.
-
-Verify that the cluster instances and its components are being created.
+Once the bookkeeper cluster with release name `bookkeeper` has been created, use the following command to verify that the cluster instances and its components are being created.
 
 ```
 $ kubectl get bk
@@ -131,9 +117,8 @@ For upgrading the bookkeeper operator check the document [operator-upgrade](doc/
 ### Uninstall the Bookkeeper cluster
 
 ```
-$ helm uninstall bookkeeper
+$ helm uninstall [BOOKKEEPER_RELEASE_NAME]
 ```
-Here `bookkeeper` is the bookkeeper cluster release name.
 
 Once the Bookkeeper cluster has been deleted, make sure to check that the zookeeper metadata has been cleaned up before proceeding with the deletion of the operator. This can be confirmed with the presence of the following log message in the operator logs.
 ```
@@ -142,7 +127,7 @@ zookeeper metadata deleted
 
 However, if the operator fails to delete this metadata from zookeeper, you will instead find the following log message in the operator logs.
 ```
-failed to cleanup <bookkeeper-cluster-name> metadata from zookeeper (znode path: /pravega/<pravega-cluster-name>): <error-msg>
+failed to cleanup [CLUSTER_NAME] metadata from zookeeper (znode path: /pravega/[PRAVEGA_CLUSTER_NAME]): <error-msg>
 ```
 
 The operator additionally sends out a `ZKMETA_CLEANUP_ERROR` event to notify the user about this failure. The user can check this event by doing `kubectl get events`. The following is the sample describe output of the event that is generated by the operator in such a case
@@ -183,9 +168,8 @@ Events:  <none>
 > Note that the Bookkeeper clusters managed by the Bookkeeper operator will NOT be deleted even if the operator is uninstalled.
 
 ```
-$ helm uninstall bookkeeper-operator
+$ helm uninstall [BOOKKEEPER_OPERATOR_RELEASE_NAME]
 ```
-Here `bookkeeper-operator` is the operator release name.
 
 ### Manual installation
 
