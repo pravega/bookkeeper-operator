@@ -24,8 +24,5 @@ jobs:
       uses: actions/checkout@v2
     - name: Gofmt and License checks
       run: make check
-  unit:
-    runs-on: ubuntu-latest
-    steps:
     - name: unit tests
       run: make test-unit
