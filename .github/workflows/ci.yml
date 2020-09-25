@@ -27,4 +27,4 @@ jobs:
     - name: unit tests
       run: make test-unit
     - name: Codecov
-      uses: codecov/codecov-action@v1.0.12
+      run: bash <(curl -s https://codecov.io/bash)
