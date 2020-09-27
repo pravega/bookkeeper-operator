@@ -4,7 +4,7 @@
 
 You can optionally configure non-default service accounts for the Bookkeeper.
 
-For BookKeeper, set the `serviceAccountName` field under the `spec` block.
+For Bookkeeper, set the `serviceAccountName` field under the `spec` block.
 
 ```
 ...

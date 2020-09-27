@@ -23,14 +23,15 @@ metadata:
   labels:
 {{ include "bookkeeper-operator.commonLabels" . | indent 4 }}
   annotations:
-    cert-manager.io/inject-ca-from: {{ .Release.Namespace }}/{{ .Values.certName }}
+    cert-manager.io/inject-ca-from: {{ .Release.Namespace }}/{{ .Values.webhookCert.certName }}
 webhooks:
 - clientConfig:
     service:
       name: bookkeeper-webhook-svc
       namespace: {{ .Release.Namespace }}
-      path: /validate-bookkeeper-pravega-io-v1beta1-bookkeepercluster
+      path: /validate-bookkeeper-pravega-io-v1alpha1-bookkeepercluster
   name: bookkeeperwebhook.pravega.io
+  failurePolicy: Fail
   rules:
   - apiGroups:
     - bookkeeper.pravega.io

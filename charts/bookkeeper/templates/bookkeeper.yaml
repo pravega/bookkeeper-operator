@@ -19,29 +19,44 @@ spec:
   probes:
     {{- if .Values.probes.readiness }}
     readinessProbe:
+      {{- if .Values.probes.readiness.initialDelaySeconds }}
       initialDelaySeconds: {{ .Values.probes.readiness.initialDelaySeconds }}
+      {{- end }}
+      {{- if .Values.probes.readiness.periodSeconds }}
       periodSeconds: {{ .Values.probes.readiness.periodSeconds }}
+      {{- end }}
+      {{- if .Values.probes.readiness.failureThreshold }}
       failureThreshold: {{ .Values.probes.readiness.failureThreshold }}
+      {{- end }}
+      {{- if .Values.probes.readiness.successThreshold }}
       successThreshold: {{ .Values.probes.readiness.successThreshold }}
+      {{- end }}
+      {{- if .Values.probes.readiness.timeoutSeconds }}
       timeoutSeconds: {{ .Values.probes.readiness.timeoutSeconds }}
+      {{- end }}
     {{- end }}
     {{- if .Values.probes.liveness }}
     livenessProbe:
+      {{- if .Values.probes.liveness.initialDelaySeconds }}
       initialDelaySeconds: {{ .Values.probes.liveness.initialDelaySeconds }}
+      {{- end }}
+      {{- if .Values.probes.liveness.periodSeconds }}
       periodSeconds: {{ .Values.probes.liveness.periodSeconds }}
+      {{- end }}
+      {{- if .Values.probes.liveness.failureThreshold }}
       failureThreshold: {{ .Values.probes.liveness.failureThreshold }}
+      {{- end }}
+      {{- if .Values.probes.liveness.successThreshold }}
       successThreshold: {{ .Values.probes.liveness.successThreshold }}
+      {{- end }}
+      {{- if .Values.probes.liveness.timeoutSeconds }}
       timeoutSeconds: {{ .Values.probes.liveness.timeoutSeconds }}
+      {{- end }}
     {{- end }}
   {{- end }}
   {{- if .Values.resources }}
   resources:
-    requests:
-      cpu: {{ .Values.resources.requests.cpu | quote }}
-      memory: {{ .Values.resources.requests.memory | quote }}
-    limits:
-      cpu: {{ .Values.resources.limits.cpu | quote }}
-      memory: {{ .Values.resources.limits.memory | quote }}
+{{ toYaml .Values.resources | indent 6 }}
   {{- end }}
   storage:
     ledgerVolumeClaimTemplate:
