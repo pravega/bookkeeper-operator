@@ -22,7 +22,7 @@ This is a minor release with backward compatible changes and bug fixes.
 2. Cherry pick commits from master/private branches into the release branch.
    Change operator version in Version.go
 
-    `$ git cherry-pick --signoff <commit Id>`
+    `$ git cherry-pick --signoff <commit id>`
 
 3. Make sure all unit and end to end tests pass successfully.
 
