@@ -57,7 +57,16 @@ The following table lists the configurable parameters of the Bookkeeper chart an
 | `pravegaClusterName` | Name of the pravega cluster | `pravega` |
 | `autoRecovery`| Enable bookkeeper auto-recovery | `true` |
 | `blockOwnerDeletion`| Enable blockOwnerDeletion | `true` |
-| `probes` | Timeout configuration of the readiness and liveness probes for the bookkeeper pods | `{}` |
+| `probes.readiness.initialDelaySeconds` | Number of seconds after the container has started before readiness probe is initiated | `20` |
+| `probes.readiness.periodSeconds` | Number of seconds in which readiness probe will be performed | `10` |
+| `probes.readiness.failureThreshold` | Number of seconds after which the readiness probe times out | `9` |
+| `probes.readiness.successThreshold` | Minimum number of consecutive successes for the readiness probe to be considered successful after having failed | `1` |
+| `probes.readiness.timeoutSeconds` | Number of times Kubernetes will retry after a readiness probe failure before restarting the container | `5` |
+| `probes.liveness.initialDelaySeconds` | Number of seconds after the container has started before liveness probe is initiated | `60` |
+| `probes.liveness.periodSeconds` | Number of seconds in which liveness probe will be performed  | `15` |
+| `probes.liveness.failureThreshold` | Number of seconds after which the liveness probe times out | `4` |
+| `probes.liveness.successThreshold` | Minimum number of consecutive successes for the liveness probe to be considered successful after having failed | `1` |
+| `probes.liveness.timeoutSeconds` | Number of times Kubernetes will retry after a liveness probe failure before restarting the container | `5` |
 | `resources.requests.cpu` | Requests for CPU resources | `1000m` |
 | `resources.requests.memory` | Requests for memory resources | `4Gi` |
 | `resources.limits.cpu` | Limits for CPU resources | `2000m` |

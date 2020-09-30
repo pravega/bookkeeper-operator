@@ -19,39 +19,19 @@ spec:
   probes:
     {{- if .Values.probes.readiness }}
     readinessProbe:
-      {{- if .Values.probes.readiness.initialDelaySeconds }}
-      initialDelaySeconds: {{ .Values.probes.readiness.initialDelaySeconds }}
-      {{- end }}
-      {{- if .Values.probes.readiness.periodSeconds }}
-      periodSeconds: {{ .Values.probes.readiness.periodSeconds }}
-      {{- end }}
-      {{- if .Values.probes.readiness.failureThreshold }}
-      failureThreshold: {{ .Values.probes.readiness.failureThreshold }}
-      {{- end }}
-      {{- if .Values.probes.readiness.successThreshold }}
-      successThreshold: {{ .Values.probes.readiness.successThreshold }}
-      {{- end }}
-      {{- if .Values.probes.readiness.timeoutSeconds }}
-      timeoutSeconds: {{ .Values.probes.readiness.timeoutSeconds }}
-      {{- end }}
+      initialDelaySeconds: {{ .Values.probes.readiness.initialDelaySeconds | default 20 }}
+      periodSeconds: {{ .Values.probes.readiness.periodSeconds | default 10 }}
+      failureThreshold: {{ .Values.probes.readiness.failureThreshold | default 9 }}
+      successThreshold: {{ .Values.probes.readiness.successThreshold | default 1 }}
+      timeoutSeconds: {{ .Values.probes.readiness.timeoutSeconds | default 5 }}
     {{- end }}
     {{- if .Values.probes.liveness }}
     livenessProbe:
-      {{- if .Values.probes.liveness.initialDelaySeconds }}
-      initialDelaySeconds: {{ .Values.probes.liveness.initialDelaySeconds }}
-      {{- end }}
-      {{- if .Values.probes.liveness.periodSeconds }}
-      periodSeconds: {{ .Values.probes.liveness.periodSeconds }}
-      {{- end }}
-      {{- if .Values.probes.liveness.failureThreshold }}
-      failureThreshold: {{ .Values.probes.liveness.failureThreshold }}
-      {{- end }}
-      {{- if .Values.probes.liveness.successThreshold }}
-      successThreshold: {{ .Values.probes.liveness.successThreshold }}
-      {{- end }}
-      {{- if .Values.probes.liveness.timeoutSeconds }}
-      timeoutSeconds: {{ .Values.probes.liveness.timeoutSeconds }}
-      {{- end }}
+      initialDelaySeconds: {{ .Values.probes.liveness.initialDelaySeconds | default 60 }}
+      periodSeconds: {{ .Values.probes.liveness.periodSeconds | default 15 }}
+      failureThreshold: {{ .Values.probes.liveness.failureThreshold | default 4 }}
+      successThreshold: {{ .Values.probes.liveness.successThreshold | default 1 }}
+      timeoutSeconds: {{ default "5" .Values.probes.liveness.timeoutSeconds | default 5 }}
     {{- end }}
   {{- end }}
   {{- if .Values.resources }}

@@ -20,7 +20,7 @@ To install the bookkeeper-operator chart, use the following commands:
 ```
 $ helm repo add pravega https://charts.pravega.io
 $ helm repo update
-$ helm install [RELEASE_NAME] pravega/bookkeeper-operator --version=[VERSION] --set webhookCert.generate=false --set webhookCert.certName=[CERT_NAME] --set webhookCert.secretName=[SECRET_NAME]
+$ helm install [RELEASE_NAME] pravega/bookkeeper-operator --version=[VERSION] --set webhookCert.certName=[CERT_NAME] --set webhookCert.secretName=[SECRET_NAME]
 ```
 where:
 - **[RELEASE_NAME]** is the release name for the bookkeeper-operator chart
@@ -31,7 +31,7 @@ where:
 
 This command deploys a bookkeeper-operator on the Kubernetes cluster in its default configuration. The [configuration](#configuration) section lists the parameters that can be configured during installation.
 
->Note: If the bookkeeper-operator version is 0.1.2, webhookCert.generate, webhookCert.crt, webhookCert.certName and webhookCert.secretName should not be set. Also in this case, cert-manager and the certificate/issuer do not need to be deployed as prerequisites.
+>Note: If the bookkeeper-operator version is 0.1.2, webhookCert.certName and webhookCert.secretName should not be set. Also in this case, cert-manager and the certificate/issuer do not need to be deployed as prerequisites.
 
 ## Uninstalling the Chart
 

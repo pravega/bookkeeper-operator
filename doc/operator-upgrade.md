@@ -35,7 +35,7 @@ To install cert-manager check [this](https://cert-manager.io/docs/installation/k
 
 The upgrade to Operator 0.1.3 can be triggered using the following command
 ```
-helm upgrade [BOOKKEEPER_OPERATOR_RELEASE_NAME] pravega/bookkeeper-operator --version=0.1.3 --set webhookCert.generate=false --set webhookCert.certName=[CERT_NAME] --set webhookCert.secretName=[SECRET_NAME]
+helm upgrade [BOOKKEEPER_OPERATOR_RELEASE_NAME] pravega/bookkeeper-operator --version=0.1.3 --set webhookCert.certName=[CERT_NAME] --set webhookCert.secretName=[SECRET_NAME]
 ```
 where:
 - `[CERT_NAME]` is the name of the certificate that has been created
