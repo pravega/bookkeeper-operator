@@ -31,7 +31,7 @@ spec:
       periodSeconds: {{ .Values.probes.liveness.periodSeconds | default 15 }}
       failureThreshold: {{ .Values.probes.liveness.failureThreshold | default 4 }}
       successThreshold: {{ .Values.probes.liveness.successThreshold | default 1 }}
-      timeoutSeconds: {{ default "5" .Values.probes.liveness.timeoutSeconds | default 5 }}
+      timeoutSeconds: {{ .Values.probes.liveness.timeoutSeconds | default 5 }}
     {{- end }}
   {{- end }}
   {{- if .Values.resources }}
