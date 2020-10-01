@@ -1,7 +1,7 @@
 # Bookkeeper Cluster Rollback
 
-This document details how manual rollback can be triggered after a Bookkeeper cluster upgrade fails.
-Note that a rollback can be triggered only on Upgrade Failure.
+This document details how rollback can be triggered after a Bookkeeper cluster upgrade fails.
+Note that a rollback can be triggered only after an Upgrade Failure.
 
 ## Upgrade Failure
 
@@ -24,7 +24,7 @@ Status: True
 Reason: UpgradeFailed
 Message: <Details of exception/cause of failure>
 ```
-After an Upgrade Failure the output of `kubectl describe bk bookkeeper` would look like this:
+After an Upgrade Failure the output of `kubectl describe bk [CLUSTER_NAME]` would look like this:
 
 ```
 $> kubectl describe bk bookkeeper
@@ -68,18 +68,19 @@ Note:
 1. A Rollback to only the last stable cluster version is supported at this point.
 2. Changing the cluster spec version to the previous cluster version, when cluster is not in `UpgradeFailed` state, will not trigger a rollback.
 
-## Rollback via Helm
+## Rollback via Helm (Experimental)
 
 The following command prints the historical revisions of a particular helm release
 ```
-$ helm history <release-name>
+$ helm history [BOOKKEEPER_RELEASE_NAME]
 ```
 
 Rollback can be triggered via helm using the following command
 ```
-$ helm rollback <cluster release name> <revision number>
+$ helm rollback [BOOKKEEPER_RELEASE_NAME] [REVISION_NUMBER] --wait --timeout 600s
 ```
-Rollback will be successfully triggered only if the previous revision number is provided.
+Rollback will be successfully triggered only if a [REVISION_NUMBER] corresponding to the last stable cluster version is provided.
+>Note: Helm rollbacks are still an experimental feature and are not encouraged. We strongly recommend using manual rollbacks.
 
 ## Rollback Implementation
 
@@ -185,7 +186,4 @@ Status:
     Type:                  RollbackInProgress
 ```
 
-When a rollback failure happens, manual intervention would be required to resolve this.
-After checking and solving the root cause of failure, to bring the cluster back to a stable state, a user can upgrade to:
-1. The version to which a user initially intended to upgrade.(when upgrade failure was noticed)
-2. To any other supported version based versions of all pods in the cluster.
+When a rollback failure happens, the operator cannot recover the cluster from this failed state and manual intervention would be required to resolve this.

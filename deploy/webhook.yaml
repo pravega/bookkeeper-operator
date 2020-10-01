@@ -27,6 +27,7 @@ webhooks:
       namespace: default
       path: /validate-bookkeeper-pravega-io-v1alpha1-bookkeepercluster
   name: bookkeeperwebhook.pravega.io
+  failurePolicy: Fail
   rules:
   - apiGroups:
     - bookkeeper.pravega.io

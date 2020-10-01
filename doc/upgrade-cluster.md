@@ -1,6 +1,6 @@
 # Bookkeeper cluster upgrade
 
-This document shows how to upgrade a Pravega cluster managed by the operator to a desired version while preserving the cluster's state and data whenever possible.
+This document shows how to upgrade a bookkeeper cluster managed by the bookkeeper operator to a desired version while preserving the cluster's state and data whenever possible.
 
 ## Overview
 
@@ -21,23 +21,24 @@ bookkeeper  0.4.0        7                 7            11m
 
 ## Valid Upgrade Paths
 
-To understand the valid upgrade paths for a pravega cluster, refer to the [version map](https://github.com/pravega/bookkeeper-operator/blob/master/deploy/version_map.yaml). The key indicates the base version of the cluster, and the value against each key indicates the list of valid versions this base version can be upgraded to.
+To understand the valid upgrade paths for a bookkeeper cluster, refer to the [version map](https://github.com/pravega/bookkeeper-operator/blob/master/deploy/version_map.yaml). The key indicates the base version of the cluster, and the value against each key indicates the list of valid versions this base version can be upgraded to.
 
 ## Trigger an upgrade
 
 ### Upgrading via Helm
 
-The upgrade can be triggered via helm using the following command
+The upgrade of the bookkeeper cluster from a version **[OLD_VERSION]** to **[NEW_VERSION]** can be triggered via helm using the following command
 ```
-$ helm upgrade <bookkeeper cluster release name> <location of modified charts> --timeout 600s
+$ helm upgrade [BOOKKEEPER_RELEASE_NAME] pravega/bookkeeper --version=[NEW_VERSION] --set version=[NEW_VERSION] --reuse-values --timeout 600s
 ```
+**Note:** By specifying the `--reuse-values` option, the configuration of all parameters are retained across upgrades. However if some values need to be modified during the upgrade, the `--set` flag can be used to specify the new configuration for these parameters. Also, by skipping the `reuse-values` flag, the values of all parameters are reset to the default configuration that has been specified in the published charts for version [NEW_VERSION].
 
 ### Upgrading manually
 
 To initiate the upgrade process manually, a user has to update the `spec.version` field on the `BookkeeperCluster` custom resource. This can be done in three different ways using the `kubectl` command.
-1. `kubectl edit BookkeeperCluster <name>`, modify the `version` value in the YAML resource, save, and exit.
+1. `kubectl edit BookkeeperCluster [CLUSTER_NAME]`, modify the `version` value in the YAML resource, save, and exit.
 2. If you have the custom resource defined in a local YAML file, e.g. `bookkeeper.yaml`, you can modify the `version` value, and reapply the resource with `kubectl apply -f bookkeeper.yaml`.
-3. `kubectl patch BookkeeperCluster <name> --type='json' -p='[{"op": "replace", "path": "/spec/version", "value": "X.Y.Z"}]'`.
+3. `kubectl patch BookkeeperCluster [CLUSTER_NAME] --type='json' -p='[{"op": "replace", "path": "/spec/version", "value": "X.Y.Z"}]'`.
 After the `version` field is updated, the operator will detect the version change and it will trigger the upgrade process.
 
 ## Upgrade process
@@ -51,9 +52,9 @@ The upgrade workflow is as follows:
 - When all pods are upgraded, the `Upgrade` condition will be set to `False` and `status.currentVersion` will be updated to the desired version.
 
 
-### BookKeeper upgrade
+### Bookkeeper upgrade
 
-BookKeeper cluster is deployed as a [StatefulSet](https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/) due to its requirements on:
+Bookkeeper cluster is deployed as a [StatefulSet](https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/) due to its requirements on:
 
 - Persistent storage: each bookie has three persistent volume for ledgers, journals, and indices. If a pod is migrated or recreated (e.g. when it's upgraded), the data in those volumes will remain untouched.
 - Stable network names: the `StatefulSet` provides pods with a predictable name and a [Headless service](https://kubernetes.io/docs/concepts/services-networking/service/#headless-services) creates DNS records for pods to be reachable by clients. If a pod is recreated or migrated to a different node, clients will continue to be able to reach the pod despite changing its IP address.
@@ -65,9 +66,9 @@ Statefulset [upgrade strategy](https://kubernetes.io/docs/concepts/workloads/con
 
 In both cases, the upgrade is initiated when the Pod template is updated.
 
-For BookKeeper, the operator uses an `OnDelete` strategy. With `RollingUpdate` strategy, you can only check the upgrade status once all pods get upgraded. On the other hand, with `OnDelete` you can keep updating pod one by one and keep checking the application status to make sure the upgrade working fine. This allows the operator to have control over the upgrade process and perform verifications and actions before and after a BookKeeper pod is upgraded. For example, checking that there are no under-replicated ledgers before upgrading the next pod. Also, the operator might be need to apply migrations when upgrading to a certain version.
+For Bookkeeper, the operator uses an `OnDelete` strategy. With `RollingUpdate` strategy, you can only check the upgrade status once all pods get upgraded. On the other hand, with `OnDelete` you can keep updating pod one by one and keep checking the application status to make sure the upgrade working fine. This allows the operator to have control over the upgrade process and perform verifications and actions before and after a Bookkeeper pod is upgraded. For example, checking that there are no under-replicated ledgers before upgrading the next pod. Also, the operator might be need to apply migrations when upgrading to a certain version.
 
-BookKeeper upgrade process is as follows:
+Bookkeeper upgrade process is as follows:
 
 1. Statefulset Pod template is updated to the new image and tag according to the Pravega version.
 2. Pick one outdated pod
@@ -75,7 +76,7 @@ BookKeeper upgrade process is as follows:
 4. Delete the pod. The pod is recreated with an updated spec and version
 5. Wait for the pod to become ready. If it fails to start or times out, the upgrade is cancelled. Check [Recovering from a failed upgrade](#recovering-from-a-failed-upgrade)
 6. Apply post-upgrade actions and verifications
-7. If all pods are updated, BookKeeper upgrade is completed. Otherwise, go to 2.
+7. If all pods are updated, Bookkeeper upgrade is completed. Otherwise, go to 2.
 
 
 ### Monitor the upgrade process

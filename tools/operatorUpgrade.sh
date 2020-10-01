@@ -5,7 +5,7 @@ echo "Running pre-upgrade script for upgrading bookeeper operator from version p
 
 if [ "$#" -ne 3 ]; then
 	echo "Error : Invalid number of arguments"
-	Usage: "./operatorUpgrade.sh <bookkeeper-operator deployment name> <bookkeeper-operator deployment namespace> <bookkeeper-operator new image-repo/image-tag>"
+	Usage: "./operatorUpgrade.sh <bookkeeper-operator deployment name> <bookkeeper-operator deployment namespace> <bookkeeper-operator new image-repo:image-tag>"
 	exit 1
 fi
 

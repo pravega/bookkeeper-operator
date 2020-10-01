@@ -19,46 +19,47 @@ spec:
   probes:
     {{- if .Values.probes.readiness }}
     readinessProbe:
-      initialDelaySeconds: {{ .Values.probes.readiness.initialDelaySeconds }}
-      periodSeconds: {{ .Values.probes.readiness.periodSeconds }}
-      failureThreshold: {{ .Values.probes.readiness.failureThreshold }}
-      successThreshold: {{ .Values.probes.readiness.successThreshold }}
-      timeoutSeconds: {{ .Values.probes.readiness.timeoutSeconds }}
+      initialDelaySeconds: {{ .Values.probes.readiness.initialDelaySeconds | default 20 }}
+      periodSeconds: {{ .Values.probes.readiness.periodSeconds | default 10 }}
+      failureThreshold: {{ .Values.probes.readiness.failureThreshold | default 9 }}
+      successThreshold: {{ .Values.probes.readiness.successThreshold | default 1 }}
+      timeoutSeconds: {{ .Values.probes.readiness.timeoutSeconds | default 5 }}
     {{- end }}
     {{- if .Values.probes.liveness }}
     livenessProbe:
-      initialDelaySeconds: {{ .Values.probes.liveness.initialDelaySeconds }}
-      periodSeconds: {{ .Values.probes.liveness.periodSeconds }}
-      failureThreshold: {{ .Values.probes.liveness.failureThreshold }}
-      successThreshold: {{ .Values.probes.liveness.successThreshold }}
-      timeoutSeconds: {{ .Values.probes.liveness.timeoutSeconds }}
+      initialDelaySeconds: {{ .Values.probes.liveness.initialDelaySeconds | default 60 }}
+      periodSeconds: {{ .Values.probes.liveness.periodSeconds | default 15 }}
+      failureThreshold: {{ .Values.probes.liveness.failureThreshold | default 4 }}
+      successThreshold: {{ .Values.probes.liveness.successThreshold | default 1 }}
+      timeoutSeconds: {{ .Values.probes.liveness.timeoutSeconds | default 5 }}
     {{- end }}
   {{- end }}
   {{- if .Values.resources }}
   resources:
-    requests:
-      cpu: {{ .Values.resources.requests.cpu | quote }}
-      memory: {{ .Values.resources.requests.memory | quote }}
-    limits:
-      cpu: {{ .Values.resources.limits.cpu | quote }}
-      memory: {{ .Values.resources.limits.memory | quote }}
+{{ toYaml .Values.resources | indent 6 }}
   {{- end }}
   storage:
     ledgerVolumeClaimTemplate:
       accessModes: [ "ReadWriteOnce" ]
+      {{- if .Values.storage.ledger.className }}
       storageClassName: {{ .Values.storage.ledger.className }}
+      {{- end }}
       resources:
         requests:
           storage: {{ .Values.storage.ledger.volumeSize }}
     journalVolumeClaimTemplate:
       accessModes: [ "ReadWriteOnce" ]
+      {{- if .Values.storage.journal.className }}
       storageClassName: {{ .Values.storage.journal.className }}
+      {{- end }}
       resources:
         requests:
           storage: {{ .Values.storage.journal.volumeSize }}
     indexVolumeClaimTemplate:
       accessModes: [ "ReadWriteOnce" ]
+      {{- if .Values.storage.index.className }}
       storageClassName: {{ .Values.storage.index.className }}
+      {{- end }}
       resources:
         requests:
           storage: {{ .Values.storage.index.volumeSize }}
