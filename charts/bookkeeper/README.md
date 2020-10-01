@@ -71,11 +71,11 @@ The following table lists the configurable parameters of the Bookkeeper chart an
 | `resources.requests.memory` | Requests for memory resources | `4Gi` |
 | `resources.limits.cpu` | Limits for CPU resources | `2000m` |
 | `resources.limits.memory` | Limits for memory resources | `4Gi` |
-| `storage.ledger.className` | Storage class name for bookkeeper ledgers | `standard` |
+| `storage.ledger.className` | Storage class name for bookkeeper ledgers | `` |
 | `storage.ledger.volumeSize` | Requested size for bookkeeper ledger persistent volumes | `10Gi` |
-| `storage.journal.className` | Storage class name for bookkeeper journals | `standard` |
+| `storage.journal.className` | Storage class name for bookkeeper journals | `` |
 | `storage.journal.volumeSize` | Requested size for bookkeeper journal persistent volumes | `10Gi` |
-| `storage.index.className` | Storage class name for bookkeeper index | `standard` |
+| `storage.index.className` | Storage class name for bookkeeper index | `` |
 | `storage.index.volumeSize` | Requested size for bookkeeper index persistent volumes | `10Gi` |
 | `jvmOptions.memoryOpts` | Memory Options passed to the JVM for bookkeeper performance tuning | `["-Xms1g", "-XX:MaxDirectMemorySize=2g"]` |
 | `jvmOptions.gcOpts` | Garbage Collector (GC) Options passed to the JVM for bookkeeper bookkeeper performance tuning | `[]` |

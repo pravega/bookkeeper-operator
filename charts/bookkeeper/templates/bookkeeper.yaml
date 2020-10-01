@@ -41,19 +41,25 @@ spec:
   storage:
     ledgerVolumeClaimTemplate:
       accessModes: [ "ReadWriteOnce" ]
+      {{- if .Values.storage.ledger.className }}
       storageClassName: {{ .Values.storage.ledger.className }}
+      {{- end }}
       resources:
         requests:
           storage: {{ .Values.storage.ledger.volumeSize }}
     journalVolumeClaimTemplate:
       accessModes: [ "ReadWriteOnce" ]
+      {{- if .Values.storage.journal.className }}
       storageClassName: {{ .Values.storage.journal.className }}
+      {{- end }}
       resources:
         requests:
           storage: {{ .Values.storage.journal.volumeSize }}
     indexVolumeClaimTemplate:
       accessModes: [ "ReadWriteOnce" ]
+      {{- if .Values.storage.index.className }}
       storageClassName: {{ .Values.storage.index.className }}
+      {{- end }}
       resources:
         requests:
           storage: {{ .Values.storage.index.volumeSize }}
