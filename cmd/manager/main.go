@@ -31,6 +31,7 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth/oidc"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
+	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 	"sigs.k8s.io/controller-runtime/pkg/runtime/signals"
 )
 
@@ -55,6 +56,7 @@ func printVersion() {
 
 func main() {
 	flag.Parse()
+	logf.SetLogger(logf.ZapLogger(false))
 
 	printVersion()
 

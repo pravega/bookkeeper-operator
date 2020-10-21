@@ -28,6 +28,9 @@ To install cert-manager check [this](https://cert-manager.io/docs/installation/k
 ```
 ./pre-upgrade.sh [BOOKKEEPER_OPERATOR_RELEASE_NAME][BOOKKEEPER_OPERATOR_NAMESPACE]
 ```
+where:
+- `[BOOKKEEPER_OPERATOR_RELEASE_NAME]` is the release name of the bookkeeper operator deployment
+- `[BOOKKEEPER_OPERATOR_NAMESPACE]` is the namespace in which the bookkeeper operator has been deployed (this is an optional parameter and its default value is `default`)
 
 ### Triggering the upgrade
 
