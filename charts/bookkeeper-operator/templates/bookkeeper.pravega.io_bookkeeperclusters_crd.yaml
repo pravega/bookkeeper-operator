@@ -256,6 +256,7 @@ spec:
                       required:
                       - kind
                       - name
+                      nullable: true
                       type: object
                     resources:
                       description: 'Resources represents the minimum resources the
@@ -393,6 +394,7 @@ spec:
                       required:
                       - kind
                       - name
+                      nullable: true
                       type: object
                     resources:
                       description: 'Resources represents the minimum resources the
@@ -530,6 +532,7 @@ spec:
                       required:
                       - kind
                       - name
+                      nullable: true
                       type: object
                     resources:
                       description: 'Resources represents the minimum resources the
