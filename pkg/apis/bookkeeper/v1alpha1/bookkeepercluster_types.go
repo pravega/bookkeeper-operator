@@ -132,12 +132,7 @@ type BookkeeperClusterList struct {
 	Items           []BookkeeperCluster `json:"items"`
 }
 
-// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
-
-// BookkeeperCluster is the Schema for the BookkeeperClusters API
-// +k8s:openapi-gen=true
 // Generate CRD using kubebuilder
-
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 // +kubebuilder:resource:shortName=bk
@@ -146,7 +141,10 @@ type BookkeeperClusterList struct {
 // +kubebuilder:printcolumn:name="Desired Members",type=integer,JSONPath=`.status.replicas`,description="The number of desired bookkeeper members"
 // +kubebuilder:printcolumn:name="Ready Members",type=integer,JSONPath=`.status.readyReplicas`,description="The number of ready bookkeeper members"
 // +kubebuilder:printcolumn:name="Age",type=date,JSONPath=`.metadata.creationTimestamp`
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+// +k8s:openapi-gen=true
 
+// BookkeeperCluster is the Schema for the BookkeeperClusters API
 type BookkeeperCluster struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
