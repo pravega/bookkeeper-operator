@@ -1,0 +1,214 @@
+/**
+ * Copyright (c) 2018 Dell Inc., or its subsidiaries. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ */
+
+package e2eutil
+
+import (
+	goctx "context"
+	"fmt"
+	"testing"
+	"time"
+
+	framework "github.com/operator-framework/operator-sdk/pkg/test"
+	bkapi "github.com/pravega/bookkeeper-operator/pkg/apis/bookkeeper/v1alpha1"
+	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/wait"
+)
+
+var (
+	RetryInterval        = time.Second * 5
+	Timeout              = time.Second * 60
+	CleanupRetryInterval = time.Second * 1
+	CleanupTimeout       = time.Second * 5
+	ReadyTimeout         = time.Minute * 5
+	UpgradeTimeout       = time.Minute * 10
+	TerminateTimeout     = time.Minute * 2
+	VerificationTimeout  = time.Minute * 5
+)
+
+// CreateBKCluster creates a BookkeeperCluster CR with the desired spec
+func CreateBKCluster(t *testing.T, f *framework.Framework, ctx *framework.TestCtx, b *bkapi.BookkeeperCluster) (*bkapi.BookkeeperCluster, error) {
+	t.Logf("creating bookkeeper cluster: %s", b.Name)
+	b.Spec.EnvVars = "bookkeeper-configmap"
+	b.Spec.ZookeeperUri = "zookeeper-client:2181"
+	err := f.Client.Create(goctx.TODO(), b, &framework.CleanupOptions{TestContext: ctx, Timeout: CleanupTimeout, RetryInterval: CleanupRetryInterval})
+	if err != nil {
+		return nil, fmt.Errorf("failed to create CR: %v", err)
+	}
+
+	bookkeeper := &bkapi.BookkeeperCluster{}
+	err = f.Client.Get(goctx.TODO(), types.NamespacedName{Namespace: b.Namespace, Name: b.Name}, bookkeeper)
+	if err != nil {
+		return nil, fmt.Errorf("failed to obtain created CR: %v", err)
+	}
+	t.Logf("created bookkeeper cluster: %s", b.Name)
+	return bookkeeper, nil
+}
+
+// DeleteBKCluster deletes the BookkeeperCluster CR specified by cluster spec
+func DeleteBKCluster(t *testing.T, f *framework.Framework, ctx *framework.TestCtx, b *bkapi.BookkeeperCluster) error {
+	t.Logf("deleting bookkeeper cluster: %s", b.Name)
+	err := f.Client.Delete(goctx.TODO(), b)
+	if err != nil {
+		if apierrors.IsNotFound(err) {
+			return nil
+		}
+		return fmt.Errorf("failed to delete CR: %v", err)
+	}
+
+	t.Logf("deleted bookkeeper cluster: %s", b.Name)
+	return nil
+}
+
+// UpdateBkCluster updates the BookkeeperCluster CR
+func UpdateBKCluster(t *testing.T, f *framework.Framework, ctx *framework.TestCtx, p *bkapi.BookkeeperCluster) error {
+	t.Logf("updating pravega cluster: %s", p.Name)
+	err := f.Client.Update(goctx.TODO(), p)
+	if err != nil {
+		return fmt.Errorf("failed to update CR: %v", err)
+	}
+
+	t.Logf("updated pravega cluster: %s", p.Name)
+	return nil
+}
+
+// GetBKCluster returns the latest BookkeeperCluster CR
+func GetBKCluster(t *testing.T, f *framework.Framework, ctx *framework.TestCtx, b *bkapi.BookkeeperCluster) (*bkapi.BookkeeperCluster, error) {
+	bookkeeper := &bkapi.BookkeeperCluster{}
+	err := f.Client.Get(goctx.TODO(), types.NamespacedName{Namespace: b.Namespace, Name: b.Name}, bookkeeper)
+	if err != nil {
+		return nil, fmt.Errorf("failed to obtain created CR: %v", err)
+	}
+	return bookkeeper, nil
+}
+
+// WaitForBooClusterToBecomeReady will wait until all Bookkeeper cluster pods are ready
+func WaitForBookkeeperClusterToBecomeReady(t *testing.T, f *framework.Framework, ctx *framework.TestCtx, b *bkapi.BookkeeperCluster, size int) error {
+	t.Logf("waiting for cluster pods to become ready: %s", b.Name)
+
+	err := wait.Poll(RetryInterval, ReadyTimeout, func() (done bool, err error) {
+		cluster, err := GetBKCluster(t, f, ctx, b)
+		if err != nil {
+			return false, err
+		}
+
+		t.Logf("\twaiting for pods to become ready (%d/%d), pods (%v)", cluster.Status.ReadyReplicas, size, cluster.Status.Members.Ready)
+
+		_, condition := cluster.Status.GetClusterCondition(bkapi.ClusterConditionPodsReady)
+		if condition != nil && condition.Status == corev1.ConditionTrue && cluster.Status.ReadyReplicas == int32(size) {
+			return true, nil
+		}
+		return false, nil
+	})
+
+	if err != nil {
+		return err
+	}
+
+	t.Logf("bookkeeper cluster ready: %s", b.Name)
+	return nil
+}
+
+// WaitForBKClusterToTerminate will wait until all Bookkeeper cluster pods are terminated
+func WaitForBKClusterToTerminate(t *testing.T, f *framework.Framework, ctx *framework.TestCtx, b *bkapi.BookkeeperCluster) error {
+	t.Logf("waiting for Bookkeeper cluster to terminate: %s", b.Name)
+
+	listOptions := metav1.ListOptions{
+		LabelSelector: labels.SelectorFromSet(map[string]string{"app": b.GetName()}).String(),
+	}
+
+	// Wait for Pods to terminate
+	err := wait.Poll(RetryInterval, TerminateTimeout, func() (done bool, err error) {
+		podList, err := f.KubeClient.CoreV1().Pods(b.Namespace).List(listOptions)
+		if err != nil {
+			return false, err
+		}
+
+		var names []string
+		for i := range podList.Items {
+			pod := &podList.Items[i]
+			names = append(names, pod.Name)
+		}
+		t.Logf("waiting for pods to terminate, running pods (%v)", names)
+		if len(names) != 0 {
+			return false, nil
+		}
+		return true, nil
+	})
+
+	if err != nil {
+		return err
+	}
+
+	// Wait for PVCs to terminate
+	err = wait.Poll(RetryInterval, TerminateTimeout, func() (done bool, err error) {
+		pvcList, err := f.KubeClient.CoreV1().PersistentVolumeClaims(b.Namespace).List(listOptions)
+		if err != nil {
+			return false, err
+		}
+
+		var names []string
+		for i := range pvcList.Items {
+			pvc := &pvcList.Items[i]
+			names = append(names, pvc.Name)
+		}
+		t.Logf("waiting for pvc to terminate (%v)", names)
+		if len(names) != 0 {
+			return false, nil
+		}
+		return true, nil
+
+	})
+
+	if err != nil {
+		return err
+	}
+
+	t.Logf("bookkeeper cluster terminated: %s", b.Name)
+	return nil
+}
+
+// WaitForBookkeeperClusterToUpgrade will wait until all pods are upgraded
+func WaitForBKClusterToUpgrade(t *testing.T, f *framework.Framework, ctx *framework.TestCtx, b *bkapi.BookkeeperCluster, targetVersion string) error {
+	t.Logf("waiting for cluster to upgrade: %s", b.Name)
+
+	err := wait.Poll(RetryInterval, UpgradeTimeout, func() (done bool, err error) {
+		cluster, err := GetBKCluster(t, f, ctx, b)
+		if err != nil {
+			return false, err
+		}
+
+		_, upgradeCondition := cluster.Status.GetClusterCondition(bkapi.ClusterConditionUpgrading)
+		_, errorCondition := cluster.Status.GetClusterCondition(bkapi.ClusterConditionError)
+
+		t.Logf("\twaiting for cluster to upgrade (upgrading: %s; error: %s)", upgradeCondition.Status, errorCondition.Status)
+
+		if errorCondition.Status == corev1.ConditionTrue {
+			return false, fmt.Errorf("failed upgrading cluster: [%s] %s", errorCondition.Reason, errorCondition.Message)
+		}
+
+		if upgradeCondition.Status == corev1.ConditionFalse && cluster.Status.CurrentVersion == targetVersion {
+			// Cluster upgraded
+			return true, nil
+		}
+		return false, nil
+	})
+
+	if err != nil {
+		return err
+	}
+
+	t.Logf("bookkeeper cluster upgraded: %s", b.Name)
+	return nil
+}
