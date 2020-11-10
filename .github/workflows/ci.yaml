@@ -58,10 +58,12 @@ jobs:
       run: |
          sudo kubectl apply -f "https://github.com/jetstack/cert-manager/releases/download/v0.14.1/cert-manager.crds.yaml"
          sudo helm repo add jetstack https://charts.jetstack.io
+         sudo helm repo add pravega https://charts.pravega.io
          sudo helm repo update
+         sudo helm  helm install zk-op pravega/zookeeper-operator --wait
+         sudo helm install zookeeper pravega/zookeeper --wait
          sudo kubectl create namespace cert-manager
          sudo helm install cert-manager jetstack/cert-manager --namespace cert-manager --version v0.14.1 --wait
-         sudo kubectl create -f test/e2e/resources/zookeeper.yaml
          sudo kubectl create -f deploy/config_map.yaml
          sudo kubectl create -f deploy/crds/bookkeeper.pravega.io_bookkeeperclusters_crd.yaml
          sudo kubectl create -f deploy/certificate.yaml
