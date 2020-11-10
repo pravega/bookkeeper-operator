@@ -145,6 +145,6 @@ spec:
   image:
     repository: "pravega/zookeeper"
     tag: latest
-  replicas: 1
+  replicas: 3
   persistence:
     reclaimPolicy: Delete
