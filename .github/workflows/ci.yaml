@@ -59,7 +59,8 @@ jobs:
          sudo kubectl apply -f "https://github.com/jetstack/cert-manager/releases/download/v0.14.1/cert-manager.crds.yaml"
          sudo helm repo add jetstack https://charts.jetstack.io
          sudo helm repo update
-         sudo kubectl create namespace cert-manager;helm install cert-manager jetstack/cert-manager --namespace cert-manager --version v0.14.1 --wait
+         sudo kubectl create namespace cert-manager
+         sudo helm install cert-manager jetstack/cert-manager --namespace cert-manager --version v0.14.1 --wait
          sudo kubectl create -f test/e2e/resources/zookeeper.yaml
          sudo kubectl create -f deploy/config_map.yaml
          sudo kubectl create -f deploy/crds/bookkeeper.pravega.io_bookkeeperclusters_crd.yaml
@@ -68,6 +69,6 @@ jobs:
          sudo kubectl create -f deploy/version_map.yaml
     - name: E2E-Run
       run: |
-         sudo make test-e2e        
+         sudo make test-e2e
 
   # Show cluster information
