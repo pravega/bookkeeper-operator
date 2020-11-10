@@ -45,7 +45,8 @@ jobs:
         export KUBERNETES_CONFIG_FILE=$HOME/.kube/config
         export MINIKUBE_HOME=$HOME;export KUBERNETES_CONFIG_FILE=$HOME/.kube/config;export CHANGE_MINIKUBE_NONE_USER=true;sudo minikube start --vm-driver=none --bootstrapper=kubeadm --kubernetes-version=$KUBERNETES_VERSION
         echo "minikube started, updating context" 
-        export MINIKUBE_HOME=$HOME;export KUBERNETES_CONFIG_FILE=$HOME/.kube/config;export CHANGE_MINIKUBE_NONE_USER=true;minikube update-context
+        export KUBERNETES_CONFIG_FILE=$HOME/.kube/config;export CHANGE_MINIKUBE_NONE_USER=true; sudo minikube update-context
+        echo "context is updated"  
         JSONPATH='{range .items[*]}{@.metadata.name}:{range @.status.conditions[*]}{@.type}={@.status};{end}{end}'; until kubectl get nodes -o jsonpath="$JSONPATH" 2>&1 | grep -q "Ready=True"; do sleep 1; done
         kubectl create clusterrolebinding add-on-cluster-admin --clusterrole=cluster-admin --serviceaccount=kube-system:default
         kubectl cluster-info
