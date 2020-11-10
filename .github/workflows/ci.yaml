@@ -20,6 +20,15 @@ jobs:
       with:
         go-version: 1.13.8
       id: go
+    - name: Get current date
+      id: date
+      run: echo "::set-output name=date::$(date +'%Y%m%d%H%M%S')"
+    - name: Get output
+      run: echo ${{ steps.date.outputs.date }}
+    - name: Set env
+      run: echo "CLUSTER_NAME=bookkeeper-operator-travis-${{ steps.date.outputs.date }}" >> $GITHUB_ENV
+    - name: Test
+      run: echo $CLUSTER_NAME
     - name: Check out code into the Go module directory
       uses: actions/checkout@v2
     - name: Gofmt and License checks
@@ -28,49 +37,84 @@ jobs:
       run: make test-unit
     - name: Codecov
       uses: codecov/codecov-action@v1.0.12
-    - name: Set env
+    - name: Installing Packet-cli
+      run: curl -Lo packet-cli  https://github.com/packethost/packet-cli/releases/download/0.0.7/packet-linux-amd64 && chmod +x packet-cli && sudo mv packet-cli /usr/local/bin/
+    - name: Installing ssh keys
       run: |
-        echo "KUBERNETES_VERSION=v1.15.0" >> $GITHUB_ENV
-        echo "OPERATOR_SDK_VERSION=v0.17.0" >> $GITHUB_ENV
-        echo "MINIKUBE_VERSION=v1.11.0" >> $GITHUB_ENV
-        echo "KUBERNETES_CONFIG_FILE=$HOME/.kube/config" >> $GITHUB_ENV
-        echo "CHANGE_MINIKUBE_NONE_USER=true" >> $GITHUB_ENV
-    - name: minikube setup
+        ssh-keygen -f ~/.ssh/id_rsa -P ""
+        pub_key=$(cat ~/.ssh/id_rsa.pub)
+        echo "publc key is $pub_key"
+        echo "packet-cli ssh-key create --key  \"$(cat ~/.ssh/id_rsa.pub)\"  --label \"pravega\""
+        packet-cli ssh-key create --key  "$(cat ~/.ssh/id_rsa.pub)"  --label "pravega-travis"
+    - name: Creating nodes
       run: |
-        curl -Lo kubectl https://storage.googleapis.com/kubernetes-release/release/$KUBERNETES_VERSION/bin/linux/amd64/kubectl && chmod +x kubectl && sudo mv kubectl /usr/local/bin/
-        curl -Lo minikube https://storage.googleapis.com/minikube/releases/$MINIKUBE_VERSION/minikube-linux-amd64 && chmod +x minikube && sudo mv minikube /usr/local/bin/
-        curl -Lo operator-sdk https://github.com/operator-framework/operator-sdk/releases/download/$OPERATOR_SDK_VERSION/operator-sdk-$OPERATOR_SDK_VERSION-x86_64-linux-gnu && chmod +x operator-sdk && sudo mv operator-sdk /usr/local/bin/
-        sudo mount --make-rshared /
-        CHANGE_MINIKUBE_NONE_USER=true
-        export KUBERNETES_CONFIG_FILE=$HOME/.kube/config
-        export KUBERNETES_CONFIG_FILE=$HOME/.kube/config;export CHANGE_MINIKUBE_NONE_USER=true;sudo minikube start --vm-driver=none --bootstrapper=kubeadm --kubernetes-version=$KUBERNETES_VERSION
-        echo "minikube started, updating context"
-        export KUBERNETES_CONFIG_FILE=$HOME/.kube/config;export CHANGE_MINIKUBE_NONE_USER=true; sudo minikube update-context
-        echo "context is updated"
-        #JSONPATH='{range .items[*]}{@.metadata.name}:{range @.status.conditions[*]}{@.type}={@.status};{end}{end}'; until kubectl get nodes -o jsonpath="$JSONPATH" 2>&1 | grep -q "Ready=True"; do sleep 1; done
-        sleep 60
-        sudo kubectl create clusterrolebinding add-on-cluster-admin --clusterrole=cluster-admin --serviceaccount=kube-system:default
-        echo "created cluster role"
-        sudo kubectl cluster-info
-        echo "cluster info"
-        sudo kubectl -n kube-system get pod -o wide
-    - name: E2E-setup
+        cd .. && tar -czvf bookkeeper-operator.tar.gz bookkeeper-operator
+        packet-cli device create  -H  $CLUSTER_NAME"-master"  -o "ubuntu_20_04" -P c1.small.x86 -p 454b8b42-33d3-4e7e-8acf-1d1a5fec7e85 -f nrt1
+        packet-cli device get -p 454b8b42-33d3-4e7e-8acf-1d1a5fec7e85 | grep $CLUSTER_NAME"-master" | awk '{print $2}'
+        CLUSTER_ID=$(packet-cli device get -p 454b8b42-33d3-4e7e-8acf-1d1a5fec7e85 | grep $CLUSTER_NAME"-master" | awk '{print $2}' | tr -d ' ')
+        echo "cluster id is $CLUSTER_ID"
+        packet-cli device create  -H  $CLUSTER_NAME"-worker1"  -o "ubuntu_20_04" -P c1.small.x86 -p 454b8b42-33d3-4e7e-8acf-1d1a5fec7e85 -f nrt1
+        packet-cli device create  -H  $CLUSTER_NAME"-worker2"  -o "ubuntu_20_04" -P c1.small.x86 -p 454b8b42-33d3-4e7e-8acf-1d1a5fec7e85 -f nrt1
+        MASTER_STATE=$(packet-cli device get -p 454b8b42-33d3-4e7e-8acf-1d1a5fec7e85 | grep $CLUSTER_NAME"-master" | awk '{print $10}' | tr -d ' ')
+        while [ "$MASTER_STATE" != "active" ]; do MASTER_STATE=`packet-cli device get -p 454b8b42-33d3-4e7e-8acf-1d1a5fec7e85 | grep $CLUSTER_NAME"-master" | awk '{print $10}' | tr -d ' '`;sleep 30;done
+        CLUSTER_IP=$(packet-cli device get -i $CLUSTER_ID -y | grep "\- address:" | head -1 |awk '{print $3}' | tr -d ' ')
+        echo "Cluster IP is $CLUSTER_IP"
+        WORKER1_STATE=$(packet-cli device get -p 454b8b42-33d3-4e7e-8acf-1d1a5fec7e85 | grep $CLUSTER_NAME"-worker1" | awk '{print $10}' | tr -d ' ')
+        while [ "$WORKER1_STATE" != "active" ]; do WORKER1_STATE=`packet-cli device get -p 454b8b42-33d3-4e7e-8acf-1d1a5fec7e85 | grep $CLUSTER_NAME"-worker1" | awk '{print $10}' | tr -d ' '`;sleep 30;done
+        WORKER2_STATE=$(packet-cli device get -p 454b8b42-33d3-4e7e-8acf-1d1a5fec7e85 | grep $CLUSTER_NAME"-worker2" | awk '{print $10}' | tr -d ' ')
+        while [ "$WORKER2_STATE" != "active" ]; do WORKER2_STATE=`packet-cli device get -p 454b8b42-33d3-4e7e-8acf-1d1a5fec7e85 | grep $CLUSTER_NAME"-worker2" | awk '{print $10}' | tr -d ' '`;sleep 30;done
+        echo "CLUSTER_ID=$CLUSTER_ID" >> $GITHUB_ENV
+        echo "CLUSTER_IP=$CLUSTER_IP" >> $GITHUB_ENV
+        pwd;ls
+        scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -r bookkeeper-operator.tar.gz  root@$CLUSTER_IP:/root/
+    - name: Setup k8
       run: |
-         sudo kubectl apply -f "https://github.com/jetstack/cert-manager/releases/download/v0.14.1/cert-manager.crds.yaml"
-         sudo helm repo add jetstack https://charts.jetstack.io
-         sudo helm repo add pravega https://charts.pravega.io
-         sudo helm repo update
-         sudo helm install zk-op pravega/zookeeper-operator --wait
-         sudo helm install zookeeper pravega/zookeeper --set replicas=1 --wait
-         sudo kubectl create namespace cert-manager
-         sudo helm install cert-manager jetstack/cert-manager --namespace cert-manager --version v0.14.1 --wait
-         sudo kubectl create -f deploy/config_map.yaml
-         sudo kubectl create -f deploy/crds/bookkeeper.pravega.io_bookkeeperclusters_crd.yaml
-         sudo kubectl create -f deploy/certificate.yaml
-         sudo kubectl create -f deploy/webhook.yaml
-         sudo kubectl create -f deploy/version_map.yaml
-    - name: E2E-Run
+        pwd;ls
+        ssh -o StrictHostKeyChecking=no root@$CLUSTER_IP "sudo apt-get update;tar -xzvf /root/bookkeeper-operator.tar.gz"
+        ssh -o StrictHostKeyChecking=no root@$CLUSTER_IP /root/bookkeeper-operator/test/e2e/resources/kubernetes_master_install.sh
+        CLUSTER_ID1=`packet-cli device get -p 454b8b42-33d3-4e7e-8acf-1d1a5fec7e85 | grep $CLUSTER_NAME"-worker1" | awk '{print $2}' | tr -d ' '`
+        CLUSTER_IP1=`packet-cli device get -i $CLUSTER_ID1 -y | grep "\- address:" | head -1 |awk '{print $3}' | tr -d ' '`
+        CLUSTER_ID2=`packet-cli device get -p 454b8b42-33d3-4e7e-8acf-1d1a5fec7e85 | grep $CLUSTER_NAME"-worker2" | awk '{print $2}' | tr -d ' '`
+        CLUSTER_IP2=`packet-cli device get -i $CLUSTER_ID2 -y | grep "\- address:" | head -1 |awk '{print $3}' | tr -d ' '`
+        scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -r ../bookkeeper-operator.tar.gz  root@$CLUSTER_IP1:/root/
+        scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -r ../bookkeeper-operator.tar.gz  root@$CLUSTER_IP2:/root/
+        ssh -o StrictHostKeyChecking=no root@$CLUSTER_IP1 "sudo apt-get update;tar -xzvf /root/bookkeeper-operator.tar.gz"
+        ssh -o StrictHostKeyChecking=no root@$CLUSTER_IP2 "sudo apt-get update;tar -xzvf /root/bookkeeper-operator.tar.gz"
+        ssh -o StrictHostKeyChecking=no root@$CLUSTER_IP1 /root/bookkeeper-operator/test/e2e/resources/kubernetes_slave_install.sh
+        ssh -o StrictHostKeyChecking=no root@$CLUSTER_IP2 /root/bookkeeper-operator/test/e2e/resources/kubernetes_slave_install.sh
+        ssh -o StrictHostKeyChecking=no root@$CLUSTER_IP 'kubeadm token create --print-join-command | head -2' >JOIN
+        ssh -o StrictHostKeyChecking=no root@$CLUSTER_IP1 $(cat JOIN)
+        ssh -o StrictHostKeyChecking=no root@$CLUSTER_IP2 $(cat JOIN)
+        ssh -o StrictHostKeyChecking=no root@$CLUSTER_IP "kubectl get nodes"
+        echo "CLUSTER_ID1=$CLUSTER_ID1" >> $GITHUB_ENV
+        echo "CLUSTER_ID2=$CLUSTER_ID2" >> $GITHUB_ENV
+    - name: Make setup before running e2e
       run: |
-         sudo make test-e2e
+        ssh -o StrictHostKeyChecking=no root@$CLUSTER_IP "mkdir /data;kubectl create -f /root/bookkeeper-operator/test/e2e/resources/local-storage.yaml"
+        ssh -o StrictHostKeyChecking=no root@$CLUSTER_IP "curl -L https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash"
+        ssh -o StrictHostKeyChecking=no root@$CLUSTER_IP "helm repo add stable https://charts.helm.sh/stable;helm install stable/nfs-server-provisioner --generate-name;kubectl -n default create -f /root/bookkeeper-operator/test/e2e/resources/tier2.yaml"
+        ssh -o StrictHostKeyChecking=no root@$CLUSTER_IP "kubectl create -f /root/bookkeeper-operator/test/e2e/resources/zookeeper.yaml"
+        ssh -o StrictHostKeyChecking=no root@$CLUSTER_IP  "kubectl apply -f \"https://github.com/jetstack/cert-manager/releases/download/v0.14.1/cert-manager.crds.yaml\""
+        ssh -o StrictHostKeyChecking=no root@$CLUSTER_IP  "helm repo add jetstack https://charts.jetstack.io"
+        ssh -o StrictHostKeyChecking=no root@$CLUSTER_IP  "helm repo update"
+        ssh -o StrictHostKeyChecking=no root@$CLUSTER_IP "kubectl create namespace cert-manager;helm install cert-manager jetstack/cert-manager --namespace cert-manager --version v0.14.1 --wait"
 
-  # Show cluster information
+        ssh -o StrictHostKeyChecking=no root@$CLUSTER_IP  "kubectl -n default create -f deploy/config_map.yaml"
+        sleep 30s
+        ssh -o StrictHostKeyChecking=no root@$CLUSTER_IP  "kubectl -n default create -f deploy/crds/bookkeeper.pravega.io_bookkeeperclusters_crd.yaml"
+        ssh -o StrictHostKeyChecking=no root@$CLUSTER_IP  "kubectl -n default create -f deploy/certificate.yaml"
+        ssh -o StrictHostKeyChecking=no root@$CLUSTER_IP  "kubectl -n default create -f deploy/webhook.yaml"
+        ssh -o StrictHostKeyChecking=no root@$CLUSTER_IP  "kubectl -n default  create -f deploy/version_map.yaml"
+        ssh -o StrictHostKeyChecking=no root@$CLUSTER_IP "curl -Lo operator-sdk https://github.com/operator-framework/operator-sdk/releases/download/$OPERATOR_SDK_VERSION/operator-sdk-$OPERATOR_SDK_VERSION-x86_64-linux-gnu && chmod +x operator-sdk && sudo mv operator-sdk /usr/local/bin/"
+        ssh -o StrictHostKeyChecking=no root@$CLUSTER_IP "bash < <(curl -s -S -L https://raw.githubusercontent.com/moovweb/gvm/master/binscripts/gvm-installer);source /root/.gvm/scripts/gvm;gvm install go1.13.8 --binary;gvm use go1.13.8 --default"
+    - name: Running e2e
+      run: |
+        ssh -o StrictHostKeyChecking=no root@$CLUSTER_IP "cd /root/bookkeeper-operator;source /root/.gvm/scripts/gvm;make test-e2e"
+    - name: Deleting cluster
+      if: ${{ always() }}
+      run: |
+        SSHKEY=`packet-cli ssh-key get | grep "pravega-travis" | awk '{print $2}' | tr -d ' '`
+        echo y | packet-cli ssh-key delete -i $SSHKEY
+        echo y | packet-cli device  delete -i $CLUSTER_ID
+        echo y | packet-cli device  delete -i $CLUSTER_ID1
+        echo y | packet-cli device  delete -i $CLUSTER_ID2
