@@ -27,14 +27,14 @@ import (
 )
 
 var (
-	RetryInterval        = time.Second * 5
+	RetryInterval        = time.Second * 10
 	Timeout              = time.Second * 60
-	CleanupRetryInterval = time.Second * 1
-	CleanupTimeout       = time.Second * 5
-	ReadyTimeout         = time.Minute * 5
+	CleanupRetryInterval = time.Second * 10
+	CleanupTimeout       = time.Second * 10
+	ReadyTimeout         = time.Minute * 10
 	UpgradeTimeout       = time.Minute * 10
-	TerminateTimeout     = time.Minute * 2
-	VerificationTimeout  = time.Minute * 5
+	TerminateTimeout     = time.Minute * 10
+	VerificationTimeout  = time.Minute * 10
 )
 
 // CreateBKCluster creates a BookkeeperCluster CR with the desired spec
