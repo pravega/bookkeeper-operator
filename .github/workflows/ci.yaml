@@ -75,7 +75,7 @@ jobs:
     - name: Setup k8
       run: |
         pwd;ls
-        ssh -o StrictHostKeyChecking=no root@$CLUSTER_IP "sudo apt-get update;tar -xzvf /root/bookkeeper-operator.tar.gz"
+        ssh -o StrictHostKeyChecking=no root@$CLUSTER_IP "sudo apt-get update;tar -xzvf /root/bookkeeper-operator.tar.gz; pwd"
         ssh -o StrictHostKeyChecking=no root@$CLUSTER_IP /root/bookkeeper-operator/test/e2e/resources/kubernetes_master_install.sh
         CLUSTER_ID1=`packet-cli device get -p 454b8b42-33d3-4e7e-8acf-1d1a5fec7e85 | grep $CLUSTER_NAME"-worker1" | awk '{print $2}' | tr -d ' '`
         CLUSTER_IP1=`packet-cli device get -i $CLUSTER_ID1 -y | grep "\- address:" | head -1 |awk '{print $3}' | tr -d ' '`
