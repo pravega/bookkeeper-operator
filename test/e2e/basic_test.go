@@ -18,7 +18,8 @@ import (
 	bookkeeper_e2eutil "github.com/pravega/bookkeeper-operator/pkg/test/e2e/e2eutil"
 )
 
-func testUpgradeCluster(t *testing.T) {
+// Test create and recreate a Bookkeeper cluster with the same name
+func testCreateRecreateCluster(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	doCleanup := true
@@ -28,49 +29,36 @@ func testUpgradeCluster(t *testing.T) {
 			ctx.Cleanup()
 		}
 	}()
-
 	namespace, err := ctx.GetNamespace()
 	g.Expect(err).NotTo(HaveOccurred())
 	f := framework.Global
 
-	cluster := bookkeeper_e2eutil.NewDefaultCluster(namespace)
+	defaultCluster := bookkeeper_e2eutil.NewDefaultCluster(namespace)
+	defaultCluster.WithDefaults()
 
-	cluster.WithDefaults()
-	initialVersion := "0.6.0"
-	upgradeVersion := "0.7.0"
-	cluster.Spec.Version = initialVersion
-
-	bookkeeper, err := bookkeeper_e2eutil.CreateBKCluster(t, f, ctx, cluster)
+	bookkeeper, err := bookkeeper_e2eutil.CreateBKCluster(t, f, ctx, defaultCluster)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	// A default Bookkeeper cluster should have 3 pods
+	// A default Bookkeeper cluster
 	podSize := 3
 	err = bookkeeper_e2eutil.WaitForBookkeeperClusterToBecomeReady(t, f, ctx, bookkeeper, podSize)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	// This is to get the latest Bookkeeper cluster object
-	bookkeeper, err = bookkeeper_e2eutil.GetBKCluster(t, f, ctx, bookkeeper)
+	err = bookkeeper_e2eutil.DeleteBKCluster(t, f, ctx, bookkeeper)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	g.Expect(bookkeeper.Status.CurrentVersion).To(Equal(initialVersion))
-
-	bookkeeper.Spec.Version = upgradeVersion
-
-	err = bookkeeper_e2eutil.UpdateBKCluster(t, f, ctx, bookkeeper)
+	err = bookkeeper_e2eutil.WaitForBKClusterToTerminate(t, f, ctx, bookkeeper)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	err = bookkeeper_e2eutil.WaitForBKClusterToUpgrade(t, f, ctx, bookkeeper, upgradeVersion)
+	defaultCluster = bookkeeper_e2eutil.NewDefaultCluster(namespace)
+	defaultCluster.WithDefaults()
+
+	bookkeeper, err = bookkeeper_e2eutil.CreateBKCluster(t, f, ctx, defaultCluster)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	// This is to get the latest Bookkeeper cluster object
-	bookkeeper, err = bookkeeper_e2eutil.GetBKCluster(t, f, ctx, bookkeeper)
+	err = bookkeeper_e2eutil.WaitForBookkeeperClusterToBecomeReady(t, f, ctx, bookkeeper, podSize)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	g.Expect(bookkeeper.Spec.Version).To(Equal(upgradeVersion))
-	g.Expect(bookkeeper.Status.CurrentVersion).To(Equal(upgradeVersion))
-	g.Expect(bookkeeper.Status.TargetVersion).To(Equal(""))
-
-	// Delete cluster
 	err = bookkeeper_e2eutil.DeleteBKCluster(t, f, ctx, bookkeeper)
 	g.Expect(err).NotTo(HaveOccurred())
 
@@ -79,5 +67,4 @@ func testUpgradeCluster(t *testing.T) {
 
 	err = bookkeeper_e2eutil.WaitForBKClusterToTerminate(t, f, ctx, bookkeeper)
 	g.Expect(err).NotTo(HaveOccurred())
-
 }

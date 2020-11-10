@@ -14,7 +14,7 @@ import (
 
 	. "github.com/onsi/gomega"
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
-	bookkeeper_e2eutil "github.com/pravega/bookkeper-operator/pkg/test/e2e/e2eutil"
+	bookkeeper_e2eutil "github.com/pravega/bookkeeper-operator/pkg/test/e2e/e2eutil"
 )
 
 func testWebhook(t *testing.T) {
@@ -37,7 +37,7 @@ func testWebhook(t *testing.T) {
 	invalidVersion.WithDefaults()
 	_, err = bookkeeper_e2eutil.CreateBKCluster(t, f, ctx, invalidVersion)
 	g.Expect(err).To(HaveOccurred(), "failed to reject request with unsupported version")
-	g.Expect(err.Error()).To(ContainSubstring("unsupported bookkeeper cluster version 99.0.0"))
+	g.Expect(err.Error()).To(ContainSubstring("unsupported Bookkeeper cluster version 99.0.0"))
 
 	// Test webhook with a supported Bookkeeper cluster version
 	validVersion := bookkeeper_e2eutil.NewClusterWithVersion(namespace, "0.6.0")
