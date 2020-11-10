@@ -56,18 +56,18 @@ jobs:
         sudo kubectl -n kube-system get pod -o wide
     - name: E2E-setup
       run: |
-         kubectl apply -f "https://github.com/jetstack/cert-manager/releases/download/v0.14.1/cert-manager.crds.yaml"
-         helm repo add jetstack https://charts.jetstack.io
-         helm repo update
-         kubectl create namespace cert-manager;helm install cert-manager jetstack/cert-manager --namespace cert-manager --version v0.14.1 --wait
-         kubectl create -f test/e2e/resources/zookeeper.yaml
-         kubectl create -f deploy/config_map.yaml
-         kubectl create -f deploy/crds/bookkeeper.pravega.io_bookkeeperclusters_crd.yaml
-         kubectl create -f deploy/certificate.yaml
-         kubectl create -f deploy/webhook.yaml
-         kubectl create -f deploy/version_map.yaml
+         sudo kubectl apply -f "https://github.com/jetstack/cert-manager/releases/download/v0.14.1/cert-manager.crds.yaml"
+         sudo helm repo add jetstack https://charts.jetstack.io
+         sudo helm repo update
+         sudo kubectl create namespace cert-manager;helm install cert-manager jetstack/cert-manager --namespace cert-manager --version v0.14.1 --wait
+         sudo kubectl create -f test/e2e/resources/zookeeper.yaml
+         sudo kubectl create -f deploy/config_map.yaml
+         sudo kubectl create -f deploy/crds/bookkeeper.pravega.io_bookkeeperclusters_crd.yaml
+         sudo kubectl create -f deploy/certificate.yaml
+         sudo kubectl create -f deploy/webhook.yaml
+         sudo kubectl create -f deploy/version_map.yaml
     - name: E2E-Run
       run: |
-         make test-e2e        
+         sudo make test-e2e        
 
   # Show cluster information
