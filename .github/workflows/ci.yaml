@@ -61,7 +61,7 @@ jobs:
          sudo helm repo add pravega https://charts.pravega.io
          sudo helm repo update
          sudo helm install zk-op pravega/zookeeper-operator --wait
-         sudo helm install zookeeper pravega/zookeeper --wait
+         sudo helm install zookeeper pravega/zookeeper --set replicas=1 --wait
          sudo kubectl create namespace cert-manager
          sudo helm install cert-manager jetstack/cert-manager --namespace cert-manager --version v0.14.1 --wait
          sudo kubectl create -f deploy/config_map.yaml
