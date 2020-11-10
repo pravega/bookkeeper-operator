@@ -316,6 +316,10 @@ func (r *ReconcileBookkeeperCluster) getOneOutdatedPod(sts *appsv1.StatefulSet, 
 		return nil, err
 	}
 
+	sort.SliceStable(podList.Items, func(i int, j int) bool {
+		return podList.Items[i].Name < podList.Items[j].Name
+	})
+
 	for _, podItem := range podList.Items {
 		if util.GetPodVersion(&podItem) == version {
 			continue
