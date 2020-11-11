@@ -20,7 +20,6 @@ import (
 	bkapi "github.com/pravega/bookkeeper-operator/pkg/apis/bookkeeper/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/types"
@@ -28,14 +27,14 @@ import (
 )
 
 var (
-	RetryInterval        = time.Second * 10
+	RetryInterval        = time.Second * 5
 	Timeout              = time.Second * 60
-	CleanupRetryInterval = time.Second * 10
-	CleanupTimeout       = time.Second * 10
-	ReadyTimeout         = time.Minute * 10
+	CleanupRetryInterval = time.Second * 1
+	CleanupTimeout       = time.Second * 5
+	ReadyTimeout         = time.Minute * 5
 	UpgradeTimeout       = time.Minute * 10
-	TerminateTimeout     = time.Minute * 10
-	VerificationTimeout  = time.Minute * 10
+	TerminateTimeout     = time.Minute * 2
+	VerificationTimeout  = time.Minute * 5
 )
 
 // CreateBKCluster creates a BookkeeperCluster CR with the desired spec
@@ -43,30 +42,6 @@ func CreateBKCluster(t *testing.T, f *framework.Framework, ctx *framework.TestCt
 	t.Logf("creating bookkeeper cluster: %s", b.Name)
 	b.Spec.EnvVars = "bookkeeper-configmap"
 	b.Spec.ZookeeperUri = "zookeeper-client:2181"
-	b.Spec.Storage.LedgerVolumeClaimTemplate = &corev1.PersistentVolumeClaimSpec{
-		AccessModes: []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
-		Resources: corev1.ResourceRequirements{
-			Requests: corev1.ResourceList{
-				corev1.ResourceStorage: resource.MustParse("1Gi"),
-			},
-		},
-	}
-	b.Spec.Storage.IndexVolumeClaimTemplate = &corev1.PersistentVolumeClaimSpec{
-		AccessModes: []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
-		Resources: corev1.ResourceRequirements{
-			Requests: corev1.ResourceList{
-				corev1.ResourceStorage: resource.MustParse("1Gi"),
-			},
-		},
-	}
-	b.Spec.Storage.JournalVolumeClaimTemplate = &corev1.PersistentVolumeClaimSpec{
-		AccessModes: []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
-		Resources: corev1.ResourceRequirements{
-			Requests: corev1.ResourceList{
-				corev1.ResourceStorage: resource.MustParse("1Gi"),
-			},
-		},
-	}
 	err := f.Client.Create(goctx.TODO(), b, &framework.CleanupOptions{TestContext: ctx, Timeout: CleanupTimeout, RetryInterval: CleanupRetryInterval})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create CR: %v", err)
