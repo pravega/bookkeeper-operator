@@ -23,16 +23,21 @@ import (
 	"github.com/pravega/bookkeeper-operator/pkg/controller/config"
 	"github.com/pravega/bookkeeper-operator/pkg/util"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	runtime "k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 
 	"k8s.io/apimachinery/pkg/util/wait"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 )
+
+var Mgr manager.Manager
 
 const (
 	// DefaultZookeeperUri is the default ZooKeeper URI in the form of "hostname:port"
@@ -510,7 +515,15 @@ func (bk *BookkeeperCluster) ValidateCreate() error {
 // ValidateUpdate implements webhook.Validator so a webhook will be registered for the type
 func (bk *BookkeeperCluster) ValidateUpdate(old runtime.Object) error {
 	log.Printf("validate update %s", bk.Name)
-	return bk.ValidateBookkeeperVersion("")
+	err := bk.ValidateBookkeeperVersion("")
+	if err != nil {
+		return err
+	}
+	err = bk.validateConfigMap()
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // ValidateDelete implements webhook.Validator so a webhook will be registered for the type
@@ -665,6 +678,39 @@ func (bk *BookkeeperCluster) WaitForClusterToTerminate(kubeClient client.Client)
 	return err
 }
 
+func (bk *BookkeeperCluster) validateConfigMap() error {
+
+	configmap := &corev1.ConfigMap{}
+	err := Mgr.GetClient().Get(context.TODO(),
+		types.NamespacedName{Name: util.ConfigMapNameForBookie(bk.Name), Namespace: bk.Namespace}, configmap)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			return nil
+		} else {
+			return fmt.Errorf("failed to get configmap (%s): %v", configmap.Name, err)
+		}
+	}
+	if val, ok := bk.Spec.Options["journalDirectories"]; ok {
+		eq := strings.Contains(configmap.Data["BK_journalDirectories"], val)
+		if !eq {
+			return fmt.Errorf("path of  journal directories should not be changed ")
+		}
+	}
+	if val, ok := bk.Spec.Options["ledgerDirectories"]; ok {
+		eq := strings.Contains(configmap.Data["BK_ledgerDirectories"], val)
+		if !eq {
+			return fmt.Errorf("path of ledger directories should not be changed ")
+		}
+	}
+	if val, ok := bk.Spec.Options["indexDirectories"]; ok {
+		eq := strings.Contains(configmap.Data["BK_indexDirectories"], val)
+		if !eq {
+			return fmt.Errorf("path of index directories should not be changed ")
+		}
+	}
+	log.Print("validateConfigMap:: No error found...returning...")
+	return nil
+}
 func (bk *BookkeeperCluster) NewEvent(name string, reason string, message string, eventType string) *corev1.Event {
 	now := metav1.Now()
 	operatorName, _ := k8s.GetOperatorName()
