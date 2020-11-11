@@ -8,8 +8,9 @@ metadata:
 spec:
   replicas: {{ .Values.replicas }}
   image:
-    repository: {{ .Values.image.repository }}
-    pullPolicy: {{ .Values.image.pullPolicy }}
+    imageSpec:
+      repository: {{ .Values.image.repository }}
+      pullPolicy: {{ .Values.image.pullPolicy }}
   version: {{ .Values.version }}
   zookeeperUri: {{ .Values.zookeeperUri }}
   envVars: {{ template "bookkeeper.fullname" . }}-configmap

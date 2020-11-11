@@ -7,7 +7,9 @@ spec:
   zookeeperUri: zookeeper-client:2181
 
   image:
-    repository: pravega/bookkeeper
+    imageSpec:
+      repository: pravega/bookkeeper
+      pullPolicy: IfNotPresent
 
   replicas: 3
 

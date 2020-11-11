@@ -97,8 +97,9 @@ spec:
   envVars: bookkeeper-configmap
   replicas: 3
   image:
-    repository: pravega/bookkeeper
-    pullPolicy: IfNotPresent
+    imageSpec:
+      repository: pravega/bookkeeper
+      pullPolicy: IfNotPresent
 ```
 
 where:
