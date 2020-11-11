@@ -13,6 +13,7 @@ package bookkeepercluster
 import (
 	"context"
 	"fmt"
+	"sort"
 	"time"
 
 	bookkeeperv1alpha1 "github.com/pravega/bookkeeper-operator/pkg/apis/bookkeeper/v1alpha1"
@@ -315,6 +316,10 @@ func (r *ReconcileBookkeeperCluster) getOneOutdatedPod(sts *appsv1.StatefulSet, 
 	if err != nil {
 		return nil, err
 	}
+
+	sort.SliceStable(podList.Items, func(i int, j int) bool {
+		return podList.Items[i].Name < podList.Items[j].Name
+	})
 
 	for _, podItem := range podList.Items {
 		if util.GetPodVersion(&podItem) == version {
