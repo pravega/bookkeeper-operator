@@ -12,10 +12,13 @@ PROJECT_NAME=bookkeeper-operator
 REPO=pravega/$(PROJECT_NAME)
 VERSION=$(shell git describe --always --tags --dirty | sed "s/\(.*\)-g`git rev-parse --short HEAD`/\1/")
 GIT_SHA=$(shell git rev-parse --short HEAD)
-TEST_IMAGE=$(REPO)-testimages:$(VERSION)
 GOOS=linux
 GOARCH=amd64
-
+TEST_REPO=testbkop/$(PROJECT_NAME)
+DOCKER_TEST_PASS=testbkop@123
+DOCKER_TEST_USER=testbkop
+TEST_IMAGE=$(TEST_REPO)-testimages:$(VERSION)
+	
 .PHONY: all build check clean test
 
 all: check build test
@@ -40,9 +43,12 @@ test-unit:
 test-e2e: test-e2e-remote
 
 test-e2e-remote: login
-	operator-sdk build $(TEST_IMAGE) --enable-tests
-	docker push $(TEST_IMAGE)
-	operator-sdk test local ./test/e2e --namespace default --image $(TEST_IMAGE) --go-test-flags "-v -timeout 0"
+		operator-sdk build $(TEST_IMAGE)
+		docker push $(TEST_IMAGE)
+		operator-sdk test local ./test/e2e --operator-namespace default --image $(TEST_IMAGE) --go-test-flags "-v -timeout 0"
+
+login:
+		echo "$(DOCKER_TEST_PASS)" | docker login -u "$(DOCKER_TEST_USER)" --password-stdin
 
 test-e2e-local:
 	operator-sdk test local ./test/e2e --namespace default --up-local --go-test-flags "-v -timeout 0"
