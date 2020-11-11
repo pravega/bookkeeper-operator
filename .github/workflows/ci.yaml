@@ -118,9 +118,6 @@ jobs:
     - name: Running e2e
       run: |
         ssh -o StrictHostKeyChecking=no root@$CLUSTER_IP "cd /root/bookkeeper-operator;source /root/.gvm/scripts/gvm;make test-e2e"
-      - name: Running e2e
-      run: |
-        ssh -o StrictHostKeyChecking=no root@$CLUSTER_IP "cd /root/pravega-operator;source /root/.gvm/scripts/gvm;make test-e2e"
     - name: Deleting cluster
       if: ${{ always() }}
       run: |
