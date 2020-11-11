@@ -50,7 +50,7 @@ func testBookkeeperCluster(t *testing.T) {
 	}
 	// get global framework variables
 	f := framework.Global
-	// wait for pravega-operator to be ready
+	// wait for bookkeeper-operator to be ready
 	err = e2eutil.WaitForOperatorDeployment(t, f.KubeClient, namespace, "bookkeeper-operator", 1, bookkeeper_e2eutil.RetryInterval, bookkeeper_e2eutil.Timeout)
 	if err != nil {
 		t.Fatal(err)
