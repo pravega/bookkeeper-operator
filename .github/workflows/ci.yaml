@@ -107,14 +107,25 @@ jobs:
         ssh -o StrictHostKeyChecking=no root@$CLUSTER_IP  "helm repo update"
         ssh -o StrictHostKeyChecking=no root@$CLUSTER_IP "kubectl create namespace cert-manager;helm install cert-manager jetstack/cert-manager --namespace cert-manager --version v0.14.1 --wait"
 
-        ssh -o StrictHostKeyChecking=no root@$CLUSTER_IP  "kubectl -n default create -f deploy/config_map.yaml"
+        ssh -o StrictHostKeyChecking=no root@$CLUSTER_IP  "kubectl -n default create -f /root/bookkeeper-operator/deploy/config_map.yaml"
         sleep 30s
-        ssh -o StrictHostKeyChecking=no root@$CLUSTER_IP  "kubectl -n default create -f deploy/crds/bookkeeper.pravega.io_bookkeeperclusters_crd.yaml"
-        ssh -o StrictHostKeyChecking=no root@$CLUSTER_IP  "kubectl -n default create -f deploy/certificate.yaml"
-        ssh -o StrictHostKeyChecking=no root@$CLUSTER_IP  "kubectl -n default create -f deploy/webhook.yaml"
-        ssh -o StrictHostKeyChecking=no root@$CLUSTER_IP  "kubectl -n default  create -f deploy/version_map.yaml"
+        ssh -o StrictHostKeyChecking=no root@$CLUSTER_IP  "kubectl -n default create -f /root/bookkeeper-operator/deploy/crds/bookkeeper.pravega.io_bookkeeperclusters_crd.yaml"
+        ssh -o StrictHostKeyChecking=no root@$CLUSTER_IP  "kubectl -n default create -f /root/bookkeeper-operator/deploy/certificate.yaml"
+        ssh -o StrictHostKeyChecking=no root@$CLUSTER_IP  "kubectl -n default create -f /root/bookkeeper-operator/deploy/webhook.yaml"
+        ssh -o StrictHostKeyChecking=no root@$CLUSTER_IP  "kubectl -n default  create -f /root/bookkeeper-operator/deploy/version_map.yaml"
         ssh -o StrictHostKeyChecking=no root@$CLUSTER_IP "curl -Lo operator-sdk https://github.com/operator-framework/operator-sdk/releases/download/$OPERATOR_SDK_VERSION/operator-sdk-$OPERATOR_SDK_VERSION-x86_64-linux-gnu && chmod +x operator-sdk && sudo mv operator-sdk /usr/local/bin/"
         ssh -o StrictHostKeyChecking=no root@$CLUSTER_IP "bash < <(curl -s -S -L https://raw.githubusercontent.com/moovweb/gvm/master/binscripts/gvm-installer);source /root/.gvm/scripts/gvm;gvm install go1.13.8 --binary;gvm use go1.13.8 --default"
     - name: Running e2e
       run: |
         ssh -o StrictHostKeyChecking=no root@$CLUSTER_IP "cd /root/bookkeeper-operator;source /root/.gvm/scripts/gvm;make test-e2e"
+      - name: Running e2e
+      run: |
+        ssh -o StrictHostKeyChecking=no root@$CLUSTER_IP "cd /root/pravega-operator;source /root/.gvm/scripts/gvm;make test-e2e"
+    - name: Deleting cluster
+      if: ${{ always() }}
+      run: |
+        SSHKEY=`packet-cli ssh-key get | grep "pravega-travis" | awk '{print $2}' | tr -d ' '`
+        echo y | packet-cli ssh-key delete -i $SSHKEY
+        echo y | packet-cli device  delete -i $CLUSTER_ID
+        echo y | packet-cli device  delete -i $CLUSTER_ID1
+        echo y | packet-cli device  delete -i $CLUSTER_ID2
