@@ -23,7 +23,7 @@ spec:
   isCA: true
   duration: 8760h
   renewBefore: 360h
-  secretName: {{ template "bookkeeper-operator.fullname" . }}-cert-tls-bk
+  secretName: {{ template "bookkeeper-operator.fullname" . }}-key-pair
   commonName: bookkeeper-webhook-svc.{{ .Release.Namespace }}.svc.cluster.local
   dnsNames:
     - bookkeeper-webhook-svc
