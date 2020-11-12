@@ -102,6 +102,7 @@ func main() {
 	}
 	log.Print("Controller Setup completed")
 
+	v1alpha1.Mgr = mgr
 	if webhookFlag {
 		// Setup webhook
 		if err := (&v1alpha1.BookkeeperCluster{}).SetupWebhookWithManager(mgr); err != nil {

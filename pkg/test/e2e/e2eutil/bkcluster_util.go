@@ -18,6 +18,7 @@ import (
 
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
 	bkapi "github.com/pravega/bookkeeper-operator/pkg/apis/bookkeeper/v1alpha1"
+	"github.com/pravega/bookkeeper-operator/pkg/util"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -97,14 +98,14 @@ func DeleteBKCluster(t *testing.T, f *framework.Framework, ctx *framework.TestCt
 }
 
 // UpdateBkCluster updates the BookkeeperCluster CR
-func UpdateBKCluster(t *testing.T, f *framework.Framework, ctx *framework.TestCtx, p *bkapi.BookkeeperCluster) error {
-	t.Logf("updating pravega cluster: %s", p.Name)
-	err := f.Client.Update(goctx.TODO(), p)
+func UpdateBKCluster(t *testing.T, f *framework.Framework, ctx *framework.TestCtx, b *bkapi.BookkeeperCluster) error {
+	t.Logf("updating bookkeeper cluster: %s", b.Name)
+	err := f.Client.Update(goctx.TODO(), b)
 	if err != nil {
 		return fmt.Errorf("failed to update CR: %v", err)
 	}
 
-	t.Logf("updated pravega cluster: %s", p.Name)
+	t.Logf("updated bookkeeper cluster: %s", b.Name)
 	return nil
 }
 
@@ -235,5 +236,54 @@ func WaitForBKClusterToUpgrade(t *testing.T, f *framework.Framework, ctx *framew
 	}
 
 	t.Logf("bookkeeper cluster upgraded: %s", b.Name)
+	return nil
+}
+func WaitForCMBKClusterToUpgrade(t *testing.T, f *framework.Framework, ctx *framework.TestCtx, b *bkapi.BookkeeperCluster) error {
+	t.Logf("waiting for cluster to upgrade post cm changes: %s", b.Name)
+
+	listOptions := metav1.ListOptions{
+		LabelSelector: labels.SelectorFromSet(map[string]string{"app": b.GetName()}).String(),
+	}
+
+	// Checking if all pods are getting restarted
+	podList, err := f.KubeClient.CoreV1().Pods(b.Namespace).List(listOptions)
+	if err != nil {
+		return err
+	}
+
+	for i := range podList.Items {
+		pod := &podList.Items[i]
+		name := pod.Name
+		t.Logf("waiting for pods to terminate, running pods (%v)", pod.Name)
+		err = f.Client.Get(goctx.TODO(), types.NamespacedName{Namespace: b.Namespace, Name: name}, pod)
+		start := time.Now()
+		for util.IsPodReady(pod) {
+			if time.Since(start) > 5*time.Minute {
+				return fmt.Errorf("failed to delete Segmentstore pod (%s) for 5 mins ", name)
+			}
+			err = f.Client.Get(goctx.TODO(), types.NamespacedName{Namespace: b.Namespace, Name: name}, pod)
+		}
+	}
+
+	//Checking if all pods are in ready state
+	podList, err = f.KubeClient.CoreV1().Pods(b.Namespace).List(listOptions)
+	if err != nil {
+		return err
+	}
+
+	for i := range podList.Items {
+		pod := &podList.Items[i]
+		name := pod.Name
+		t.Logf("waiting for pods to terminate, running pods (%v)", pod.Name)
+		err = f.Client.Get(goctx.TODO(), types.NamespacedName{Namespace: b.Namespace, Name: name}, pod)
+		start := time.Now()
+		for !util.IsPodReady(pod) {
+			if time.Since(start) > 5*time.Minute {
+				return fmt.Errorf("failed to delete Segmentstore pod (%s) for 5 mins ", name)
+			}
+			err = f.Client.Get(goctx.TODO(), types.NamespacedName{Namespace: b.Namespace, Name: name}, pod)
+		}
+	}
+
 	return nil
 }
