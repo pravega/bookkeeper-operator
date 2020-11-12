@@ -9,6 +9,7 @@ require (
 	github.com/mibk/dupl v1.0.0 // indirect
 	github.com/onsi/ginkgo v1.12.0
 	github.com/onsi/gomega v1.9.0
+	github.com/opennota/check v0.0.0-20180911053232-0c771f5545ff // indirect
 	github.com/operator-framework/operator-sdk v0.17.0
 	github.com/rogpeppe/go-internal v1.5.2 // indirect
 	github.com/samuel/go-zookeeper v0.0.0-20190923202752-2cc03de413da

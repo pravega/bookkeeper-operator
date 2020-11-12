@@ -679,7 +679,6 @@ func (bk *BookkeeperCluster) WaitForClusterToTerminate(kubeClient client.Client)
 }
 
 func (bk *BookkeeperCluster) validateConfigMap() error {
-
 	configmap := &corev1.ConfigMap{}
 	err := Mgr.GetClient().Get(context.TODO(),
 		types.NamespacedName{Name: util.ConfigMapNameForBookie(bk.Name), Namespace: bk.Namespace}, configmap)
@@ -691,19 +690,19 @@ func (bk *BookkeeperCluster) validateConfigMap() error {
 		}
 	}
 	if val, ok := bk.Spec.Options["journalDirectories"]; ok {
-		eq := strings.Contains(configmap.Data["BK_journalDirectories"], val)
+		eq := configmap.Data["BK_journalDirectories"] == val
 		if !eq {
-			return fmt.Errorf("path of  journal directories should not be changed ")
+			return fmt.Errorf("path of journal directories should not be changed ")
 		}
 	}
 	if val, ok := bk.Spec.Options["ledgerDirectories"]; ok {
-		eq := strings.Contains(configmap.Data["BK_ledgerDirectories"], val)
+		eq := configmap.Data["BK_ledgerDirectories"] == val
 		if !eq {
 			return fmt.Errorf("path of ledger directories should not be changed ")
 		}
 	}
 	if val, ok := bk.Spec.Options["indexDirectories"]; ok {
-		eq := strings.Contains(configmap.Data["BK_indexDirectories"], val)
+		eq := configmap.Data["BK_indexDirectories"] == val
 		if !eq {
 			return fmt.Errorf("path of index directories should not be changed ")
 		}

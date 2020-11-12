@@ -13,6 +13,7 @@ package bookkeepercluster
 import (
 	"context"
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 
@@ -399,7 +400,9 @@ func (r *ReconcileBookkeeperCluster) restartStsPod(bk *bookkeeperv1alpha1.Bookke
 	if err != nil {
 		return err
 	}
-
+	sort.SliceStable(podList.Items, func(i int, j int) bool {
+		return podList.Items[i].Name < podList.Items[j].Name
+	})
 	for _, podItem := range podList.Items {
 		err := r.client.Delete(context.TODO(), &podItem)
 		if err != nil {

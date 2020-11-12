@@ -98,14 +98,14 @@ func DeleteBKCluster(t *testing.T, f *framework.Framework, ctx *framework.TestCt
 }
 
 // UpdateBkCluster updates the BookkeeperCluster CR
-func UpdateBKCluster(t *testing.T, f *framework.Framework, ctx *framework.TestCtx, p *bkapi.BookkeeperCluster) error {
-	t.Logf("updating pravega cluster: %s", p.Name)
-	err := f.Client.Update(goctx.TODO(), p)
+func UpdateBKCluster(t *testing.T, f *framework.Framework, ctx *framework.TestCtx, b *bkapi.BookkeeperCluster) error {
+	t.Logf("updating bookkeeper cluster: %s", b.Name)
+	err := f.Client.Update(goctx.TODO(), b)
 	if err != nil {
 		return fmt.Errorf("failed to update CR: %v", err)
 	}
 
-	t.Logf("updated pravega cluster: %s", p.Name)
+	t.Logf("updated bookkeeper cluster: %s", b.Name)
 	return nil
 }
 

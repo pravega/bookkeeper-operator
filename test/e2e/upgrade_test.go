@@ -39,6 +39,8 @@ func testUpgradeCluster(t *testing.T) {
 	initialVersion := "0.6.0"
 	upgradeVersion := "0.7.0"
 	cluster.Spec.Version = initialVersion
+	cluster.Spec.Image.Repository = "pravega/bookkeeper"
+	cluster.Spec.Image.PullPolicy = "IfNotPresent"
 
 	bookkeeper, err := bookkeeper_e2eutil.CreateBKCluster(t, f, ctx, cluster)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -51,11 +53,13 @@ func testUpgradeCluster(t *testing.T) {
 	// This is to get the latest Bookkeeper cluster object
 	bookkeeper, err = bookkeeper_e2eutil.GetBKCluster(t, f, ctx, bookkeeper)
 	g.Expect(err).NotTo(HaveOccurred())
-
 	g.Expect(bookkeeper.Status.CurrentVersion).To(Equal(initialVersion))
 
-	bookkeeper.Spec.Version = upgradeVersion
+	// This is to get the latest Bookkeeper cluster object
+	bookkeeper, err = bookkeeper_e2eutil.GetBKCluster(t, f, ctx, bookkeeper)
+	g.Expect(err).NotTo(HaveOccurred())
 
+	bookkeeper.Spec.Version = upgradeVersion
 	err = bookkeeper_e2eutil.UpdateBKCluster(t, f, ctx, bookkeeper)
 	g.Expect(err).NotTo(HaveOccurred())
 
