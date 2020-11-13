@@ -68,7 +68,7 @@ spec:
       resources:
         requests:
           storage: {{ .Values.storage.index.volumeSize }}
-  {{- if .Values.jvmOptions }}
+  {{- if and .Values.jvmOptions (or .Values.jvmOptions.memoryOpts .Values.jvmOptions.gcOpts .Values.jvmOptions.gcLoggingOpts .Values.jvmOptions.extraOpts) }}
   jvmOptions:
     {{- if .Values.jvmOptions.memoryOpts }}
     memoryOpts:
