@@ -11,6 +11,7 @@
 package e2e
 
 import (
+	"strings"
 	"testing"
 
 	. "github.com/onsi/gomega"
@@ -18,7 +19,7 @@ import (
 	bookkeeper_e2eutil "github.com/pravega/bookkeeper-operator/pkg/test/e2e/e2eutil"
 )
 
-func testUpgradeCluster(t *testing.T) {
+func testCMUpgradeCluster(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	doCleanup := true
@@ -36,43 +37,44 @@ func testUpgradeCluster(t *testing.T) {
 	cluster := bookkeeper_e2eutil.NewDefaultCluster(namespace)
 
 	cluster.WithDefaults()
-	initialVersion := "0.6.0"
-	upgradeVersion := "0.7.0"
-	cluster.Spec.Version = initialVersion
-	cluster.Spec.Image.Repository = "pravega/bookkeeper"
-	cluster.Spec.Image.PullPolicy = "IfNotPresent"
+
+	cluster.Spec.Options["minorCompactionThreshold"] = "0.4"
 
 	bookkeeper, err := bookkeeper_e2eutil.CreateBKCluster(t, f, ctx, cluster)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	// A default Bookkeeper cluster should have 3 pods
+	// A default bookkeeper cluster should have 3 pods
 	podSize := 3
 	err = bookkeeper_e2eutil.WaitForBookkeeperClusterToBecomeReady(t, f, ctx, bookkeeper, podSize)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	// This is to get the latest Bookkeeper cluster object
-	bookkeeper, err = bookkeeper_e2eutil.GetBKCluster(t, f, ctx, bookkeeper)
-	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(bookkeeper.Status.CurrentVersion).To(Equal(initialVersion))
-
-	// This is to get the latest Bookkeeper cluster object
+	// This is to get the latest bookkeeper cluster object
 	bookkeeper, err = bookkeeper_e2eutil.GetBKCluster(t, f, ctx, bookkeeper)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	bookkeeper.Spec.Version = upgradeVersion
+	//updating bookkeeper option
+	bookkeeper.Spec.Options["minorCompactionThreshold"] = "0.5"
+
+	//updating bookkeepercluster
 	err = bookkeeper_e2eutil.UpdateBKCluster(t, f, ctx, bookkeeper)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	err = bookkeeper_e2eutil.WaitForBKClusterToUpgrade(t, f, ctx, bookkeeper, upgradeVersion)
+	//checking if the upgrade of options was successful
+	err = bookkeeper_e2eutil.WaitForCMBKClusterToUpgrade(t, f, ctx, bookkeeper)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	// This is to get the latest Bookkeeper cluster object
+	// This is to get the latest bookkeeper cluster object
 	bookkeeper, err = bookkeeper_e2eutil.GetBKCluster(t, f, ctx, bookkeeper)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	g.Expect(bookkeeper.Spec.Version).To(Equal(upgradeVersion))
-	g.Expect(bookkeeper.Status.CurrentVersion).To(Equal(upgradeVersion))
-	g.Expect(bookkeeper.Status.TargetVersion).To(Equal(""))
+	//updating bookkeeper option
+	bookkeeper.Spec.Options["journalDirectories"] = "journal"
+
+	//updating bookkeepercluster
+	err = bookkeeper_e2eutil.UpdateBKCluster(t, f, ctx, bookkeeper)
+
+	//should give an error
+	g.Expect(strings.ContainsAny(err.Error(), "path of journal directories should not be changed")).To(Equal(true))
 
 	// Delete cluster
 	err = bookkeeper_e2eutil.DeleteBKCluster(t, f, ctx, bookkeeper)

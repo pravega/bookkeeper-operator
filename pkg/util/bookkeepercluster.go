@@ -12,6 +12,7 @@ package util
 
 import (
 	"fmt"
+	"reflect"
 	"regexp"
 	"strconv"
 	"strings"
@@ -236,4 +237,12 @@ func OverrideDefaultJVMOptions(defaultOpts []string, customOpts []string) []stri
 	}
 
 	return jvmOpts
+}
+
+func CompareConfigMap(cm1 *v1.ConfigMap, cm2 *v1.ConfigMap) bool {
+	eq := reflect.DeepEqual(cm1.Data, cm2.Data)
+	if eq {
+		return true
+	}
+	return false
 }

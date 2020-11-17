@@ -61,6 +61,7 @@ func testBookkeeperCluster(t *testing.T) {
 		"testScaleCluster":          testScaleCluster,
 		"testUpgradeCluster":        testUpgradeCluster,
 		"testWebhook":               testWebhook,
+		"testCMUpgradeCluster":      testCMUpgradeCluster,
 	}
 
 	for name, f := range testFuncs {
