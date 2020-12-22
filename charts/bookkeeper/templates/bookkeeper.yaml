@@ -15,7 +15,11 @@ spec:
   zookeeperUri: {{ .Values.zookeeperUri }}
   envVars: {{ template "bookkeeper.fullname" . }}-configmap
   autoRecovery: {{ .Values.autoRecovery }}
-  blockOwnerDeletion: {{ default true .Values.blockOwnerDeletion }}
+  {{- if or (.Values.blockOwnerDeletion) (eq (.Values.blockOwnerDeletion | toString) "<nil>") }}
+  blockOwnerDeletion: true
+  {{- else }}
+  blockOwnerDeletion: false
+  {{- end }}
   {{- if .Values.probes }}
   probes:
     {{- if .Values.probes.readiness }}
@@ -64,16 +68,24 @@ spec:
       resources:
         requests:
           storage: {{ .Values.storage.index.volumeSize }}
-  {{- if .Values.jvmOptions }}
+  {{- if and .Values.jvmOptions (or .Values.jvmOptions.memoryOpts .Values.jvmOptions.gcOpts .Values.jvmOptions.gcLoggingOpts .Values.jvmOptions.extraOpts) }}
   jvmOptions:
+    {{- if .Values.jvmOptions.memoryOpts }}
     memoryOpts:
 {{ toYaml .Values.jvmOptions.memoryOpts | indent 6 }}
+    {{- end }}
+    {{- if .Values.jvmOptions.gcOpts }}
     gcOpts:
 {{ toYaml .Values.jvmOptions.gcOpts | indent 6 }}
+    {{- end }}
+    {{- if .Values.jvmOptions.gcLoggingOpts }}
     gcLoggingOpts:
 {{ toYaml .Values.jvmOptions.gcLoggingOpts | indent 6 }}
+    {{- end }}
+    {{- if .Values.jvmOptions.extraOpts }}
     extraOpts:
 {{ toYaml .Values.jvmOptions.extraOpts | indent 6 }}
+    {{- end }}
   {{- end }}
   {{- if .Values.options }}
   options:

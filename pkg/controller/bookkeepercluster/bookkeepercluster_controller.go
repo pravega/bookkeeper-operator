@@ -13,6 +13,7 @@ package bookkeepercluster
 import (
 	"context"
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 
@@ -127,6 +128,21 @@ func (r *ReconcileBookkeeperCluster) run(p *bookkeeperv1alpha1.BookkeeperCluster
 		return fmt.Errorf("failed to clean up zookeeper: %v", err)
 	}
 
+	err = r.reconcileConfigMap(p)
+	if err != nil {
+		return fmt.Errorf("failed to reconcile configMap %v", err)
+	}
+
+	err = r.reconcilePdb(p)
+	if err != nil {
+		return fmt.Errorf("failed to reconcile pdb %v", err)
+	}
+
+	err = r.reconcileService(p)
+	if err != nil {
+		return fmt.Errorf("failed to reconcile service %v", err)
+	}
+
 	err = r.deployCluster(p)
 	if err != nil {
 		return fmt.Errorf("failed to deploy cluster: %v", err)
@@ -166,27 +182,6 @@ func (r *ReconcileBookkeeperCluster) deployCluster(p *bookkeeperv1alpha1.Bookkee
 }
 
 func (r *ReconcileBookkeeperCluster) deployBookie(p *bookkeeperv1alpha1.BookkeeperCluster) (err error) {
-
-	headlessService := MakeBookieHeadlessService(p)
-	controllerutil.SetControllerReference(p, headlessService, r.scheme)
-	err = r.client.Create(context.TODO(), headlessService)
-	if err != nil && !errors.IsAlreadyExists(err) {
-		return err
-	}
-
-	pdb := MakeBookiePodDisruptionBudget(p)
-	controllerutil.SetControllerReference(p, pdb, r.scheme)
-	err = r.client.Create(context.TODO(), pdb)
-	if err != nil && !errors.IsAlreadyExists(err) {
-		return err
-	}
-
-	configMap := MakeBookieConfigMap(p)
-	controllerutil.SetControllerReference(p, configMap, r.scheme)
-	err = r.client.Create(context.TODO(), configMap)
-	if err != nil && !errors.IsAlreadyExists(err) {
-		return err
-	}
 
 	statefulSet := MakeBookieStatefulSet(p)
 	controllerutil.SetControllerReference(p, statefulSet, r.scheme)
@@ -326,6 +321,109 @@ func (r *ReconcileBookkeeperCluster) syncStatefulSetPvc(sts *appsv1.StatefulSet)
 			err = r.client.Delete(context.TODO(), pvcDelete)
 			if err != nil {
 				return fmt.Errorf("failed to delete pvc: %v", err)
+			}
+		}
+	}
+	return nil
+}
+func (r *ReconcileBookkeeperCluster) reconcileConfigMap(bk *bookkeeperv1alpha1.BookkeeperCluster) (err error) {
+
+	currentConfigMap := &corev1.ConfigMap{}
+	configMap := MakeBookieConfigMap(bk)
+	controllerutil.SetControllerReference(bk, configMap, r.scheme)
+	err = r.client.Get(context.TODO(), types.NamespacedName{Name: util.ConfigMapNameForBookie(bk.Name), Namespace: bk.Namespace}, currentConfigMap)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			err = r.client.Create(context.TODO(), configMap)
+			if err != nil && !errors.IsAlreadyExists(err) {
+				return err
+			}
+		}
+	} else {
+
+		currentConfigMap := &corev1.ConfigMap{}
+		err = r.client.Get(context.TODO(), types.NamespacedName{Name: util.ConfigMapNameForBookie(bk.Name), Namespace: bk.Namespace}, currentConfigMap)
+		eq := util.CompareConfigMap(currentConfigMap, configMap)
+		if !eq {
+			err := r.client.Update(context.TODO(), configMap)
+			if err != nil {
+				return err
+			}
+			//restarting sts pods
+			err = r.restartStsPod(bk)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+func (r *ReconcileBookkeeperCluster) reconcilePdb(bk *bookkeeperv1alpha1.BookkeeperCluster) (err error) {
+	pdb := MakeBookiePodDisruptionBudget(bk)
+	controllerutil.SetControllerReference(bk, pdb, r.scheme)
+	err = r.client.Create(context.TODO(), pdb)
+	if err != nil && !errors.IsAlreadyExists(err) {
+		return err
+	}
+	return nil
+}
+
+func (r *ReconcileBookkeeperCluster) reconcileService(bk *bookkeeperv1alpha1.BookkeeperCluster) error {
+	headlessService := MakeBookieHeadlessService(bk)
+	controllerutil.SetControllerReference(bk, headlessService, r.scheme)
+	err := r.client.Create(context.TODO(), headlessService)
+	if err != nil && !errors.IsAlreadyExists(err) {
+		return err
+	}
+	return nil
+}
+
+func (r *ReconcileBookkeeperCluster) restartStsPod(bk *bookkeeperv1alpha1.BookkeeperCluster) error {
+
+	currentSts := &appsv1.StatefulSet{}
+	err := r.client.Get(context.TODO(), types.NamespacedName{Name: util.StatefulSetNameForBookie(bk.Name), Namespace: bk.Namespace}, currentSts)
+	if err != nil {
+		return err
+	}
+	selector, err := metav1.LabelSelectorAsSelector(&metav1.LabelSelector{
+		MatchLabels: currentSts.Spec.Template.Labels,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to convert label selector: %v", err)
+	}
+	podList := &corev1.PodList{}
+	podlistOps := &client.ListOptions{
+		Namespace:     currentSts.Namespace,
+		LabelSelector: selector,
+	}
+	err = r.client.List(context.TODO(), podList, podlistOps)
+	if err != nil {
+		return err
+	}
+	sort.SliceStable(podList.Items, func(i int, j int) bool {
+		return podList.Items[i].Name < podList.Items[j].Name
+	})
+	for _, podItem := range podList.Items {
+		err := r.client.Delete(context.TODO(), &podItem)
+		if err != nil {
+			return err
+		} else {
+			start := time.Now()
+			pod := &corev1.Pod{}
+			err = r.client.Get(context.TODO(), types.NamespacedName{Name: podItem.ObjectMeta.Name, Namespace: podItem.ObjectMeta.Namespace}, pod)
+			for util.IsPodReady(pod) {
+				if time.Since(start) > 10*time.Minute {
+					return fmt.Errorf("failed to delete Segmentstore pod (%s) for 10 mins ", podItem.ObjectMeta.Name)
+				}
+				err = r.client.Get(context.TODO(), types.NamespacedName{Name: podItem.ObjectMeta.Name, Namespace: podItem.ObjectMeta.Namespace}, pod)
+			}
+			start = time.Now()
+			err = r.client.Get(context.TODO(), types.NamespacedName{Name: podItem.ObjectMeta.Name, Namespace: podItem.ObjectMeta.Namespace}, pod)
+			for !util.IsPodReady(pod) {
+				if time.Since(start) > 10*time.Minute {
+					return fmt.Errorf("failed to get Segmentstore pod (%s) as ready for 10 mins ", podItem.ObjectMeta.Name)
+				}
+				err = r.client.Get(context.TODO(), types.NamespacedName{Name: podItem.ObjectMeta.Name, Namespace: podItem.ObjectMeta.Namespace}, pod)
 			}
 		}
 	}
