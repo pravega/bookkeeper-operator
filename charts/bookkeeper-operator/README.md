@@ -31,7 +31,7 @@ where:
 
 This command deploys a bookkeeper-operator on the Kubernetes cluster in its default configuration. The [configuration](#configuration) section lists the parameters that can be configured during installation.
 
->Note: If the bookkeeper-operator version is 0.1.2, webhookCert.certName and webhookCert.secretName should not be set. Also in this case, cert-manager and the certificate/issuer do not need to be deployed as prerequisites.
+>Note: If the bookkeeper-operator version is 0.1.2+, webhookCert.certName and webhookCert.secretName should not be set. Also in this case, cert-manager and the certificate/issuer do not need to be deployed as prerequisites.
 
 ## Uninstalling the Chart
 
@@ -50,7 +50,7 @@ The following table lists the configurable parameters of the bookkeeper-operator
 | Parameter | Description | Default |
 | ----- | ----------- | ------ |
 | `image.repository` | Image repository | `pravega/bookkeeper-operator` |
-| `image.tag` | Image tag | `0.1.2` |
+| `image.tag` | Image tag | `0.1.3` |
 | `image.pullPolicy` | Image pull policy | `IfNotPresent` |
 | `crd.create` | Create bookkeeper CRD | `true` |
 | `rbac.create` | Create RBAC resources | `true` |

@@ -13,7 +13,7 @@ spec:
               fieldPath: metadata.name
         - name: OPERATOR_NAME
           value: bkop-bookkeeper-operator
-        image: pravega/bookkeeper-operator:0.1.2
+        image: pravega/bookkeeper-operator:0.1.3
         imagePullPolicy: Always
         name: bkop-bookkeeper-operator
         ports:
