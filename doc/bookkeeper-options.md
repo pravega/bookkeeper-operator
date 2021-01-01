@@ -49,7 +49,7 @@ Default memoryOpts:
 if BookKeeper version is greater or equal to 0.4, then the followings are also added to the default memoryOpts
 ```
 "-XX:+UnlockExperimentalVMOptions",
-"-XX:+UseCGroupMemoryLimitForHeap",
+"-XX:+UseContainerSupport",
 "-XX:MaxRAMFraction=2"
 ```
 

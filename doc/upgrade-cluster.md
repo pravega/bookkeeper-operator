@@ -33,6 +33,12 @@ $ helm upgrade [BOOKKEEPER_RELEASE_NAME] pravega/bookkeeper --version=[NEW_VERSI
 ```
 **Note:** By specifying the `--reuse-values` option, the configuration of all parameters are retained across upgrades. However if some values need to be modified during the upgrade, the `--set` flag can be used to specify the new configuration for these parameters. Also, by skipping the `reuse-values` flag, the values of all parameters are reset to the default configuration that has been specified in the published charts for version [NEW_VERSION].
 
+**Note:** If the operator version is 0.1.3 or below and we are upgrading bookkeeper version to 0.9.0 or above, we have to set JVM options as follows
+
+```
+$ helm upgrade [BOOKKEEPER_RELEASE_NAME] pravega/bookkeeper --version=[NEW_VERSION] --set version=[NEW_VERSION] --set 'jvmOptions.extraOpts={-XX:+UseContainerSupport,-XX:+IgnoreUnrecognizedVMOptions}' --reuse-values --timeout 600s
+```
+
 ### Upgrading manually
 
 To initiate the upgrade process manually, a user has to update the `spec.version` field on the `BookkeeperCluster` custom resource. This can be done in three different ways using the `kubectl` command.
@@ -40,6 +46,13 @@ To initiate the upgrade process manually, a user has to update the `spec.version
 2. If you have the custom resource defined in a local YAML file, e.g. `bookkeeper.yaml`, you can modify the `version` value, and reapply the resource with `kubectl apply -f bookkeeper.yaml`.
 3. `kubectl patch BookkeeperCluster [CLUSTER_NAME] --type='json' -p='[{"op": "replace", "path": "/spec/version", "value": "X.Y.Z"}]'`.
 After the `version` field is updated, the operator will detect the version change and it will trigger the upgrade process.
+
+**Note:** If the operator version is 0.1.3 or below and we are upgrading bookkeeper version to 0.9.0 or above, we have to set JVM options as follows
+
+```
+jvmOptions:
+  extraOpts: ["-XX:+UseContainerSupport","-XX:+IgnoreUnrecognizedVMOptions"]
+```
 
 ## Upgrade process
 
