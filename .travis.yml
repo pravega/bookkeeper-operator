@@ -23,10 +23,6 @@ jobs:
 
     - stage: unit
       name: Unit tests
-      env:
-        - DEP_VERSION=v0.5.0
-      install:
-        - curl -Lo dep https://github.com/golang/dep/releases/download/$DEP_VERSION/dep-linux-amd64 && chmod +x dep && sudo mv dep /usr/local/bin/
       script:
         - make test-unit
       after_success:
