@@ -413,7 +413,7 @@ func (r *ReconcileBookkeeperCluster) restartStsPod(bk *bookkeeperv1alpha1.Bookke
 			err = r.client.Get(context.TODO(), types.NamespacedName{Name: podItem.ObjectMeta.Name, Namespace: podItem.ObjectMeta.Namespace}, pod)
 			for util.IsPodReady(pod) {
 				if time.Since(start) > 10*time.Minute {
-					return fmt.Errorf("failed to delete Segmentstore pod (%s) for 10 mins ", podItem.ObjectMeta.Name)
+					return fmt.Errorf("failed to delete Bookkeeper pod (%s) for 10 mins ", podItem.ObjectMeta.Name)
 				}
 				err = r.client.Get(context.TODO(), types.NamespacedName{Name: podItem.ObjectMeta.Name, Namespace: podItem.ObjectMeta.Namespace}, pod)
 			}
@@ -421,7 +421,7 @@ func (r *ReconcileBookkeeperCluster) restartStsPod(bk *bookkeeperv1alpha1.Bookke
 			err = r.client.Get(context.TODO(), types.NamespacedName{Name: podItem.ObjectMeta.Name, Namespace: podItem.ObjectMeta.Namespace}, pod)
 			for !util.IsPodReady(pod) {
 				if time.Since(start) > 10*time.Minute {
-					return fmt.Errorf("failed to get Segmentstore pod (%s) as ready for 10 mins ", podItem.ObjectMeta.Name)
+					return fmt.Errorf("failed to get Bookkeeper pod (%s) as ready for 10 mins ", podItem.ObjectMeta.Name)
 				}
 				err = r.client.Get(context.TODO(), types.NamespacedName{Name: podItem.ObjectMeta.Name, Namespace: podItem.ObjectMeta.Namespace}, pod)
 			}
