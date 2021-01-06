@@ -299,7 +299,7 @@ func MakeBookieConfigMap(bk *v1alpha1.BookkeeperCluster) *corev1.ConfigMap {
 		"-XX:+HeapDumpOnOutOfMemoryError",
 		"-XX:HeapDumpPath=" + heapDumpDir,
 		"-XX:+UnlockExperimentalVMOptions",
-		"-XX:+UseCGroupMemoryLimitForHeap",
+		"-XX:+UseContainerSupport",
 		"-XX:MaxRAMFraction=2",
 	}
 

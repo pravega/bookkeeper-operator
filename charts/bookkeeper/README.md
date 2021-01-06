@@ -32,6 +32,11 @@ where:
 
 This command deploys bookkeeper on the Kubernetes cluster in its default configuration. The [configuration](#configuration) section lists the parameters that can be configured during installation.
 
+>Note: If the operator version is 0.1.3 or below and bookkeeper version is 0.9.0 or above, you would need to set the JVM options as shown below.
+```
+helm install [RELEASE_NAME] pravega/bookkeeper --version=[VERSION] --set zookeeperUri=[ZOOKEEPER_HOST] --set pravegaClusterName=[PRAVEGA_CLUSTER_NAME] -n [NAMESPACE] --set 'jvmOptions.extraOpts={-XX:+UseContainerSupport,-XX:+IgnoreUnrecognizedVMOptions}'
+```
+
 ## Uninstalling the Chart
 
 To uninstall/delete the bookkeeper chart, use the following command:
