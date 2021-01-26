@@ -377,7 +377,7 @@ func MakeBookieConfigMap(bk *v1alpha1.BookkeeperCluster) *corev1.ConfigMap {
 }
 
 func MakeBookiePodDisruptionBudget(bk *v1alpha1.BookkeeperCluster) *policyv1beta1.PodDisruptionBudget {
-	maxUnavailable := intstr.FromInt(1)
+	maxUnavailable := intstr.FromInt(int(bk.Spec.MaxUnavailableBookkeeperReplicas))
 	return &policyv1beta1.PodDisruptionBudget{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "PodDisruptionBudget",

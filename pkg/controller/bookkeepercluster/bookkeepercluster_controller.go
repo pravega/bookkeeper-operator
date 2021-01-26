@@ -362,8 +362,15 @@ func (r *ReconcileBookkeeperCluster) reconcilePdb(bk *bookkeeperv1alpha1.Bookkee
 	pdb := MakeBookiePodDisruptionBudget(bk)
 	controllerutil.SetControllerReference(bk, pdb, r.scheme)
 	err = r.client.Create(context.TODO(), pdb)
-	if err != nil && !errors.IsAlreadyExists(err) {
-		return err
+	if err != nil {
+		if errors.IsAlreadyExists(err) {
+			err = r.client.Update(context.TODO(), pdb)
+			if err != nil {
+				return fmt.Errorf("failed to update pdb (%s): %v", pdb.Name, err)
+			}
+		} else {
+			return err
+		}
 	}
 	return nil
 }

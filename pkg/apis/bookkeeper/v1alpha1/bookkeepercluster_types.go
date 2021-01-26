@@ -186,6 +186,12 @@ type BookkeeperClusterSpec struct {
 	// +optional
 	Replicas int32 `json:"replicas"`
 
+	// MaxUnavailableBookkeeperReplicas defines the
+	// MaxUnavailable Bookkeeper Replicas
+	// Default is 1.
+	// +optional
+	MaxUnavailableBookkeeperReplicas int32 `json:"maxUnavailableBookkeeperReplicas"`
+
 	// Storage configures the storage for BookKeeper
 	// +optional
 	Storage *BookkeeperStorageSpec `json:"storage"`
@@ -422,6 +428,11 @@ func (s *BookkeeperClusterSpec) withDefaults() (changed bool) {
 	if !config.TestMode && s.Replicas < MinimumBookkeeperReplicas {
 		changed = true
 		s.Replicas = MinimumBookkeeperReplicas
+	}
+
+	if !config.TestMode && s.MaxUnavailableBookkeeperReplicas < 1 {
+		changed = true
+		s.MaxUnavailableBookkeeperReplicas = 1
 	}
 
 	if s.Storage == nil {
