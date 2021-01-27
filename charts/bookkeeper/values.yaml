@@ -71,6 +71,9 @@ options:
   ## Use multiple journal and ledger directories to try exploiting more parallelism at the drive level.
   journalDirectories: "/bk/journal/j0,/bk/journal/j1,/bk/journal/j2,/bk/journal/j3"
   ledgerDirectories: "/bk/ledgers/l0,/bk/ledgers/l1,/bk/ledgers/l2,/bk/ledgers/l3"
+  ## Use journal and ledger subpath if you wish to override the default subpath name used
+  # journalSubPath: ""
+  # ledgerSubPath: ""
   ## We have validated that this simpler ledger type prevents Bookie restarts due to heap OOM compared to the default SortedLedgerStorage.
   ## As we do not read from Bookkeeper (only during container recovery), this ledger type looks more efficient given our requirements.
   ledgerStorageClass: "org.apache.bookkeeper.bookie.InterleavedLedgerStorage"
