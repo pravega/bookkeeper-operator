@@ -113,7 +113,7 @@ jobs:
         ssh -o StrictHostKeyChecking=no root@$CLUSTER_IP  "kubectl -n default create -f /root/bookkeeper-operator/deploy/certificate.yaml"
         ssh -o StrictHostKeyChecking=no root@$CLUSTER_IP  "kubectl -n default create -f /root/bookkeeper-operator/deploy/webhook.yaml"
         ssh -o StrictHostKeyChecking=no root@$CLUSTER_IP  "kubectl -n default create -f /root/bookkeeper-operator/deploy/version_map.yaml"
-        ssh -o StrictHostKeyChecking=no root@$CLUSTER_IP  "kubectl -n default apply secret docker-registry regcred --docker-server=https://index.docker.io/v1/ --docker-username=testbkop --docker-password=08d50da6-61bd-4953-a2ce-7d7a0e3835bc --docker-email=testbkop@gmail.com"
+        ssh -o StrictHostKeyChecking=no root@$CLUSTER_IP  "kubectl -n default create secret docker-registry regcred --docker-server=https://index.docker.io/v1/ --docker-username=testbkop --docker-password=08d50da6-61bd-4953-a2ce-7d7a0e3835bc --docker-email=testbkop@gmail.com"
         ssh -o StrictHostKeyChecking=no root@$CLUSTER_IP "curl -Lo operator-sdk https://github.com/operator-framework/operator-sdk/releases/download/$OPERATOR_SDK_VERSION/operator-sdk-$OPERATOR_SDK_VERSION-x86_64-linux-gnu && chmod +x operator-sdk && sudo mv operator-sdk /usr/local/bin/"
         ssh -o StrictHostKeyChecking=no root@$CLUSTER_IP "bash < <(curl -s -S -L https://raw.githubusercontent.com/moovweb/gvm/master/binscripts/gvm-installer);source /root/.gvm/scripts/gvm;gvm install go1.13.8 --binary;gvm use go1.13.8 --default"
     - name: Running e2e
