@@ -12,14 +12,18 @@ package bookkeepercluster
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"testing"
+
+	"k8s.io/apimachinery/pkg/util/intstr"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/pravega/bookkeeper-operator/pkg/apis/bookkeeper/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	policyv1beta1 "k8s.io/api/policy/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes/scheme"
@@ -120,6 +124,43 @@ var _ = Describe("BookkeeperCluster Controller", func() {
 				})
 				It("shouldn't error", func() {
 					Ω(err).Should(BeNil())
+				})
+			})
+			Context("checking updatePDB", func() {
+				var (
+					err1 error
+					str1 string
+				)
+				BeforeEach(func() {
+					res, err = r.Reconcile(req)
+					currentpdb := &policyv1beta1.PodDisruptionBudget{}
+					pdbname := fmt.Sprintf("%s-bookie", b.Name)
+					r.client.Get(context.TODO(), types.NamespacedName{Name: pdbname, Namespace: b.Namespace}, currentpdb)
+					maxUnavailable := intstr.FromInt(3)
+					newpdb := &policyv1beta1.PodDisruptionBudget{
+						TypeMeta: metav1.TypeMeta{
+							Kind:       "PodDisruptionBudget",
+							APIVersion: "policy/v1beta1",
+						},
+						ObjectMeta: metav1.ObjectMeta{
+							Name:      "test-name",
+							Namespace: b.Namespace,
+						},
+						Spec: policyv1beta1.PodDisruptionBudgetSpec{
+							MaxUnavailable: &maxUnavailable,
+							Selector: &metav1.LabelSelector{
+								MatchLabels: b.LabelsForBookie(),
+							},
+						},
+					}
+					err1 = r.updatePdb(currentpdb, newpdb)
+					str1 = fmt.Sprintf("%s", currentpdb.Spec.MaxUnavailable)
+				})
+				It("should not give error", func() {
+					Ω(err1).Should(BeNil())
+				})
+				It("unavailable replicas should change to 3", func() {
+					Ω(str1).To(Equal("3"))
 				})
 			})
 			Context("syncBookieSize", func() {
