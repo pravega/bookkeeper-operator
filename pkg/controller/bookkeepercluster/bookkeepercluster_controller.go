@@ -371,10 +371,10 @@ func (r *ReconcileBookkeeperCluster) reconcilePdb(bk *bookkeeperv1alpha1.Bookkee
 
 	currentPdb := &policyv1beta1.PodDisruptionBudget{}
 	err = r.client.Get(context.TODO(), types.NamespacedName{Name: util.PdbNameForBookie(bk.Name), Namespace: bk.Namespace}, currentPdb)
-	if err!= nil{
+	if err != nil {
 		return err
 	}
-	return r.updatePdb(currentPdb,pdb)
+	return r.updatePdb(currentPdb, pdb)
 }
 
 func (r *ReconcileBookkeeperCluster) updatePdb(currentPdb *policyv1beta1.PodDisruptionBudget, newPdb *policyv1beta1.PodDisruptionBudget) (err error) {
@@ -388,8 +388,6 @@ func (r *ReconcileBookkeeperCluster) updatePdb(currentPdb *policyv1beta1.PodDisr
 	}
 	return nil
 }
-
-
 
 func (r *ReconcileBookkeeperCluster) reconcileService(bk *bookkeeperv1alpha1.BookkeeperCluster) error {
 	headlessService := MakeBookieHeadlessService(bk)
