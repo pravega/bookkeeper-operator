@@ -13,6 +13,7 @@ package bookkeepercluster
 import (
 	"context"
 	"fmt"
+	"reflect"
 	"sort"
 	"strings"
 	"time"
@@ -22,6 +23,7 @@ import (
 
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	policyv1beta1 "k8s.io/api/policy/v1beta1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -359,21 +361,35 @@ func (r *ReconcileBookkeeperCluster) reconcileConfigMap(bk *bookkeeperv1alpha1.B
 	return nil
 }
 func (r *ReconcileBookkeeperCluster) reconcilePdb(bk *bookkeeperv1alpha1.BookkeeperCluster) (err error) {
+
 	pdb := MakeBookiePodDisruptionBudget(bk)
 	controllerutil.SetControllerReference(bk, pdb, r.scheme)
 	err = r.client.Create(context.TODO(), pdb)
-	if err != nil {
-		if errors.IsAlreadyExists(err) {
-			err = r.client.Update(context.TODO(), pdb)
-			if err != nil {
-				return fmt.Errorf("failed to update pdb (%s): %v", pdb.Name, err)
-			}
-		} else {
-			return err
+	if err != nil && !errors.IsAlreadyExists(err) {
+		return err
+	}
+
+	currentPdb := &policyv1beta1.PodDisruptionBudget{}
+	err = r.client.Get(context.TODO(), types.NamespacedName{Name: util.PdbNameForBookie(bk.Name), Namespace: bk.Namespace}, currentPdb)
+	if err!= nil{
+		return err
+	}
+	return r.updatePdb(currentPdb,pdb)
+}
+
+func (r *ReconcileBookkeeperCluster) updatePdb(currentPdb *policyv1beta1.PodDisruptionBudget, newPdb *policyv1beta1.PodDisruptionBudget) (err error) {
+
+	if !reflect.DeepEqual(currentPdb.Spec.MaxUnavailable, newPdb.Spec.MaxUnavailable) {
+		currentPdb.Spec.MaxUnavailable = newPdb.Spec.MaxUnavailable
+		err = r.client.Update(context.TODO(), currentPdb)
+		if err != nil {
+			return fmt.Errorf("failed to update pdb (%s): %v", currentPdb.Name, err)
 		}
 	}
 	return nil
 }
+
+
 
 func (r *ReconcileBookkeeperCluster) reconcileService(bk *bookkeeperv1alpha1.BookkeeperCluster) error {
 	headlessService := MakeBookieHeadlessService(bk)
@@ -382,6 +398,10 @@ func (r *ReconcileBookkeeperCluster) reconcileService(bk *bookkeeperv1alpha1.Boo
 	if err != nil && !errors.IsAlreadyExists(err) {
 		return err
 	}
+
+	currentPdb := &policyv1beta1.PodDisruptionBudget{}
+	err = r.client.Get(context.TODO(), types.NamespacedName{Name: util.PdbNameForBookie(bk.Name), Namespace: bk.Namespace}, currentPdb)
+
 	return nil
 }
 
