@@ -116,6 +116,11 @@ spec:
                     type: string
                   type: array
               type: object
+            maxUnavailableBookkeeperReplicas:
+              description: MaxUnavailableBookkeeperReplicas defines the MaxUnavailable
+                Bookkeeper Replicas Default is 1.
+              format: int32
+              type: integer
             options:
               additionalProperties:
                 type: string

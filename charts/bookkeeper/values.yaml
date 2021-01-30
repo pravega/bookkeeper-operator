@@ -15,6 +15,7 @@ hooks:
   backoffLimit: 10
 
 replicas: 3
+maxUnavailableBookkeeperReplicas: 1
 zookeeperUri: zookeeper-client:2181
 pravegaClusterName: pravega
 autoRecovery: true
