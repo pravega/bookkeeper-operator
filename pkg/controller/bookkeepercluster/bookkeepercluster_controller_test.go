@@ -163,6 +163,24 @@ var _ = Describe("BookkeeperCluster Controller", func() {
 					Ω(str1).To(Equal("3"))
 				})
 			})
+			Context("checking checkVersionUpgradeTriggered function", func() {
+				var (
+					ans1, ans2 bool
+				)
+				BeforeEach(func() {
+					ans1 = r.checkVersionUpgradeTriggered(b)
+					b.Spec.Version = "0.8.0"
+					ans2 = r.checkVersionUpgradeTriggered(b)
+				})
+				It("ans1 should be false", func() {
+					Ω(ans1).To(Equal(false))
+				})
+				It("ans2 should be true", func() {
+					Ω(ans2).To(Equal(true))
+				})
+
+			})
+
 			Context("syncBookieSize", func() {
 				var (
 					err1 error

@@ -342,7 +342,6 @@ func (r *ReconcileBookkeeperCluster) reconcileConfigMap(bk *bookkeeperv1alpha1.B
 			}
 		}
 	} else {
-
 		currentConfigMap := &corev1.ConfigMap{}
 		err = r.client.Get(context.TODO(), types.NamespacedName{Name: util.ConfigMapNameForBookie(bk.Name), Namespace: bk.Namespace}, currentConfigMap)
 		eq := util.CompareConfigMap(currentConfigMap, configMap)
