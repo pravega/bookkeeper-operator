@@ -352,13 +352,26 @@ func (r *ReconcileBookkeeperCluster) reconcileConfigMap(bk *bookkeeperv1alpha1.B
 				return err
 			}
 			//restarting sts pods
-			err = r.restartStsPod(bk)
-			if err != nil {
-				return err
+			if !r.checkVersionUpgradeTriggered(bk) {
+				log.Printf("prabhaker why am I here")
+				err = r.restartStsPod(bk)
+				if err != nil {
+					return err
+				}
 			}
 		}
 	}
 	return nil
+}
+
+func (r *ReconcileBookkeeperCluster) checkVersionUpgradeTriggered(bk *bookkeeperv1alpha1.BookkeeperCluster) bool {
+	currentBookkeeperCluster := &bookkeeperv1alpha1.BookkeeperCluster{}
+	err := r.client.Get(context.TODO(), types.NamespacedName{Name: bk.Name, Namespace: bk.Namespace}, currentBookkeeperCluster)
+	log.Printf("anisha = %v and  %v", currentBookkeeperCluster.Status.CurrentVersion, bk.Spec.Version)
+	if err == nil && currentBookkeeperCluster.Status.CurrentVersion != bk.Spec.Version {
+		return true
+	}
+	return false
 }
 func (r *ReconcileBookkeeperCluster) reconcilePdb(bk *bookkeeperv1alpha1.BookkeeperCluster) (err error) {
 
