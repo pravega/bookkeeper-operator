@@ -50,7 +50,7 @@ if BookKeeper version is greater or equal to 0.4, then the followings are also a
 ```
 "-XX:+UnlockExperimentalVMOptions",
 "-XX:+UseContainerSupport",
-"-XX:MaxRAMFraction=2"
+"-XX:MaxRAMPercentage=50.0"
 ```
 
 Default gcOpts:
