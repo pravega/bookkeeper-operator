@@ -338,20 +338,26 @@ func MakeBookieConfigMap(bk *v1alpha1.BookkeeperCluster) *corev1.ConfigMap {
 	}
 	gcOpts = util.OverrideDefaultJVMOptions(gcOpts, bk.Spec.JVMOptions.GcOpts)
 
-	gcLoggingOpts := []string{
-		"-XX:+PrintGCDetails",
-		"-XX:+PrintGCDateStamps",
-		"-XX:+PrintGCApplicationStoppedTime",
-		"-XX:+UseGCLogFileRotation",
-		"-XX:NumberOfGCLogFiles=5",
-		"-XX:GCLogFileSize=64m",
+	gcLoggingOpts := []string{}
+	if match, _ := util.CompareVersions(bk.Spec.Version, "0.9.0", "<"); match {
+		gcLoggingOpts = []string{
+			"-XX:+PrintGCDetails",
+			"-XX:+PrintGCApplicationStoppedTime",
+			"-XX:+UseGCLogFileRotation",
+			"-XX:NumberOfGCLogFiles=5",
+			"-XX:GCLogFileSize=64m",
+		}
+	} else {
+		gcLoggingOpts = []string{
+			"-Xlog:gc*,safepoint::time,level,tags:filecount=5,filesize=64m",
+		}
 	}
 	gcLoggingOpts = util.OverrideDefaultJVMOptions(gcLoggingOpts, bk.Spec.JVMOptions.GcLoggingOpts)
 
-	extraOpts := []string{
-		"-XX:+IgnoreUnrecognizedVMOptions",
+	extraOpts := []string{}
+	if bk.Spec.JVMOptions.ExtraOpts != nil {
+		extraOpts = bk.Spec.JVMOptions.ExtraOpts
 	}
-	extraOpts = util.OverrideDefaultJVMOptions(extraOpts, bk.Spec.JVMOptions.ExtraOpts)
 
 	configData := map[string]string{
 		"BOOKIE_MEM_OPTS":          strings.Join(memoryOpts, " "),
