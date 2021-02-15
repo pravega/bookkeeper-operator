@@ -46,7 +46,7 @@ Default memoryOpts:
 "-XX:+HeapDumpOnOutOfMemoryError",
 "-XX:HeapDumpPath=" + heapDumpDir,
 ```
-if BookKeeper version is greater or equal to 0.4, then the followings are also added to the default memoryOpts:
+if BookKeeper version is greater or equal to 0.4, then the following options are also added to the default memoryOpts:
 ```
 "-XX:+UnlockExperimentalVMOptions",
 "-XX:+UseContainerSupport",
@@ -76,7 +76,7 @@ Default gcLoggingOpts added if BookKeeper version is below 0.9.0:
 "-XX:NumberOfGCLogFiles=5",
 "-XX:GCLogFileSize=64m",
 ```
-however, if BookKeeper version is greater or equal to 0.9.0, the followings options are added to the default gcLoggingOpts instead:
+however, if BookKeeper version is greater or equal to 0.9.0, the following option is added as the default gcLoggingOpts instead:
 ```
 "-Xlog:gc*,safepoint::time,level,tags:filecount=5,filesize=64m"
 ```
