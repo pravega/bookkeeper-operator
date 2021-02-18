@@ -339,20 +339,9 @@ func MakeBookieConfigMap(bk *v1alpha1.BookkeeperCluster) *corev1.ConfigMap {
 	gcOpts = util.OverrideDefaultJVMOptions(gcOpts, bk.Spec.JVMOptions.GcOpts)
 
 	gcLoggingOpts := []string{}
-	if match, _ := util.CompareVersions(bk.Spec.Version, "0.9.0", "<"); match {
-		gcLoggingOpts = []string{
-			"-XX:+PrintGCDetails",
-			"-XX:+PrintGCApplicationStoppedTime",
-			"-XX:+UseGCLogFileRotation",
-			"-XX:NumberOfGCLogFiles=5",
-			"-XX:GCLogFileSize=64m",
-		}
-	} else {
-		gcLoggingOpts = []string{
-			"-Xlog:gc*,safepoint::time,level,tags:filecount=5,filesize=64m",
-		}
+	if bk.Spec.JVMOptions.GcLoggingOpts != nil {
+		gcLoggingOpts = bk.Spec.JVMOptions.GcLoggingOpts
 	}
-	gcLoggingOpts = util.OverrideDefaultJVMOptions(gcLoggingOpts, bk.Spec.JVMOptions.GcLoggingOpts)
 
 	extraOpts := []string{}
 	if bk.Spec.JVMOptions.ExtraOpts != nil {

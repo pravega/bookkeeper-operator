@@ -67,7 +67,7 @@ Default gcOpts:
 "-XX:-ResizePLAB",
 ```
 
-Default gcLoggingOpts added if BookKeeper version is below 0.9.0:
+Due to disruptive changes in GC Logging from Java 9, the BookKeeper operator code does not add any default gcLoggingOpts. The appropriate gcLoggingOpts can be provided based on the Java version used within the Bookkeeper version being deployed. If the Java version is 8 or lower, the following options can be provided:
 ```
 "-XX:+PrintGCDetails",
 "-XX:+PrintGCDateStamps",
@@ -76,7 +76,7 @@ Default gcLoggingOpts added if BookKeeper version is below 0.9.0:
 "-XX:NumberOfGCLogFiles=5",
 "-XX:GCLogFileSize=64m",
 ```
-however, if BookKeeper version is greater or equal to 0.9.0, the following option is added as the default gcLoggingOpts instead:
+however, if the BookKeeper version uses Java 9 or higher, the following option should be provided to the gcLoggingOpts instead:
 ```
 "-Xlog:gc*,safepoint::time,level,tags:filecount=5,filesize=64m"
 ```

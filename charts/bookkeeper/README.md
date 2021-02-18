@@ -85,6 +85,6 @@ The following table lists the configurable parameters of the Bookkeeper chart an
 | `storage.index.volumeSize` | Requested size for bookkeeper index persistent volumes | `10Gi` |
 | `jvmOptions.memoryOpts` | Memory Options passed to the JVM for bookkeeper performance tuning | `["-Xms1g", "-XX:MaxDirectMemorySize=2g"]` |
 | `jvmOptions.gcOpts` | Garbage Collector (GC) Options passed to the JVM for bookkeeper bookkeeper performance tuning | `[]` |
-| `jvmOptions.gcLoggingOpts` | GC Logging Options passed to the JVM for bookkeeper performance tuning | `[]` |
+| `jvmOptions.gcLoggingOpts` | GC Logging Options passed to the JVM for bookkeeper performance tuning | `["-Xlog:gc*,safepoint::time,level,tags:filecount=5,filesize=64m"]` |
 | `jvmOptions.extraOpts` | Extra Options passed to the JVM for bookkeeper performance tuning | `[]` |
 | `options` | List of bookkeeper options | |

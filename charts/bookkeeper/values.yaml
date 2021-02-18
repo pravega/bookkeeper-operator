@@ -57,7 +57,13 @@ storage:
 jvmOptions:
   memoryOpts: ["-Xms1g", "-XX:MaxDirectMemorySize=2g"]
   gcOpts: []
-  gcLoggingOpts: []
+  ## Unified JVM Logging is used for GC logging from Java 9
+  ## Hence use the following options if the bookkeeper version being deployed
+  ## is based on Java 9 or higher
+  gcLoggingOpts: ["-Xlog:gc*,safepoint::time,level,tags:filecount=5,filesize=64m"]
+  ## However, if the bookkeeper version being deployed is based on a lower version
+  ## of Java (JDK 8 or below), we should be using the following options for GC logging instead
+  # gcLoggingOpts: ["-XX:+PrintGCDetails","-XX:+PrintGCApplicationStoppedTime","-XX:+UseGCLogFileRotation","-XX:NumberOfGCLogFiles=5","-XX:GCLogFileSize=64m"]
   extraOpts: []
 
 options:
