@@ -2,7 +2,7 @@
 ## This is a YAML-formatted file.
 ## Declare variables to be passed into your templates.
 
-version: 0.7.0
+version: 0.9.0
 
 image:
   repository: pravega/bookkeeper
@@ -57,8 +57,11 @@ storage:
 jvmOptions:
   memoryOpts: ["-Xms1g", "-XX:MaxDirectMemorySize=2g"]
   gcOpts: []
-  gcLoggingOpts: []
-  extraOpts: []
+  ## GC logging for Java 9+
+  gcLoggingOpts: ["-Xlog:gc*,safepoint::time,level,tags:filecount=5,filesize=64m"]
+  ## GC logging for Java 8
+  # gcLoggingOpts: ["-XX:+PrintGCDetails","-XX:+PrintGCApplicationStoppedTime","-XX:+UseGCLogFileRotation","-XX:NumberOfGCLogFiles=5","-XX:GCLogFileSize=64m"]
+  extraOpts: ["-XX:+IgnoreUnrecognizedVMOptions"]
 
 options:
   useHostNameAsBookieID: "true"

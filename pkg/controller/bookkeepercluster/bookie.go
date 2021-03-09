@@ -319,7 +319,7 @@ func MakeBookieConfigMap(bk *v1alpha1.BookkeeperCluster) *corev1.ConfigMap {
 		"-XX:HeapDumpPath=" + heapDumpDir,
 		"-XX:+UnlockExperimentalVMOptions",
 		"-XX:+UseContainerSupport",
-		"-XX:MaxRAMFraction=2",
+		"-XX:MaxRAMPercentage=50.0",
 	}
 
 	memoryOpts = util.OverrideDefaultJVMOptions(memoryOpts, bk.Spec.JVMOptions.MemoryOpts)
@@ -338,15 +338,10 @@ func MakeBookieConfigMap(bk *v1alpha1.BookkeeperCluster) *corev1.ConfigMap {
 	}
 	gcOpts = util.OverrideDefaultJVMOptions(gcOpts, bk.Spec.JVMOptions.GcOpts)
 
-	gcLoggingOpts := []string{
-		"-XX:+PrintGCDetails",
-		"-XX:+PrintGCDateStamps",
-		"-XX:+PrintGCApplicationStoppedTime",
-		"-XX:+UseGCLogFileRotation",
-		"-XX:NumberOfGCLogFiles=5",
-		"-XX:GCLogFileSize=64m",
+	gcLoggingOpts := []string{}
+	if bk.Spec.JVMOptions.GcLoggingOpts != nil {
+		gcLoggingOpts = bk.Spec.JVMOptions.GcLoggingOpts
 	}
-	gcLoggingOpts = util.OverrideDefaultJVMOptions(gcLoggingOpts, bk.Spec.JVMOptions.GcLoggingOpts)
 
 	extraOpts := []string{}
 	if bk.Spec.JVMOptions.ExtraOpts != nil {

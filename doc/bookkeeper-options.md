@@ -46,11 +46,11 @@ Default memoryOpts:
 "-XX:+HeapDumpOnOutOfMemoryError",
 "-XX:HeapDumpPath=" + heapDumpDir,
 ```
-if BookKeeper version is greater or equal to 0.4, then the followings are also added to the default memoryOpts
+if BookKeeper version is greater or equal to 0.4, then the following options are also added to the default memoryOpts:
 ```
 "-XX:+UnlockExperimentalVMOptions",
 "-XX:+UseContainerSupport",
-"-XX:MaxRAMFraction=2"
+"-XX:MaxRAMPercentage=50.0"
 ```
 
 Default gcOpts:
@@ -67,7 +67,7 @@ Default gcOpts:
 "-XX:-ResizePLAB",
 ```
 
-Default gcLoggingOpts:
+Due to disruptive changes in GC Logging from Java 9, the BookKeeper operator code does not add any default gcLoggingOpts. The appropriate gcLoggingOpts can be provided based on the Java version used within the Bookkeeper version being deployed. If the Java version is 8 or lower, the following options can be provided:
 ```
 "-XX:+PrintGCDetails",
 "-XX:+PrintGCDateStamps",
@@ -75,6 +75,10 @@ Default gcLoggingOpts:
 "-XX:+UseGCLogFileRotation",
 "-XX:NumberOfGCLogFiles=5",
 "-XX:GCLogFileSize=64m",
+```
+however, if the BookKeeper version uses Java 9 or higher, the following option should be provided to the gcLoggingOpts instead:
+```
+"-Xlog:gc*,safepoint::time,level,tags:filecount=5,filesize=64m"
 ```
 
 ### BookKeeper Custom Configuration

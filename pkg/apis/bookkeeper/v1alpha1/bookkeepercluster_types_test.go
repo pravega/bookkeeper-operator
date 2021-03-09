@@ -58,8 +58,8 @@ var _ = Describe("BookkeeperCluster Types Spec", func() {
 			Ω(bk.Spec.ZookeeperUri).Should(Equal("zookeeper-client:2181"))
 		})
 
-		It("should set version to 0.7.0", func() {
-			Ω(bk.Spec.Version).Should(Equal("0.7.0"))
+		It("should set version to 0.9.0", func() {
+			Ω(bk.Spec.Version).Should(Equal("0.9.0"))
 		})
 
 	})
@@ -267,7 +267,8 @@ var _ = Describe("BookkeeperCluster Types Spec", func() {
 			file1.WriteString("0.6.2:0.6.2,0.7.0,0.7.1 \n")
 			file1.WriteString("0.7.0:0.7.0,0.7.1 \n")
 			file1.WriteString("0.7.1:0.7.1 \n")
-			file1.WriteString("0.7.2:0.7.1 \n")
+			file1.WriteString("0.7.2:0.7.2 \n")
+			file1.WriteString("0.9.0:0.9.0 \n")
 		})
 		Context("Spec version empty", func() {
 			var (
@@ -298,7 +299,7 @@ var _ = Describe("BookkeeperCluster Types Spec", func() {
 				err error
 			)
 			BeforeEach(func() {
-				bk.Spec.Version = "0.9.0"
+				bk.Spec.Version = "0.7.5"
 				err = bk.ValidateBookkeeperVersion("filename")
 			})
 			It("should return error", func() {

@@ -3,7 +3,7 @@ kind: "BookkeeperCluster"
 metadata:
   name: "bookkeeper"
 spec:
-  version: 0.7.0
+  version: 0.9.0
   zookeeperUri: zookeeper-client:2181
 
   image:
@@ -63,5 +63,5 @@ spec:
   jvmOptions:
     memoryOpts: ["-Xms2g", "-XX:MaxDirectMemorySize=2g"]
     gcOpts: ["-XX:MaxGCPauseMillis=20"]
-    gcLoggingOpts: ["-XX:NumberOfGCLogFiles=10"]
-    extraOpts: []
+    gcLoggingOpts: ["-Xlog:gc*,safepoint::time,level,tags:filecount=5,filesize=64m"]
+    extraOpts: ["-XX:+IgnoreUnrecognizedVMOptions"]
