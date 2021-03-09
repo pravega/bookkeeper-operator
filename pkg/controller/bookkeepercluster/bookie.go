@@ -117,6 +117,7 @@ func makeBookiePodSpec(bk *v1alpha1.BookkeeperCluster) *corev1.PodSpec {
 
 	var ledgerDirs, journalDirs, indexDirs []string
 	var ledgerSubPath, journalSubPath, indexSubPath string
+	var extraVolumeMounts []string
 	var ok bool
 
 	if _, ok = bk.Spec.Options["ledgerDirectories"]; ok {
@@ -158,6 +159,33 @@ func makeBookiePodSpec(bk *v1alpha1.BookkeeperCluster) *corev1.PodSpec {
 		indexSubPath = IndexDiskName
 	}
 
+	if _, ok = bk.Spec.Options["extraVolumeMounts"]; ok {
+		extraVolumeMounts = strings.Split(bk.Spec.Options["extraVolumeMounts"], ",")
+	}
+
+	var volumes []corev1.Volume
+	if len(extraVolumeMounts) > 1 {
+		for _, vm := range extraVolumeMounts {
+			s := strings.Split(vm, "=")
+			v := corev1.Volume{
+				Name: s[0],
+				VolumeSource: corev1.VolumeSource{
+					HostPath: &corev1.HostPathVolumeSource{
+						Path: s[1],
+					},
+				},
+			}
+			volumes = append(volumes, v)
+		}
+	}
+	v := corev1.Volume{
+		Name: heapDumpName,
+		VolumeSource: corev1.VolumeSource{
+			EmptyDir: &corev1.EmptyDirVolumeSource{},
+		},
+	}
+	volumes = append(volumes, v)
+
 	podSpec := &corev1.PodSpec{
 		Containers: []corev1.Container{
 			{
@@ -171,7 +199,7 @@ func makeBookiePodSpec(bk *v1alpha1.BookkeeperCluster) *corev1.PodSpec {
 					},
 				},
 				EnvFrom:      environment,
-				VolumeMounts: createVolumeMount(ledgerDirs, journalDirs, indexDirs, ledgerSubPath, journalSubPath, indexSubPath),
+				VolumeMounts: createVolumeMount(ledgerDirs, journalDirs, indexDirs, ledgerSubPath, journalSubPath, indexSubPath, extraVolumeMounts),
 				Resources:    *bk.Spec.Resources,
 				ReadinessProbe: &corev1.Probe{
 					Handler: corev1.Handler{
@@ -205,14 +233,7 @@ func makeBookiePodSpec(bk *v1alpha1.BookkeeperCluster) *corev1.PodSpec {
 			},
 		},
 		Affinity: util.PodAntiAffinity("bookie", bk.Name),
-		Volumes: []corev1.Volume{
-			{
-				Name: heapDumpName,
-				VolumeSource: corev1.VolumeSource{
-					EmptyDir: &corev1.EmptyDirVolumeSource{},
-				},
-			},
-		},
+		Volumes:  volumes,
 	}
 
 	if bk.Spec.ServiceAccountName != "" {
@@ -222,7 +243,7 @@ func makeBookiePodSpec(bk *v1alpha1.BookkeeperCluster) *corev1.PodSpec {
 	return podSpec
 }
 
-func createVolumeMount(ledgerDirs []string, journalDirs []string, indexDirs []string, ledgerSubPath string, journalSubPath string, indexSubPath string) []corev1.VolumeMount {
+func createVolumeMount(ledgerDirs []string, journalDirs []string, indexDirs []string, ledgerSubPath string, journalSubPath string, indexSubPath string, extraVolumeMounts []string) []corev1.VolumeMount {
 	var volumeMounts []corev1.VolumeMount
 	if len(ledgerDirs) > 1 {
 		for i, ledger := range ledgerDirs {
@@ -280,6 +301,16 @@ func createVolumeMount(ledgerDirs []string, journalDirs []string, indexDirs []st
 		MountPath: heapDumpDir,
 	}
 	volumeMounts = append(volumeMounts, v)
+	if len(extraVolumeMounts) > 1 {
+		for _, vm := range extraVolumeMounts {
+			s := strings.Split(vm, "=")
+			v := corev1.VolumeMount{
+				Name:      s[0],
+				MountPath: s[1],
+			}
+			volumeMounts = append(volumeMounts, v)
+		}
+	}
 	return volumeMounts
 }
 

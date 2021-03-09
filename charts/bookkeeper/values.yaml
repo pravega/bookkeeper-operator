@@ -84,3 +84,4 @@ options:
   ## Only use these parameters if you want Bookkeeper to publish metrics (via Prometheus).
   # enableStatistics: "true"
   # statsProviderClass: "org.apache.bookkeeper.stats.prometheus.PrometheusMetricsProvider"
+  # extraVolumeMounts: "foo=/tmp/foo,bar=/tmp/bar"
