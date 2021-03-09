@@ -11,10 +11,10 @@
 package e2e
 
 import (
-	"testing"
 	. "github.com/onsi/gomega"
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
 	bookkeeper_e2eutil "github.com/pravega/bookkeeper-operator/pkg/test/e2e/e2eutil"
+	"testing"
 )
 
 func testMultiBKCluster(t *testing.T) {

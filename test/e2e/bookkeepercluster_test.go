@@ -62,7 +62,7 @@ func testBookkeeperCluster(t *testing.T) {
 		"testMultiBKCluster":        testMultiBKCluster,
 		"testScaleCluster":          testScaleCluster,
 		"testUpgradeCluster":        testUpgradeCluster,
-		"testRollbackCluster":			 	testRollbackCluster,
+		"testRollbackCluster":       testRollbackCluster,
 		"testWebhook":               testWebhook,
 		"testCMUpgradeCluster":      testCMUpgradeCluster,
 	}
