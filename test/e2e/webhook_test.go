@@ -36,7 +36,7 @@ func testWebhook(t *testing.T) {
 	invalidVersion := bookkeeper_e2eutil.NewClusterWithVersion(namespace, "99.0.0")
 	invalidVersion.WithDefaults()
 	_, err = bookkeeper_e2eutil.CreateBKCluster(t, f, ctx, invalidVersion)
-	g.Expect(err).To(HaveOccurred(), "failed to reject request with unsupported version")
+	g.Expect(err).To(HaveOccurred(), "Should reject deployment of unsupported version")
 	g.Expect(err.Error()).To(ContainSubstring("unsupported Bookkeeper cluster version 99.0.0"))
 
 	// Test webhook with a supported Bookkeeper cluster version
@@ -55,8 +55,14 @@ func testWebhook(t *testing.T) {
 
 	bookkeeper.Spec.Version = "99.0.0"
 	err = bookkeeper_e2eutil.UpdateBKCluster(t, f, ctx, bookkeeper)
-	g.Expect(err).To(HaveOccurred(), "failed to reject request with unsupported version")
+	g.Expect(err).To(HaveOccurred(), "Should reject upgrade to an unsupported version")
 	g.Expect(err.Error()).To(ContainSubstring("unsupported Bookkeeper cluster version 99.0.0"))
+
+	// Try to downgrade the cluster
+	bookkeeper.Spec.Version = "0.5.0"
+	err = bookkeeper_e2eutil.UpdateBKCluster(t, f, ctx, bookkeeper)
+	g.Expect(err).To(HaveOccurred(), "Should not allow downgrade")
+	g.Expect(err.Error()).To(ContainSubstring("unsupported upgrade from version 0.6.0 to 0.5.0"))
 
 	// Delete cluster
 	err = bookkeeper_e2eutil.DeleteBKCluster(t, f, ctx, bookkeeper)
