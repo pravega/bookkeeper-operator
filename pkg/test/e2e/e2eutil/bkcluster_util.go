@@ -216,7 +216,7 @@ func WaitForBookkeeperClusterToBecomeReady(t *testing.T, f *framework.Framework,
 	err := wait.Poll(RetryInterval, ReadyTimeout, func() (done bool, err error) {
 		cluster, err := GetBKCluster(t, f, ctx, b)
 		fmt.Println("Printing the cluster")
-		fmt.Printf("%+v",cluster)
+		fmt.Printf("%+v", cluster)
 		if err != nil {
 			return false, err
 		}
