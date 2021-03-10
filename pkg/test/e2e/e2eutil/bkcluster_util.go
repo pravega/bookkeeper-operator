@@ -209,14 +209,13 @@ func GetBKCluster(t *testing.T, f *framework.Framework, ctx *framework.TestCtx, 
 	return bookkeeper, nil
 }
 
-// WaitForBooClusterToBecomeReady will wait until all Bookkeeper cluster pods are ready
+// WaitForBookkeeperClusterToBecomeReady will wait until all Bookkeeper cluster pods are ready
 func WaitForBookkeeperClusterToBecomeReady(t *testing.T, f *framework.Framework, ctx *framework.TestCtx, b *bkapi.BookkeeperCluster, size int) error {
 	t.Logf("waiting for cluster pods to become ready: %s", b.Name)
 
 	err := wait.Poll(RetryInterval, ReadyTimeout, func() (done bool, err error) {
 		cluster, err := GetBKCluster(t, f, ctx, b)
-		fmt.Println("Printing the cluster")
-		fmt.Printf("%+v", cluster)
+
 		if err != nil {
 			return false, err
 		}

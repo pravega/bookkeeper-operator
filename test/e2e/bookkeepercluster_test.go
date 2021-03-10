@@ -57,8 +57,8 @@ func testBookkeeperCluster(t *testing.T) {
 	}
 
 	testFuncs := map[string]func(t *testing.T){
-		"testDeletePods": testDeletePods,
-		// "testCreateRecreateCluster": testCreateRecreateCluster,
+		// "testDeletePods": testDeletePods,
+		"testCreateRecreateCluster": testCreateRecreateCluster,
 		// "testMultiBKCluster":        testMultiBKCluster,
 		// "testScaleCluster":          testScaleCluster,
 		// "testUpgradeCluster":        testUpgradeCluster,
