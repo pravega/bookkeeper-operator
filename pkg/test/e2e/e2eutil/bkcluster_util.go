@@ -221,8 +221,8 @@ func WaitForBookkeeperClusterToBecomeReady(t *testing.T, f *framework.Framework,
 		podList, err := f.KubeClient.CoreV1().Pods(b.Namespace).List(listOptions)
 		for i := range podList.Items {
 			pod := &podList.Items[i]
-			fmt.Printf("Pod name is %s \n",pod.Name)
-			fmt.Printf("%+v",pod)
+			fmt.Printf("Pod name is %s \n", pod.Name)
+			fmt.Printf("%+v", pod)
 		}
 
 		if err != nil {
