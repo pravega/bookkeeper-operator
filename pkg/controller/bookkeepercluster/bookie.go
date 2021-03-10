@@ -28,7 +28,6 @@ const (
 	LedgerDiskName  = "ledger"
 	JournalDiskName = "journal"
 	IndexDiskName   = "index"
-	heapDumpName    = "heap-dump"
 	heapDumpDir     = "/tmp/dumpfile/heap"
 )
 
@@ -117,7 +116,8 @@ func makeBookiePodSpec(bk *v1alpha1.BookkeeperCluster) *corev1.PodSpec {
 
 	var ledgerDirs, journalDirs, indexDirs []string
 	var ledgerSubPath, journalSubPath, indexSubPath string
-	var extraVolumeMounts []string
+	var hostPathVolumeMounts []string
+	var emptyDirVolumeMounts []string
 	var ok bool
 
 	if _, ok = bk.Spec.Options["ledgerDirectories"]; ok {
@@ -159,13 +159,15 @@ func makeBookiePodSpec(bk *v1alpha1.BookkeeperCluster) *corev1.PodSpec {
 		indexSubPath = IndexDiskName
 	}
 
-	if _, ok = bk.Spec.Options["extraVolumeMounts"]; ok {
-		extraVolumeMounts = strings.Split(bk.Spec.Options["extraVolumeMounts"], ",")
+	if _, ok = bk.Spec.Options["hostPathVolumeMounts"]; ok {
+		hostPathVolumeMounts = strings.Split(bk.Spec.Options["hostPathVolumeMounts"], ",")
 	}
-
+	if _, ok = bk.Spec.Options["emptyDirVolumeMounts"]; ok {
+		emptyDirVolumeMounts = strings.Split(bk.Spec.Options["emptyDirVolumeMounts"], ",")
+	}
 	var volumes []corev1.Volume
-	if len(extraVolumeMounts) > 1 {
-		for _, vm := range extraVolumeMounts {
+	if len(hostPathVolumeMounts) > 1 {
+		for _, vm := range hostPathVolumeMounts {
 			s := strings.Split(vm, "=")
 			v := corev1.Volume{
 				Name: s[0],
@@ -178,13 +180,18 @@ func makeBookiePodSpec(bk *v1alpha1.BookkeeperCluster) *corev1.PodSpec {
 			volumes = append(volumes, v)
 		}
 	}
-	v := corev1.Volume{
-		Name: heapDumpName,
-		VolumeSource: corev1.VolumeSource{
-			EmptyDir: &corev1.EmptyDirVolumeSource{},
-		},
+	if len(emptyDirVolumeMounts) > 1 {
+		for _, vm := range emptyDirVolumeMounts {
+			s := strings.Split(vm, "=")
+			v := corev1.Volume{
+				Name: s[0],
+				VolumeSource: corev1.VolumeSource{
+					EmptyDir: &corev1.EmptyDirVolumeSource{},
+				},
+			}
+			volumes = append(volumes, v)
+		}
 	}
-	volumes = append(volumes, v)
 
 	podSpec := &corev1.PodSpec{
 		Containers: []corev1.Container{
@@ -199,7 +206,7 @@ func makeBookiePodSpec(bk *v1alpha1.BookkeeperCluster) *corev1.PodSpec {
 					},
 				},
 				EnvFrom:      environment,
-				VolumeMounts: createVolumeMount(ledgerDirs, journalDirs, indexDirs, ledgerSubPath, journalSubPath, indexSubPath, extraVolumeMounts),
+				VolumeMounts: createVolumeMount(ledgerDirs, journalDirs, indexDirs, ledgerSubPath, journalSubPath, indexSubPath, hostPathVolumeMounts, emptyDirVolumeMounts),
 				Resources:    *bk.Spec.Resources,
 				ReadinessProbe: &corev1.Probe{
 					Handler: corev1.Handler{
@@ -243,7 +250,7 @@ func makeBookiePodSpec(bk *v1alpha1.BookkeeperCluster) *corev1.PodSpec {
 	return podSpec
 }
 
-func createVolumeMount(ledgerDirs []string, journalDirs []string, indexDirs []string, ledgerSubPath string, journalSubPath string, indexSubPath string, extraVolumeMounts []string) []corev1.VolumeMount {
+func createVolumeMount(ledgerDirs []string, journalDirs []string, indexDirs []string, ledgerSubPath string, journalSubPath string, indexSubPath string, hostPathVolumeMounts []string, emptyDirVolumeMounts []string) []corev1.VolumeMount {
 	var volumeMounts []corev1.VolumeMount
 	if len(ledgerDirs) > 1 {
 		for i, ledger := range ledgerDirs {
@@ -296,13 +303,18 @@ func createVolumeMount(ledgerDirs []string, journalDirs []string, indexDirs []st
 		}
 		volumeMounts = append(volumeMounts, v)
 	}
-	v := corev1.VolumeMount{
-		Name:      heapDumpName,
-		MountPath: heapDumpDir,
+	if len(hostPathVolumeMounts) > 1 {
+		for _, vm := range hostPathVolumeMounts {
+			s := strings.Split(vm, "=")
+			v := corev1.VolumeMount{
+				Name:      s[0],
+				MountPath: s[1],
+			}
+			volumeMounts = append(volumeMounts, v)
+		}
 	}
-	volumeMounts = append(volumeMounts, v)
-	if len(extraVolumeMounts) > 1 {
-		for _, vm := range extraVolumeMounts {
+	if len(emptyDirVolumeMounts) > 1 {
+		for _, vm := range emptyDirVolumeMounts {
 			s := strings.Split(vm, "=")
 			v := corev1.VolumeMount{
 				Name:      s[0],
