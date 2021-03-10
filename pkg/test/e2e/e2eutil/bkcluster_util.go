@@ -215,6 +215,15 @@ func WaitForBookkeeperClusterToBecomeReady(t *testing.T, f *framework.Framework,
 
 	err := wait.Poll(RetryInterval, ReadyTimeout, func() (done bool, err error) {
 		cluster, err := GetBKCluster(t, f, ctx, b)
+		listOptions := metav1.ListOptions{
+			LabelSelector: labels.SelectorFromSet(map[string]string{"bookkeeper_cluster": b.GetName()}).String(),
+		}
+		podList, err := f.KubeClient.CoreV1().Pods(b.Namespace).List(listOptions)
+		for i := range podList.Items {
+			pod := &podList.Items[i]
+			fmt.Printf("Pod name is %s \n",pod.Name)
+			fmt.Printf("%+v",pod)
+		}
 
 		if err != nil {
 			return false, err
