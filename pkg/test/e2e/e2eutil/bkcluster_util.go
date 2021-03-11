@@ -219,10 +219,19 @@ func WaitForBookkeeperClusterToBecomeReady(t *testing.T, f *framework.Framework,
 			LabelSelector: labels.SelectorFromSet(map[string]string{"bookkeeper_cluster": b.GetName()}).String(),
 		}
 		podList, err := f.KubeClient.CoreV1().Pods(b.Namespace).List(listOptions)
+		cm := &corev1.ConfigMap{}
+		name := util.ConfigMapNameForBookie(b.Name)
+		err = f.Client.Get(goctx.TODO(), types.NamespacedName{Namespace: b.Namespace, Name: name}, cm)
+		if err != nil {
+			fmt.Println("Printing configmap data")
+			fmt.Printf("%+v", cm)
+		}
 		for i := range podList.Items {
 			pod := &podList.Items[i]
+			fmt.Println()
 			fmt.Printf("Pod name is %s \n", pod.Name)
 			fmt.Printf("%+v", pod)
+			fmt.Println()
 		}
 
 		if err != nil {
