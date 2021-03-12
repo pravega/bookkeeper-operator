@@ -28,6 +28,7 @@ const (
 	LedgerDiskName  = "ledger"
 	JournalDiskName = "journal"
 	IndexDiskName   = "index"
+	heapDumpName    = "heap-dump"
 	heapDumpDir     = "/tmp/dumpfile/heap"
 )
 
@@ -191,6 +192,15 @@ func makeBookiePodSpec(bk *v1alpha1.BookkeeperCluster) *corev1.PodSpec {
 			}
 			volumes = append(volumes, v)
 		}
+	} else {
+		// if user did not set emptyDirVolumeMounts
+		v := corev1.Volume{
+			Name: heapDumpName,
+			VolumeSource: corev1.VolumeSource{
+				EmptyDir: &corev1.EmptyDirVolumeSource{},
+			},
+		}
+		volumes = append(volumes, v)
 	}
 
 	podSpec := &corev1.PodSpec{
@@ -322,6 +332,13 @@ func createVolumeMount(ledgerDirs []string, journalDirs []string, indexDirs []st
 			}
 			volumeMounts = append(volumeMounts, v)
 		}
+	} else {
+		// if user did not set emptyDirVolumeMounts
+		v := corev1.VolumeMount{
+			Name:      heapDumpName,
+			MountPath: heapDumpDir,
+		}
+		volumeMounts = append(volumeMounts, v)
 	}
 	return volumeMounts
 }
