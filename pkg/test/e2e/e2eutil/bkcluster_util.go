@@ -26,6 +26,7 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
+	"k8s.io/client-go/kubernetes"
 )
 
 var (
@@ -235,6 +236,16 @@ func WaitForBookkeeperClusterToBecomeReady(t *testing.T, f *framework.Framework,
 			fmt.Printf("Pod name is %s \n", pod.Name)
 			fmt.Printf("%+v", pod)
 			fmt.Println()
+			fmt.Printf("Printing pod logs")
+			fmt.Println()
+			l, err := GetLogs(f.KubeClient, b.Namespace, pod.Name, "bookie")
+			if err != nil {
+				fmt.Println("Failed to retrieve logs for pod ", pod.Name)
+				fmt.Println(err)
+			} else {
+				fmt.Printf("%s", l)
+				fmt.Println()
+			}
 		}
 
 		if err != nil {
@@ -433,4 +444,18 @@ func WaitForBKClusterToRollback(t *testing.T, f *framework.Framework, ctx *frame
 
 	t.Logf("bookkeeper cluster rolled back: %s", b.Name)
 	return nil
+}
+
+func GetLogs(kubeClient kubernetes.Interface, namespace string, podName, containerName string) (string, error) {
+	logs, err := kubeClient.CoreV1().RESTClient().Get().
+		Resource("pods").
+		Namespace(namespace).
+		Name(podName).SubResource("log").
+		Param("container", containerName).
+		Do().
+		Raw()
+	if err != nil {
+		return "", err
+	}
+	return string(logs), err
 }
