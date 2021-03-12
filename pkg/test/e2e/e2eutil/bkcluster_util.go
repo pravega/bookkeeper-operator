@@ -223,8 +223,11 @@ func WaitForBookkeeperClusterToBecomeReady(t *testing.T, f *framework.Framework,
 		name := util.ConfigMapNameForBookie(b.Name)
 		err = f.Client.Get(goctx.TODO(), types.NamespacedName{Namespace: b.Namespace, Name: name}, cm)
 		if err != nil {
-			fmt.Println("Printing configmap data")
+			fmt.Println("Printing configmap data for ", name)
 			fmt.Printf("%+v", cm)
+		} else {
+			fmt.Println("Error retrieving configmap data for ", name)
+			fmt.Printf("%+v", err)
 		}
 		for i := range podList.Items {
 			pod := &podList.Items[i]
