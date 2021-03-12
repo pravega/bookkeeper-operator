@@ -448,9 +448,10 @@ func WaitForBKClusterToRollback(t *testing.T, f *framework.Framework, ctx *frame
 
 func GetLogs(kubeClient kubernetes.Interface, namespace string, podName, containerName string) (string, error) {
 	logs, err := kubeClient.CoreV1().RESTClient().Get().
-		Resource("pods").
 		Namespace(namespace).
-		Name(podName).SubResource("log").
+		Name(podName).
+		Resource("pods").
+		SubResource("log").
 		Param("container", containerName).
 		Do().
 		Raw()

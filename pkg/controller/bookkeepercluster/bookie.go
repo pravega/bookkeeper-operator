@@ -388,7 +388,6 @@ func MakeBookieConfigMap(bk *v1alpha1.BookkeeperCluster) *corev1.ConfigMap {
 		"-XX:+UseG1GC",
 		"-XX:MaxGCPauseMillis=10",
 		"-XX:+ParallelRefProcEnabled",
-		"-XX:+AggressiveOpts",
 		"-XX:+DoEscapeAnalysis",
 		"-XX:ParallelGCThreads=32",
 		"-XX:ConcGCThreads=32",
