@@ -81,9 +81,11 @@ var _ = Describe("Bookie", func() {
 						},
 					},
 					Options: map[string]string{
-						"journalDirectories": "/bk/journal/j0,/bk/journal/j1,/bk/journal/j2,/bk/journal/j3",
-						"ledgerDirectories":  "/bk/ledgers/l0,/bk/ledgers/l1,/bk/ledgers/l2,/bk/ledgers/l3",
-						"indexDirectories":   "/bk/index/i0,/bk/index/i1",
+						"journalDirectories":   "/bk/journal/j0,/bk/journal/j1,/bk/journal/j2,/bk/journal/j3",
+						"ledgerDirectories":    "/bk/ledgers/l0,/bk/ledgers/l1,/bk/ledgers/l2,/bk/ledgers/l3",
+						"indexDirectories":     "/bk/index/i0,/bk/index/i1",
+						"hostPathVolumeMounts": "foo=/tmp/foo,bar=/tmp/bar",
+						"emptyDirVolumeMounts": "baz=/tmp/baz,quux=/tmp/quux",
 					},
 				}
 				bk.WithDefaults()
@@ -131,6 +133,22 @@ var _ = Describe("Bookie", func() {
 					mountindex1 := sts.Spec.Template.Spec.Containers[0].VolumeMounts[9].MountPath
 					Ω(mountindex0).Should(Equal("/bk/index/i0"))
 					Ω(mountindex1).Should(Equal("/bk/index/i1"))
+				})
+
+				It("should have hostPathVolumeMounts set to the values given by user", func() {
+					sts := bookkeepercluster.MakeBookieStatefulSet(bk)
+					mounthostpath0 := sts.Spec.Template.Spec.Containers[0].VolumeMounts[10].MountPath
+					mounthostpath1 := sts.Spec.Template.Spec.Containers[0].VolumeMounts[11].MountPath
+					Ω(mounthostpath0).Should(Equal("/tmp/foo"))
+					Ω(mounthostpath1).Should(Equal("/tmp/bar"))
+				})
+
+				It("should have emptyDirVolumeMounts set to the values given by user", func() {
+					sts := bookkeepercluster.MakeBookieStatefulSet(bk)
+					mounthostpath0 := sts.Spec.Template.Spec.Containers[0].VolumeMounts[12].MountPath
+					mounthostpath1 := sts.Spec.Template.Spec.Containers[0].VolumeMounts[13].MountPath
+					Ω(mounthostpath0).Should(Equal("/tmp/baz"))
+					Ω(mounthostpath1).Should(Equal("/tmp/quux"))
 				})
 
 				It("should have probe timeout values set to the values given by user", func() {
@@ -190,6 +208,11 @@ var _ = Describe("Bookie", func() {
 					Ω(mountjournal).Should(Equal("/bk/journal"))
 					indexjournal := sts.Spec.Template.Spec.Containers[0].VolumeMounts[2].MountPath
 					Ω(indexjournal).Should(Equal("/bk/index"))
+				})
+				It("should have emptyDirVolumeMounts set to default value", func() {
+					sts := bookkeepercluster.MakeBookieStatefulSet(bk)
+					mountledger := sts.Spec.Template.Spec.Containers[0].VolumeMounts[3].MountPath
+					Ω(mountledger).Should(Equal("/tmp/dumpfile/heap"))
 				})
 
 				It("should have probe timeout values set to their default value", func() {
