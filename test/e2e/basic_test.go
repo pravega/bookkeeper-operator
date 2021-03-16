@@ -33,6 +33,10 @@ func testCreateRecreateCluster(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 	f := framework.Global
 
+	//creating the setup for running the test
+	err = bookkeeper_e2eutil.InitialSetup(t, f, ctx, namespace)
+	g.Expect(err).NotTo(HaveOccurred())
+
 	defaultCluster := bookkeeper_e2eutil.NewDefaultCluster(namespace)
 	defaultCluster.WithDefaults()
 
@@ -48,6 +52,10 @@ func testCreateRecreateCluster(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 
 	err = bookkeeper_e2eutil.WaitForBKClusterToTerminate(t, f, ctx, bookkeeper)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	//creating the setup for running the test
+	err = bookkeeper_e2eutil.InitialSetup(t, f, ctx, namespace)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	defaultCluster = bookkeeper_e2eutil.NewDefaultCluster(namespace)

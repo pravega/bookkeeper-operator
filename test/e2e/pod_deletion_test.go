@@ -34,6 +34,10 @@ func testDeletePods(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 	f := framework.Global
 
+	//creating the setup for running the test
+	err = bookkeeper_e2eutil.InitialSetup(t, f, ctx, namespace)
+	g.Expect(err).NotTo(HaveOccurred())
+
 	cluster := bookkeeper_e2eutil.NewDefaultCluster(namespace)
 
 	cluster.WithDefaults()
