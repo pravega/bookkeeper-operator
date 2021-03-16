@@ -12,9 +12,11 @@ package apis
 
 import (
 	"github.com/pravega/bookkeeper-operator/pkg/apis/bookkeeper/v1alpha1"
+	zkapi "github.com/pravega/zookeeper-operator/pkg/apis/zookeeper/v1beta1"
 )
 
 func init() {
 	// Register the types with the Scheme so the components can map objects to GroupVersionKinds and back
 	AddToSchemes = append(AddToSchemes, v1alpha1.SchemeBuilder.AddToScheme)
+	AddToSchemes = append(AddToSchemes, zkapi.SchemeBuilder.AddToScheme)
 }
