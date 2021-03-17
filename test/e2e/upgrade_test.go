@@ -40,7 +40,6 @@ func testUpgradeCluster(t *testing.T) {
 	firstUpgradeVersion := "0.7.0"
 	secondUpgradeVersion := "0.7.1"
 	cluster.Spec.Version = initialVersion
-	cluster.Spec.Image.Repository = "devops-repo.isus.emc.com:8116/nautilus/bookkeeper"
 	cluster.Spec.Image.PullPolicy = "IfNotPresent"
 
 	bookkeeper, err := bookkeeper_e2eutil.CreateBKCluster(t, f, ctx, cluster)

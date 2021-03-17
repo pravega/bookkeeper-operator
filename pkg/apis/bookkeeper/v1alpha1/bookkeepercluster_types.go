@@ -45,7 +45,7 @@ const (
 
 	// DefaultBookkeeperVersion is the default tag used for for the BookKeeper
 	// Docker image
-	DefaultBookkeeperVersion = "0.7.0"
+	DefaultBookkeeperVersion = "0.9.0"
 	// DefaultBookkeeperImageRepository is the default Docker repository for
 
 	// the BookKeeper image
@@ -89,7 +89,7 @@ const (
 
 	// DefaultReadinessProbePeriodSeconds is the default probe period (in seconds)
 	// for the readiness probe
-	DefaultReadinessProbePeriodSeconds = 10
+	DefaultReadinessProbePeriodSeconds = 15
 
 	// DefaultReadinessProbeFailureThreshold is the default probe failure threshold
 	// for the readiness probe
@@ -101,7 +101,7 @@ const (
 
 	// DefaultReadinessProbeTimeoutSeconds is the default probe timeout (in seconds)
 	// for the readiness probe
-	DefaultReadinessProbeTimeoutSeconds = 5
+	DefaultReadinessProbeTimeoutSeconds = 10
 
 	// DefaultLivenessProbeInitialDelaySeconds is the default initial delay (in seconds)
 	// for the liveness probe

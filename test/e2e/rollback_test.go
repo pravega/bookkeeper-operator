@@ -43,7 +43,6 @@ func testRollbackCluster(t *testing.T) {
 	firstUpgradeVersion := "0.7.0-1" // incorrect version
 	secondUpgradeVersion := "0.5.0"
 	cluster.Spec.Version = initialVersion
-	cluster.Spec.Image.Repository = "pravega/bookkeeper"
 	cluster.Spec.Image.PullPolicy = "IfNotPresent"
 	bookkeeper, err := bookkeeper_e2eutil.CreateBKCluster(t, f, ctx, cluster)
 	g.Expect(err).NotTo(HaveOccurred())

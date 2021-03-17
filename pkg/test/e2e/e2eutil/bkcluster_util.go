@@ -42,20 +42,6 @@ var (
 )
 
 func InitialSetup(t *testing.T, f *framework.Framework, ctx *framework.TestCtx, namespace string) error {
-	// b := &bkapi.BookkeeperCluster{}
-	// b.WithDefaults()
-	// b.Name = "bookkeeper"
-	// b.Namespace = namespace
-	// err := DeleteBKCluster(t, f, ctx, b)
-	// if err != nil {
-	// 	return err
-	// }
-	//
-	// err = WaitForBKClusterToTerminate(t, f, ctx, b)
-	// if err != nil {
-	// 	return err
-	// }
-
 	z := &zkapi.ZookeeperCluster{}
 	z.WithDefaults()
 	z.Name = "zookeeper"
@@ -83,19 +69,6 @@ func InitialSetup(t *testing.T, f *framework.Framework, ctx *framework.TestCtx, 
 	if err != nil {
 		return err
 	}
-	// b, err = CreateBKCluster(t, f, ctx, b)
-	// if err != nil {
-	// 	return err
-	// }
-	// err = WaitForBookkeeperClusterToBecomeReady(t, f, ctx, b, 3)
-	// if err != nil {
-	// 	return err
-	// }
-	// // A workaround for issue 93
-	// err = RestartTier2(t, f, ctx, namespace)
-	// if err != nil {
-	// 	return err
-	// }
 
 	return nil
 }
@@ -317,37 +290,6 @@ func WaitForBookkeeperClusterToBecomeReady(t *testing.T, f *framework.Framework,
 
 	err := wait.Poll(RetryInterval, ReadyTimeout, func() (done bool, err error) {
 		cluster, err := GetBKCluster(t, f, ctx, b)
-		listOptions := metav1.ListOptions{
-			LabelSelector: labels.SelectorFromSet(map[string]string{"bookkeeper_cluster": b.GetName()}).String(),
-		}
-		podList, err := f.KubeClient.CoreV1().Pods(b.Namespace).List(listOptions)
-		cm := &corev1.ConfigMap{}
-		name := util.ConfigMapNameForBookie(b.Name)
-		err = f.Client.Get(goctx.TODO(), types.NamespacedName{Namespace: b.Namespace, Name: name}, cm)
-		if err != nil {
-			fmt.Println("Printing configmap data for ", name)
-			fmt.Printf("%+v", cm)
-		} else {
-			fmt.Println("Error retrieving configmap data for ", name)
-			fmt.Printf("%+v", err)
-		}
-		for i := range podList.Items {
-			pod := &podList.Items[i]
-			fmt.Println()
-			fmt.Printf("Pod name is %s \n", pod.Name)
-			fmt.Printf("%+v", pod)
-			fmt.Println()
-			fmt.Printf("Printing pod logs")
-			fmt.Println()
-			l, err := GetLogs(f.KubeClient, b.Namespace, pod.Name, "bookie")
-			if err != nil {
-				fmt.Println("Failed to retrieve logs for pod ", pod.Name)
-				fmt.Println(err)
-			} else {
-				fmt.Printf("%s", l)
-				fmt.Println()
-			}
-		}
 
 		if err != nil {
 			return false, err
