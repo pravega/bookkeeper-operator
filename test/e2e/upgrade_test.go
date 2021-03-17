@@ -11,6 +11,7 @@
 package e2e
 
 import (
+	"fmt"
 	"testing"
 
 	. "github.com/onsi/gomega"
@@ -68,6 +69,8 @@ func testUpgradeCluster(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 	bookkeeper.Spec.Version = secondUpgradeVersion
 	err = bookkeeper_e2eutil.UpdateBKCluster(t, f, ctx, bookkeeper)
+	fmt.Printf("\nBookkeeper cluster \n %+v", bookkeeper)
+	fmt.Printf("\n --- \nError \n%+v", err)
 	g.Expect(err).To(HaveOccurred(), "Should reject upgrade request while upgrade is in progress")
 	g.Expect(err.Error()).To(ContainSubstring("failed to process the request, cluster is upgrading"))
 
