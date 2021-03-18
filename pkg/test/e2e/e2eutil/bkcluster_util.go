@@ -540,32 +540,52 @@ func WaitForCMBKClusterToUpgrade(t *testing.T, f *framework.Framework, ctx *fram
 		start := time.Now()
 		for util.IsPodReady(pod) {
 			if time.Since(start) > 5*time.Minute {
-				return fmt.Errorf("failed to delete Segmentstore pod (%s) for 5 mins ", name)
+				return fmt.Errorf("failed to delete Bookkeeper pod (%s) for 5 mins ", name)
 			}
 			err = f.Client.Get(goctx.TODO(), types.NamespacedName{Namespace: b.Namespace, Name: name}, pod)
 		}
 	}
 
-	//Checking if all pods are in ready state
-	podList, err = f.KubeClient.CoreV1().Pods(b.Namespace).List(listOptions)
+	err = wait.Poll(RetryInterval, ReadyTimeout, func() (done bool, err error) {
+		cluster, err := GetBKCluster(t, f, ctx, b)
+
+		if err != nil {
+			return false, err
+		}
+
+		t.Logf("\twaiting for pods to become ready (%d/%d), pods (%v)", cluster.Status.ReadyReplicas, cluster.Spec.Replicas, cluster.Status.Members.Ready)
+
+		_, condition := cluster.Status.GetClusterCondition(bkapi.ClusterConditionPodsReady)
+		if condition != nil && condition.Status == corev1.ConditionTrue && cluster.Status.ReadyReplicas == cluster.Spec.Replicas {
+			return true, nil
+		}
+		return false, nil
+	})
+
+	// check whether PVCs have been reattached
+	pvcList, err := f.KubeClient.CoreV1().PersistentVolumeClaims(b.Namespace).List(listOptions)
 	if err != nil {
 		return err
 	}
 
-	for i := range podList.Items {
-		pod := &podList.Items[i]
-		name := pod.Name
-		t.Logf("waiting for pods to terminate, running pods (%v)", pod.Name)
-		err = f.Client.Get(goctx.TODO(), types.NamespacedName{Namespace: b.Namespace, Name: name}, pod)
-		start := time.Now()
-		for !util.IsPodReady(pod) {
-			if time.Since(start) > 5*time.Minute {
-				return fmt.Errorf("failed to delete Segmentstore pod (%s) for 5 mins ", name)
-			}
-			err = f.Client.Get(goctx.TODO(), types.NamespacedName{Namespace: b.Namespace, Name: name}, pod)
+	index, journal, ledger := int32(0), int32(0), int32(0)
+
+	for i := range pvcList.Items {
+		pvc := &pvcList.Items[i]
+		if strings.HasPrefix(pvc.Name, "index") {
+			index++
+		} else if strings.HasPrefix(pvc.Name, "journal") {
+			journal++
+		} else if strings.HasPrefix(pvc.Name, "ledger") {
+			ledger++
 		}
 	}
 
+	if index != b.Spec.Replicas || journal != b.Spec.Replicas || ledger != b.Spec.Replicas {
+		return fmt.Errorf("PVC count mismatch")
+	}
+
+	t.Logf("bookkeeper cluster updated: %s", b.Name)
 	return nil
 }
 

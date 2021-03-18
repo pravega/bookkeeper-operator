@@ -37,7 +37,10 @@ func testCMUpgradeCluster(t *testing.T) {
 	cluster := bookkeeper_e2eutil.NewDefaultCluster(namespace)
 
 	cluster.WithDefaults()
-
+	initialVersion := "0.6.0"
+	upgradeVersion := "0.7.0"
+	cluster.Spec.Version = initialVersion
+	cluster.Spec.Image.PullPolicy = "IfNotPresent"
 	cluster.Spec.Options["minorCompactionThreshold"] = "0.4"
 
 	bookkeeper, err := bookkeeper_e2eutil.CreateBKCluster(t, f, ctx, cluster)
@@ -51,6 +54,7 @@ func testCMUpgradeCluster(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 
 	//updating bookkeeper option
+	bookkeeper.Spec.Version = upgradeVersion
 	bookkeeper.Spec.Options["minorCompactionThreshold"] = "0.5"
 
 	//updating bookkeepercluster
