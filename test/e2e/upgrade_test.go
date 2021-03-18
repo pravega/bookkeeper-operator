@@ -11,7 +11,6 @@
 package e2e
 
 import (
-	"fmt"
 	"testing"
 	"time"
 
@@ -64,15 +63,13 @@ func testUpgradeCluster(t *testing.T) {
 	bookkeeper.Spec.Version = firstUpgradeVersion
 	err = bookkeeper_e2eutil.UpdateBKCluster(t, f, ctx, bookkeeper)
 	g.Expect(err).NotTo(HaveOccurred())
-	time.Sleep(5 * time.Second)
+	time.Sleep(2 * time.Second)
 
 	// trigger another upgrade while this upgrade is happening- it should fail
 	bookkeeper, err = bookkeeper_e2eutil.GetBKCluster(t, f, ctx, bookkeeper)
 	g.Expect(err).NotTo(HaveOccurred())
 	bookkeeper.Spec.Version = secondUpgradeVersion
 	err = bookkeeper_e2eutil.UpdateBKCluster(t, f, ctx, bookkeeper)
-	fmt.Printf("\nBookkeeper cluster \n %+v", bookkeeper)
-	fmt.Printf("\n --- \nError \n%+v", err)
 	g.Expect(err).To(HaveOccurred(), "Should reject upgrade request while upgrade is in progress")
 	g.Expect(err.Error()).To(ContainSubstring("failed to process the request, cluster is upgrading"))
 

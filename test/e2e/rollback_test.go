@@ -11,7 +11,6 @@
 package e2e
 
 import (
-	"fmt"
 	"testing"
 	"time"
 
@@ -87,6 +86,7 @@ func testRollbackCluster(t *testing.T) {
 	bookkeeper.Spec.Version = initialVersion
 	err = bookkeeper_e2eutil.UpdateBKCluster(t, f, ctx, bookkeeper)
 	g.Expect(err).NotTo(HaveOccurred())
+	time.Sleep(2 * time.Second)
 
 	// trigger another upgrade while the last rollback is still ongoing
 	// should be rejected by webhook
@@ -94,8 +94,6 @@ func testRollbackCluster(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 	bookkeeper.Spec.Version = secondUpgradeVersion
 	err = bookkeeper_e2eutil.UpdateBKCluster(t, f, ctx, bookkeeper)
-	fmt.Printf("\nBookkeeper cluster \n %+v", bookkeeper)
-	fmt.Printf("\n --- \nError \n%+v", err)
 	g.Expect(err).To(HaveOccurred(), "Should reject rollback request while rollback is in progress")
 	g.Expect(err.Error()).To(ContainSubstring("failed to process the request, rollback in progress"))
 
