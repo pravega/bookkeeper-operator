@@ -33,19 +33,13 @@ func testCreateRecreateCluster(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 	f := framework.Global
 
-	//creating the setup for running the test
-	err = bookkeeper_e2eutil.InitialSetup(t, f, ctx, namespace)
-	g.Expect(err).NotTo(HaveOccurred())
-
 	defaultCluster := bookkeeper_e2eutil.NewDefaultCluster(namespace)
 	defaultCluster.WithDefaults()
 
 	bookkeeper, err := bookkeeper_e2eutil.CreateBKCluster(t, f, ctx, defaultCluster)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	// A default Bookkeeper cluster
-	podSize := 3
-	err = bookkeeper_e2eutil.WaitForBookkeeperClusterToBecomeReady(t, f, ctx, bookkeeper, podSize)
+	err = bookkeeper_e2eutil.WaitForBookkeeperClusterToBecomeReady(t, f, ctx, bookkeeper)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	err = bookkeeper_e2eutil.DeleteBKCluster(t, f, ctx, bookkeeper)
@@ -54,17 +48,13 @@ func testCreateRecreateCluster(t *testing.T) {
 	err = bookkeeper_e2eutil.WaitForBKClusterToTerminate(t, f, ctx, bookkeeper)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	//creating the setup for running the test
-	err = bookkeeper_e2eutil.InitialSetup(t, f, ctx, namespace)
-	g.Expect(err).NotTo(HaveOccurred())
-
 	defaultCluster = bookkeeper_e2eutil.NewDefaultCluster(namespace)
 	defaultCluster.WithDefaults()
 
 	bookkeeper, err = bookkeeper_e2eutil.CreateBKCluster(t, f, ctx, defaultCluster)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	err = bookkeeper_e2eutil.WaitForBookkeeperClusterToBecomeReady(t, f, ctx, bookkeeper, podSize)
+	err = bookkeeper_e2eutil.WaitForBookkeeperClusterToBecomeReady(t, f, ctx, bookkeeper)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	err = bookkeeper_e2eutil.DeleteBKCluster(t, f, ctx, bookkeeper)

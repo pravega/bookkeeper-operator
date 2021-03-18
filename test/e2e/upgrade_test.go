@@ -46,9 +46,7 @@ func testUpgradeCluster(t *testing.T) {
 	bookkeeper, err := bookkeeper_e2eutil.CreateBKCluster(t, f, ctx, cluster)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	// A default Bookkeeper cluster should have 3 pods
-	podSize := 3
-	err = bookkeeper_e2eutil.WaitForBookkeeperClusterToBecomeReady(t, f, ctx, bookkeeper, podSize)
+	err = bookkeeper_e2eutil.WaitForBookkeeperClusterToBecomeReady(t, f, ctx, bookkeeper)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// This is to get the latest Bookkeeper cluster object

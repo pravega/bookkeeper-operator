@@ -47,9 +47,7 @@ func testRollbackCluster(t *testing.T) {
 	bookkeeper, err := bookkeeper_e2eutil.CreateBKCluster(t, f, ctx, cluster)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	// A default Bookkeeper cluster should have 3 pods
-	podSize := 3
-	err = bookkeeper_e2eutil.WaitForBookkeeperClusterToBecomeReady(t, f, ctx, bookkeeper, podSize)
+	err = bookkeeper_e2eutil.WaitForBookkeeperClusterToBecomeReady(t, f, ctx, bookkeeper)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// This is to get the latest Bookkeeper cluster object
@@ -76,7 +74,6 @@ func testRollbackCluster(t *testing.T) {
 	g.Expect(errorCondition.Message).To(ContainSubstring("pod bookkeeper-bookie-0 update failed because of ImagePullBackOff"))
 
 	// trigger rollback to version other than last stable version
-	// expect failure
 	bookkeeper.Spec.Version = secondUpgradeVersion
 	err = bookkeeper_e2eutil.UpdateBKCluster(t, f, ctx, bookkeeper)
 	g.Expect(err).To(HaveOccurred(), "Should not allow rollback to any version other than the last stable version")

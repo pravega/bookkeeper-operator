@@ -44,9 +44,7 @@ func testMultiBKCluster(t *testing.T) {
 	bk1, err := bookkeeper_e2eutil.CreateBKClusterWithCM(t, f, ctx, cluster, cm_name)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	// A default bookkeeper cluster should have 3 pods
-	podSize := 3
-	err = bookkeeper_e2eutil.WaitForBookkeeperClusterToBecomeReady(t, f, ctx, bk1, podSize)
+	err = bookkeeper_e2eutil.WaitForBookkeeperClusterToBecomeReady(t, f, ctx, bk1)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	bk1, err = bookkeeper_e2eutil.GetBKCluster(t, f, ctx, bk1)
@@ -64,8 +62,7 @@ func testMultiBKCluster(t *testing.T) {
 	bk2, err := bookkeeper_e2eutil.CreateBKClusterWithCM(t, f, ctx, cluster, cm_name)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	// A default bookkeeper cluster should have 3 pods
-	err = bookkeeper_e2eutil.WaitForBookkeeperClusterToBecomeReady(t, f, ctx, bk2, podSize)
+	err = bookkeeper_e2eutil.WaitForBookkeeperClusterToBecomeReady(t, f, ctx, bk2)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// Create third cluster
@@ -75,8 +72,7 @@ func testMultiBKCluster(t *testing.T) {
 	bk3, err := bookkeeper_e2eutil.CreateBKCluster(t, f, ctx, cluster)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	// A default bookkeeper cluster should have 3 pods
-	err = bookkeeper_e2eutil.WaitForBookkeeperClusterToBecomeReady(t, f, ctx, bk3, podSize)
+	err = bookkeeper_e2eutil.WaitForBookkeeperClusterToBecomeReady(t, f, ctx, bk3)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// deleting all bookkeeper clusters

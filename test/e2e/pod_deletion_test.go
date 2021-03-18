@@ -34,20 +34,13 @@ func testDeletePods(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 	f := framework.Global
 
-	//creating the setup for running the test
-	err = bookkeeper_e2eutil.InitialSetup(t, f, ctx, namespace)
-	g.Expect(err).NotTo(HaveOccurred())
-
 	cluster := bookkeeper_e2eutil.NewDefaultCluster(namespace)
-
 	cluster.WithDefaults()
 
 	bookkeeper, err := bookkeeper_e2eutil.CreateBKCluster(t, f, ctx, cluster)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	// A default bookkeeper cluster should have 3 pods
-	podSize := 3
-	err = bookkeeper_e2eutil.WaitForBookkeeperClusterToBecomeReady(t, f, ctx, bookkeeper, podSize)
+	err = bookkeeper_e2eutil.WaitForBookkeeperClusterToBecomeReady(t, f, ctx, bookkeeper)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	bookkeeper, err = bookkeeper_e2eutil.GetBKCluster(t, f, ctx, bookkeeper)
@@ -58,7 +51,7 @@ func testDeletePods(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 
 	time.Sleep(60 * time.Second)
-	err = bookkeeper_e2eutil.WaitForBookkeeperClusterToBecomeReady(t, f, ctx, bookkeeper, podSize)
+	err = bookkeeper_e2eutil.WaitForBookkeeperClusterToBecomeReady(t, f, ctx, bookkeeper)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	podDeleteCount = 2
@@ -66,7 +59,7 @@ func testDeletePods(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 	time.Sleep(60 * time.Second)
 
-	err = bookkeeper_e2eutil.WaitForBookkeeperClusterToBecomeReady(t, f, ctx, bookkeeper, podSize)
+	err = bookkeeper_e2eutil.WaitForBookkeeperClusterToBecomeReady(t, f, ctx, bookkeeper)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	podDeleteCount = 3
@@ -74,7 +67,7 @@ func testDeletePods(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 	time.Sleep(60 * time.Second)
 
-	err = bookkeeper_e2eutil.WaitForBookkeeperClusterToBecomeReady(t, f, ctx, bookkeeper, podSize)
+	err = bookkeeper_e2eutil.WaitForBookkeeperClusterToBecomeReady(t, f, ctx, bookkeeper)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	err = bookkeeper_e2eutil.DeleteBKCluster(t, f, ctx, bookkeeper)

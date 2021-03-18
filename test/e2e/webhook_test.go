@@ -45,8 +45,7 @@ func testWebhook(t *testing.T) {
 	bookkeeper, err := bookkeeper_e2eutil.CreateBKCluster(t, f, ctx, validVersion)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	podSize := 3
-	err = bookkeeper_e2eutil.WaitForBookkeeperClusterToBecomeReady(t, f, ctx, bookkeeper, podSize)
+	err = bookkeeper_e2eutil.WaitForBookkeeperClusterToBecomeReady(t, f, ctx, bookkeeper)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// Try to upgrade to a non-supported version
