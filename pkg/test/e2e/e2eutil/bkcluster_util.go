@@ -13,6 +13,7 @@ package e2eutil
 import (
 	goctx "context"
 	"fmt"
+	"strings"
 	"testing"
 	"time"
 
@@ -461,6 +462,10 @@ func WaitForZKClusterToTerminate(t *testing.T, f *framework.Framework, ctx *fram
 func WaitForBKClusterToUpgrade(t *testing.T, f *framework.Framework, ctx *framework.TestCtx, b *bkapi.BookkeeperCluster, targetVersion string) error {
 	t.Logf("waiting for cluster to upgrade: %s", b.Name)
 
+	listOptions := metav1.ListOptions{
+		LabelSelector: labels.SelectorFromSet(map[string]string{"bookkeeper_cluster": b.GetName()}).String(),
+	}
+
 	err := wait.Poll(RetryInterval, UpgradeTimeout, func() (done bool, err error) {
 		cluster, err := GetBKCluster(t, f, ctx, b)
 		if err != nil {
@@ -485,6 +490,29 @@ func WaitForBKClusterToUpgrade(t *testing.T, f *framework.Framework, ctx *framew
 
 	if err != nil {
 		return err
+	}
+
+	// check whether PVCs have been reattached
+	pvcList, err := f.KubeClient.CoreV1().PersistentVolumeClaims(b.Namespace).List(listOptions)
+	if err != nil {
+		return err
+	}
+
+	index, journal, ledger := int32(0), int32(0), int32(0)
+
+	for i := range pvcList.Items {
+		pvc := &pvcList.Items[i]
+		if strings.HasPrefix(pvc.Name, "index") {
+			index++
+		} else if strings.HasPrefix(pvc.Name, "journal") {
+			journal++
+		} else if strings.HasPrefix(pvc.Name, "ledger") {
+			ledger++
+		}
+	}
+
+	if index != b.Spec.Replicas || journal != b.Spec.Replicas || ledger != b.Spec.Replicas {
+		return fmt.Errorf("PVC count mismatch")
 	}
 
 	t.Logf("bookkeeper cluster upgraded: %s", b.Name)
@@ -545,6 +573,10 @@ func WaitForCMBKClusterToUpgrade(t *testing.T, f *framework.Framework, ctx *fram
 func WaitForBKClusterToRollback(t *testing.T, f *framework.Framework, ctx *framework.TestCtx, b *bkapi.BookkeeperCluster, targetVersion string) error {
 	t.Logf("waiting for cluster to rollback: %s", b.Name)
 
+	listOptions := metav1.ListOptions{
+		LabelSelector: labels.SelectorFromSet(map[string]string{"bookkeeper_cluster": b.GetName()}).String(),
+	}
+
 	err := wait.Poll(RetryInterval, UpgradeTimeout, func() (done bool, err error) {
 		cluster, err := GetBKCluster(t, f, ctx, b)
 		if err != nil {
@@ -569,6 +601,29 @@ func WaitForBKClusterToRollback(t *testing.T, f *framework.Framework, ctx *frame
 
 	if err != nil {
 		return err
+	}
+
+	// check whether PVCs have been reattached
+	pvcList, err := f.KubeClient.CoreV1().PersistentVolumeClaims(b.Namespace).List(listOptions)
+	if err != nil {
+		return err
+	}
+
+	index, journal, ledger := int32(0), int32(0), int32(0)
+
+	for i := range pvcList.Items {
+		pvc := &pvcList.Items[i]
+		if strings.HasPrefix(pvc.Name, "index") {
+			index++
+		} else if strings.HasPrefix(pvc.Name, "journal") {
+			journal++
+		} else if strings.HasPrefix(pvc.Name, "ledger") {
+			ledger++
+		}
+	}
+
+	if index != b.Spec.Replicas || journal != b.Spec.Replicas || ledger != b.Spec.Replicas {
+		return fmt.Errorf("PVC count mismatch")
 	}
 
 	t.Logf("bookkeeper cluster rolled back: %s", b.Name)
