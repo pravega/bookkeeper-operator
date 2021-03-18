@@ -13,6 +13,7 @@ package e2e
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	. "github.com/onsi/gomega"
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
@@ -63,6 +64,7 @@ func testUpgradeCluster(t *testing.T) {
 	bookkeeper.Spec.Version = firstUpgradeVersion
 	err = bookkeeper_e2eutil.UpdateBKCluster(t, f, ctx, bookkeeper)
 	g.Expect(err).NotTo(HaveOccurred())
+	time.Sleep(5 * time.Second)
 
 	// trigger another upgrade while this upgrade is happening- it should fail
 	bookkeeper, err = bookkeeper_e2eutil.GetBKCluster(t, f, ctx, bookkeeper)
