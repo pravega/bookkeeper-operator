@@ -85,6 +85,9 @@ var _ = Describe("Bookie", func() {
 						"ledgerDirectories":  "/bk/ledgers/l0,/bk/ledgers/l1,/bk/ledgers/l2,/bk/ledgers/l3",
 						"indexDirectories":   "/bk/index/i0,/bk/index/i1",
 					},
+					Labels: map[string]string{
+						"bookie-name": "dummyBookie",
+					},
 				}
 				bk.WithDefaults()
 			})
@@ -107,6 +110,11 @@ var _ = Describe("Bookie", func() {
 				It("should create a stateful set", func() {
 					ss := bookkeepercluster.MakeBookieStatefulSet(bk)
 					Ω(ss.Name).Should(Equal(util.StatefulSetNameForBookie(bk.Name)))
+				})
+
+				It("should create a stateful set", func() {
+					ss := bookkeepercluster.MakeBookieStatefulSet(bk)
+					Ω(ss.Labels["bookie-name"]).Should(Equal("dummyBookie"))
 				})
 
 				It("should have journal and ledgers dir set to the values given by user", func() {
