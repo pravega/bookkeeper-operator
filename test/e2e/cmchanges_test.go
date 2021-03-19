@@ -42,6 +42,7 @@ func testCMUpgradeCluster(t *testing.T) {
 	cluster.Spec.Version = initialVersion
 	cluster.Spec.Image.PullPolicy = "IfNotPresent"
 	cluster.Spec.Options["minorCompactionThreshold"] = "0.4"
+	cluster.Spec.Options["journalDirectories"] = "/bk/journal"
 
 	bookkeeper, err := bookkeeper_e2eutil.CreateBKCluster(t, f, ctx, cluster)
 	g.Expect(err).NotTo(HaveOccurred())
