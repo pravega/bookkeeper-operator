@@ -649,11 +649,6 @@ func (bk *BookkeeperCluster) LabelsForBookie() map[string]string {
 			labels[k] = v
 		}
 	}
-	if bk.Labels != nil {
-		for k, v := range bk.Labels {
-			labels[k] = v
-		}
-	}
 	labels["component"] = "bookie"
 	return labels
 }
