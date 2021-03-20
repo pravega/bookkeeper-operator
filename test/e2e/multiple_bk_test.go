@@ -34,14 +34,14 @@ func testMultiBKCluster(t *testing.T) {
 	f := framework.Global
 
 	// Create first cluster
-	val := true
 	cluster := bookkeeper_e2eutil.NewDefaultCluster(namespace)
 	cm_name := "configmap1"
 	cm1 := bookkeeper_e2eutil.NewConfigMap(namespace, cm_name, "pr1")
 	err = bookkeeper_e2eutil.CreateConfigMap(t, f, ctx, cm1)
 	g.Expect(err).NotTo(HaveOccurred())
 	cluster.ObjectMeta.Name = "bk1"
-	cluster.Spec.AutoRecovery = &(val)
+	autorecovery := true
+	cluster.Spec.AutoRecovery = &(autorecovery)
 	cluster.WithDefaults()
 
 	bk1, err := bookkeeper_e2eutil.CreateBKClusterWithCM(t, f, ctx, cluster, cm_name)
@@ -57,14 +57,14 @@ func testMultiBKCluster(t *testing.T) {
 	g.Expect(value).To(BeTrue())
 
 	// Create second cluster
-	val = false
 	cluster = bookkeeper_e2eutil.NewDefaultCluster(namespace)
 	cm_name = "configmap2"
 	cm2 := bookkeeper_e2eutil.NewConfigMap(namespace, cm_name, "pr2")
 	err = bookkeeper_e2eutil.CreateConfigMap(t, f, ctx, cm2)
 	g.Expect(err).NotTo(HaveOccurred())
 	cluster.ObjectMeta.Name = "bk2"
-	cluster.Spec.AutoRecovery = &(val)
+	autorecovery = false
+	cluster.Spec.AutoRecovery = &(autorecovery)
 	cluster.WithDefaults()
 
 	bk2, err := bookkeeper_e2eutil.CreateBKClusterWithCM(t, f, ctx, cluster, cm_name)
@@ -77,7 +77,7 @@ func testMultiBKCluster(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 	value, err = bookkeeper_e2eutil.CheckConfigMap(t, f, ctx, bk2)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(value).To(BeTrue())
+	g.Expect(value).To(BeFalse())
 
 	// Create third cluster
 	cluster = bookkeeper_e2eutil.NewDefaultCluster(namespace)

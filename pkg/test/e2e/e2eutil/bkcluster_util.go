@@ -320,7 +320,7 @@ func CheckConfigMap(t *testing.T, f *framework.Framework, ctx *framework.TestCtx
 	if cm != nil {
 		if cm.Data["BK_autoRecoveryDaemonEnabled"] == "true" {
 			return true, nil
-		} else {
+		} else if cm.Data["BK_autoRecoveryDaemonEnabled"] == "false" {
 			return false, nil
 		}
 	}
