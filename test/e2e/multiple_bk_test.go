@@ -92,6 +92,10 @@ func testMultiBKCluster(t *testing.T) {
 	bk3, err = bookkeeper_e2eutil.GetBKCluster(t, f, ctx, bk3)
 	g.Expect(err).NotTo(HaveOccurred())
 
+	// This is to get the latest Bookkeeper cluster object
+	bk1, err = bookkeeper_e2eutil.GetBKCluster(t, f, ctx, bk1)
+	g.Expect(err).NotTo(HaveOccurred())
+
 	// Scale up replicas in the first Bookkeeper cluster
 	bk1.Spec.Replicas = 5
 
@@ -99,6 +103,10 @@ func testMultiBKCluster(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 
 	err = bookkeeper_e2eutil.WaitForBookkeeperClusterToBecomeReady(t, f, ctx, bk1)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	// This is to get the latest Bookkeeper cluster object
+	bk2, err = bookkeeper_e2eutil.GetBKCluster(t, f, ctx, bk2)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// Deleting pods of the second Bookkeeper cluster
