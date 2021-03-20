@@ -222,10 +222,10 @@ var _ = Describe("Bookie", func() {
 					rp_s := bk.Spec.Probes.ReadinessProbe.SuccessThreshold
 					rp_t := bk.Spec.Probes.ReadinessProbe.TimeoutSeconds
 					Ω(rp_i).Should(Equal(int32(20)))
-					Ω(rp_p).Should(Equal(int32(15)))
+					Ω(rp_p).Should(Equal(int32(10)))
 					Ω(rp_f).Should(Equal(int32(9)))
 					Ω(rp_s).Should(Equal(int32(1)))
-					Ω(rp_t).Should(Equal(int32(10)))
+					Ω(rp_t).Should(Equal(int32(5)))
 					lp_i := bk.Spec.Probes.LivenessProbe.InitialDelaySeconds
 					lp_p := bk.Spec.Probes.LivenessProbe.PeriodSeconds
 					lp_f := bk.Spec.Probes.LivenessProbe.FailureThreshold

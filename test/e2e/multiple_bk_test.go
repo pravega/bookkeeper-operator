@@ -15,6 +15,7 @@ import (
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
 	bookkeeper_e2eutil "github.com/pravega/bookkeeper-operator/pkg/test/e2e/e2eutil"
 	"testing"
+	"time"
 )
 
 func testMultiBKCluster(t *testing.T) {
@@ -33,12 +34,14 @@ func testMultiBKCluster(t *testing.T) {
 	f := framework.Global
 
 	// Create first cluster
+	val := true
 	cluster := bookkeeper_e2eutil.NewDefaultCluster(namespace)
 	cm_name := "configmap1"
 	cm1 := bookkeeper_e2eutil.NewConfigMap(namespace, cm_name, "pr1")
 	err = bookkeeper_e2eutil.CreateConfigMap(t, f, ctx, cm1)
 	g.Expect(err).NotTo(HaveOccurred())
 	cluster.ObjectMeta.Name = "bk1"
+	cluster.Spec.AutoRecovery = &(val)
 	cluster.WithDefaults()
 
 	bk1, err := bookkeeper_e2eutil.CreateBKClusterWithCM(t, f, ctx, cluster, cm_name)
@@ -49,14 +52,19 @@ func testMultiBKCluster(t *testing.T) {
 
 	bk1, err = bookkeeper_e2eutil.GetBKCluster(t, f, ctx, bk1)
 	g.Expect(err).NotTo(HaveOccurred())
+	value, err := bookkeeper_e2eutil.CheckConfigMap(t, f, ctx, bk1)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(value).To(BeTrue())
 
 	// Create second cluster
+	val = false
 	cluster = bookkeeper_e2eutil.NewDefaultCluster(namespace)
 	cm_name = "configmap2"
 	cm2 := bookkeeper_e2eutil.NewConfigMap(namespace, cm_name, "pr2")
 	err = bookkeeper_e2eutil.CreateConfigMap(t, f, ctx, cm2)
 	g.Expect(err).NotTo(HaveOccurred())
 	cluster.ObjectMeta.Name = "bk2"
+	cluster.Spec.AutoRecovery = &(val)
 	cluster.WithDefaults()
 
 	bk2, err := bookkeeper_e2eutil.CreateBKClusterWithCM(t, f, ctx, cluster, cm_name)
@@ -64,6 +72,12 @@ func testMultiBKCluster(t *testing.T) {
 
 	err = bookkeeper_e2eutil.WaitForBookkeeperClusterToBecomeReady(t, f, ctx, bk2)
 	g.Expect(err).NotTo(HaveOccurred())
+
+	bk2, err = bookkeeper_e2eutil.GetBKCluster(t, f, ctx, bk2)
+	g.Expect(err).NotTo(HaveOccurred())
+	value, err = bookkeeper_e2eutil.CheckConfigMap(t, f, ctx, bk2)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(value).To(BeTrue())
 
 	// Create third cluster
 	cluster = bookkeeper_e2eutil.NewDefaultCluster(namespace)
@@ -75,11 +89,31 @@ func testMultiBKCluster(t *testing.T) {
 	err = bookkeeper_e2eutil.WaitForBookkeeperClusterToBecomeReady(t, f, ctx, bk3)
 	g.Expect(err).NotTo(HaveOccurred())
 
+	bk3, err = bookkeeper_e2eutil.GetBKCluster(t, f, ctx, bk3)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	// Scale up replicas in the first Bookkeeper cluster
+	bk1.Spec.Replicas = 5
+
+	err = bookkeeper_e2eutil.UpdateBKCluster(t, f, ctx, bk1)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	err = bookkeeper_e2eutil.WaitForBookkeeperClusterToBecomeReady(t, f, ctx, bk1)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	// Deleting pods of the second Bookkeeper cluster
+	podDeleteCount := 3
+	err = bookkeeper_e2eutil.DeletePods(t, f, ctx, bk2, podDeleteCount)
+	g.Expect(err).NotTo(HaveOccurred())
+	time.Sleep(10 * time.Second)
+
+	err = bookkeeper_e2eutil.WaitForBookkeeperClusterToBecomeReady(t, f, ctx, bk2)
+	g.Expect(err).NotTo(HaveOccurred())
+
 	// deleting all bookkeeper clusters
 	err = bookkeeper_e2eutil.DeleteBKCluster(t, f, ctx, bk1)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	// you should see the metadata deletion error
 	err = bookkeeper_e2eutil.WaitForBKClusterToTerminate(t, f, ctx, bk1)
 	g.Expect(err).NotTo(HaveOccurred())
 

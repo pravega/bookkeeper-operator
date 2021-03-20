@@ -50,14 +50,14 @@ func testDeletePods(t *testing.T) {
 	err = bookkeeper_e2eutil.DeletePods(t, f, ctx, bookkeeper, podDeleteCount)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	time.Sleep(60 * time.Second)
+	time.Sleep(10 * time.Second)
 	err = bookkeeper_e2eutil.WaitForBookkeeperClusterToBecomeReady(t, f, ctx, bookkeeper)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	podDeleteCount = 2
 	err = bookkeeper_e2eutil.DeletePods(t, f, ctx, bookkeeper, podDeleteCount)
 	g.Expect(err).NotTo(HaveOccurred())
-	time.Sleep(60 * time.Second)
+	time.Sleep(10 * time.Second)
 
 	err = bookkeeper_e2eutil.WaitForBookkeeperClusterToBecomeReady(t, f, ctx, bookkeeper)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -65,7 +65,7 @@ func testDeletePods(t *testing.T) {
 	podDeleteCount = 3
 	err = bookkeeper_e2eutil.DeletePods(t, f, ctx, bookkeeper, podDeleteCount)
 	g.Expect(err).NotTo(HaveOccurred())
-	time.Sleep(60 * time.Second)
+	time.Sleep(10 * time.Second)
 
 	err = bookkeeper_e2eutil.WaitForBookkeeperClusterToBecomeReady(t, f, ctx, bookkeeper)
 	g.Expect(err).NotTo(HaveOccurred())

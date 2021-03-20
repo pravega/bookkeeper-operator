@@ -79,6 +79,8 @@ func CreateBKCluster(t *testing.T, f *framework.Framework, ctx *framework.TestCt
 	t.Logf("creating bookkeeper cluster: %s", b.Name)
 	b.Spec.EnvVars = "bookkeeper-configmap"
 	b.Spec.ZookeeperUri = "zookeeper-client:2181"
+	b.Spec.Probes.ReadinessProbe.PeriodSeconds = 15
+	b.Spec.Probes.ReadinessProbe.TimeoutSeconds = 10
 	b.Spec.Storage.LedgerVolumeClaimTemplate = &corev1.PersistentVolumeClaimSpec{
 		AccessModes: []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
 		Resources: corev1.ResourceRequirements{
@@ -122,6 +124,8 @@ func CreateBKClusterWithCM(t *testing.T, f *framework.Framework, ctx *framework.
 	t.Logf("creating bookkeeper cluster: %s", b.Name)
 	b.Spec.EnvVars = cm
 	b.Spec.ZookeeperUri = "zookeeper-client:2181"
+	b.Spec.Probes.ReadinessProbe.PeriodSeconds = 15
+	b.Spec.Probes.ReadinessProbe.TimeoutSeconds = 10
 	b.Spec.Storage.LedgerVolumeClaimTemplate = &corev1.PersistentVolumeClaimSpec{
 		AccessModes: []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
 		Resources: corev1.ResourceRequirements{
@@ -283,6 +287,45 @@ func GetZKCluster(t *testing.T, f *framework.Framework, ctx *framework.TestCtx, 
 		return nil, fmt.Errorf("failed to obtain created CR: %v", err)
 	}
 	return zookeeper, nil
+}
+
+func CheckEvents(t *testing.T, f *framework.Framework, ctx *framework.TestCtx, b *bkapi.BookkeeperCluster, event string) (bool, error) {
+	listOptions := metav1.ListOptions{
+		LabelSelector: labels.SelectorFromSet(map[string]string{"bookkeeper_cluster": b.GetName()}).String(),
+	}
+
+	events, err := f.KubeClient.CoreV1().Events(b.Namespace).List(listOptions)
+	if err != nil {
+		return false, err
+	}
+
+	if events != nil {
+		for _, e := range events.Items {
+			if strings.HasPrefix(e.Name, event) {
+				return true, nil
+			}
+		}
+	}
+
+	return false, nil
+}
+
+func CheckConfigMap(t *testing.T, f *framework.Framework, ctx *framework.TestCtx, b *bkapi.BookkeeperCluster) (bool, error) {
+	cm := &corev1.ConfigMap{}
+	name := util.ConfigMapNameForBookie(b.Name)
+	err := f.Client.Get(goctx.TODO(), types.NamespacedName{Namespace: b.Namespace, Name: name}, cm)
+	if err != nil {
+		return false, fmt.Errorf("failed to obtain configmap: %v", err)
+	}
+	if cm != nil {
+		if cm.Data["BK_autoRecoveryDaemonEnabled"] == "true" {
+			return true, nil
+		} else {
+			return false, nil
+		}
+	}
+
+	return false, fmt.Errorf("BK_autoRecoveryDaemonEnabled not found")
 }
 
 // WaitForBookkeeperClusterToBecomeReady will wait until all Bookkeeper cluster pods are ready

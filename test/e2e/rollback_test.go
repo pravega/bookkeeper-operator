@@ -73,6 +73,11 @@ func testRollbackCluster(t *testing.T) {
 	g.Expect(errorCondition.Reason).To(Equal("UpgradeFailed"))
 	g.Expect(errorCondition.Message).To(ContainSubstring("pod bookkeeper-bookie-0 update failed because of ImagePullBackOff"))
 
+	// check for upgrade error event
+	event, err := bookkeeper_e2eutil.CheckEvents(t, f, ctx, bookkeeper, "UPGRADE_ERROR")
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(event).To(BeTrue())
+
 	// trigger rollback to version other than last stable version
 	bookkeeper.Spec.Version = secondUpgradeVersion
 	err = bookkeeper_e2eutil.UpdateBKCluster(t, f, ctx, bookkeeper)
@@ -86,7 +91,6 @@ func testRollbackCluster(t *testing.T) {
 	time.Sleep(2 * time.Second)
 
 	// trigger another upgrade while the last rollback is still ongoing
-	// should be rejected by webhook
 	bookkeeper, err = bookkeeper_e2eutil.GetBKCluster(t, f, ctx, bookkeeper)
 	g.Expect(err).NotTo(HaveOccurred())
 	bookkeeper.Spec.Version = secondUpgradeVersion
