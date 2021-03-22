@@ -54,7 +54,7 @@ func testMultiBKCluster(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 	value, err := bookkeeper_e2eutil.CheckConfigMap(t, f, ctx, bk1)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(value).To(BeTrue())
+	g.Expect(value).To(Equal(autorecovery))
 
 	// Create second cluster
 	cluster = bookkeeper_e2eutil.NewDefaultCluster(namespace)
@@ -77,7 +77,7 @@ func testMultiBKCluster(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 	value, err = bookkeeper_e2eutil.CheckConfigMap(t, f, ctx, bk2)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(value).To(BeFalse())
+	g.Expect(value).To(Equal(autorecovery))
 
 	// Create third cluster
 	cluster = bookkeeper_e2eutil.NewDefaultCluster(namespace)
