@@ -2,10 +2,6 @@
 
 Installs Bookkeeper clusters atop Kubernetes.
 
-## Introduction
-
-This chart creates a Bookkeeper cluster in [Kubernetes](http://kubernetes.io) using the [Helm](https://helm.sh) package manager. The chart can be installed multiple times to create Bookkeeper cluster on multiple namespaces.
-
 ## Prerequisites
 
   - Kubernetes 1.15+ with Beta APIs

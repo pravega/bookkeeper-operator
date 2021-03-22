@@ -36,9 +36,13 @@ Check out the [development guide](doc/development.md).
 
 The latest Bookkeeper releases can be found on the [Github Release](https://github.com/pravega/bookkeeper-operator/releases) project page.
 
-## Community
+## Contributing and Community
 
-Contact the developers and community on [slack](https://pravega-io.slack.com/) ([signup](https://pravega-slack-invite.herokuapp.com/)) if you need any help.
+We thrive to build a welcoming and open community for anyone who wants to use the operator or contribute to it. [Here](CONTRIBUTING.md) we describe how to contribute to bookkeepe operator.Contact the developers and community on [slack](https://pravega-io.slack.com/) ([signup](https://pravega-slack-invite.herokuapp.com/)) if you need any help.
+
+## Troubleshooting
+
+Check out the [bookkeeper troubleshooting](doc/troubleshooting.md#bookkeeper-cluster-issues) for pravega issues and for operator issues [operator troubleshooting](doc/troubleshooting.md#bookkeeper-operator-issues).
 
 ## License
 

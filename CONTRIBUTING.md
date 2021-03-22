@@ -1,5 +1,5 @@
-# Contributing to Pravega Operator
+# Contributing to Bookkeeper Operator
 
- Please check the [Contributing](https://github.com/pravega/pravega-operator/wiki/Contributing) wiki page.
+ Please check the [Contributing](https://github.com/pravega/bookkeeper-operator/wiki/Contributing) wiki page.
 
  Happy hacking!
