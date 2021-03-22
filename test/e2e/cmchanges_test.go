@@ -40,7 +40,6 @@ func testCMUpgradeCluster(t *testing.T) {
 	initialVersion := "0.6.0"
 	upgradeVersion := "0.7.0"
 	cluster.Spec.Version = initialVersion
-	cluster.Spec.Image.PullPolicy = "IfNotPresent"
 	cluster.Spec.Options["minorCompactionThreshold"] = "0.4"
 	cluster.Spec.Options["journalDirectories"] = "/bk/journal"
 

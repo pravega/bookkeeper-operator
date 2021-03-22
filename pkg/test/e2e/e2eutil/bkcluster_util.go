@@ -45,6 +45,7 @@ func CreateBKCluster(t *testing.T, f *framework.Framework, ctx *framework.TestCt
 	t.Logf("creating bookkeeper cluster: %s", b.Name)
 	b.Spec.EnvVars = "bookkeeper-configmap"
 	b.Spec.ZookeeperUri = "zookeeper-client:2181"
+	b.Spec.Image.PullPolicy = "IfNotPresent"
 	b.Spec.Probes.ReadinessProbe.PeriodSeconds = 15
 	b.Spec.Probes.ReadinessProbe.TimeoutSeconds = 10
 	b.Spec.Storage.LedgerVolumeClaimTemplate = &corev1.PersistentVolumeClaimSpec{
@@ -90,6 +91,7 @@ func CreateBKClusterWithCM(t *testing.T, f *framework.Framework, ctx *framework.
 	t.Logf("creating bookkeeper cluster: %s", b.Name)
 	b.Spec.EnvVars = cm
 	b.Spec.ZookeeperUri = "zookeeper-client:2181"
+	b.Spec.Image.PullPolicy = "IfNotPresent"
 	b.Spec.Probes.ReadinessProbe.PeriodSeconds = 15
 	b.Spec.Probes.ReadinessProbe.TimeoutSeconds = 10
 	b.Spec.Storage.LedgerVolumeClaimTemplate = &corev1.PersistentVolumeClaimSpec{

@@ -41,7 +41,6 @@ func testUpgradeCluster(t *testing.T) {
 	firstUpgradeVersion := "0.7.0"
 	secondUpgradeVersion := "0.7.1"
 	cluster.Spec.Version = initialVersion
-	cluster.Spec.Image.PullPolicy = "IfNotPresent"
 
 	bookkeeper, err := bookkeeper_e2eutil.CreateBKCluster(t, f, ctx, cluster)
 	g.Expect(err).NotTo(HaveOccurred())

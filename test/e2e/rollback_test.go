@@ -40,10 +40,9 @@ func testRollbackCluster(t *testing.T) {
 
 	cluster.WithDefaults()
 	initialVersion := "0.6.0"
-	firstUpgradeVersion := "0.7.0-1" // incorrect version
+	firstUpgradeVersion := "0.7.0-1"
 	secondUpgradeVersion := "0.5.0"
 	cluster.Spec.Version = initialVersion
-	cluster.Spec.Image.PullPolicy = "IfNotPresent"
 	bookkeeper, err := bookkeeper_e2eutil.CreateBKCluster(t, f, ctx, cluster)
 	g.Expect(err).NotTo(HaveOccurred())
 
@@ -73,7 +72,7 @@ func testRollbackCluster(t *testing.T) {
 	g.Expect(errorCondition.Reason).To(Equal("UpgradeFailed"))
 	g.Expect(errorCondition.Message).To(ContainSubstring("pod bookkeeper-bookie-0 update failed because of ImagePullBackOff"))
 
-	// check for upgrade error event
+	// checking whether upgrade error event is sent out to the kubernetes event queue
 	event, err := bookkeeper_e2eutil.CheckEvents(t, f, ctx, bookkeeper, "UPGRADE_ERROR")
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(event).To(BeTrue())
@@ -109,7 +108,7 @@ func testRollbackCluster(t *testing.T) {
 	bookkeeper, err = bookkeeper_e2eutil.GetBKCluster(t, f, ctx, bookkeeper)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	// wait for rollback to complete
+	// waiting for rollback to complete
 	g.Expect(bookkeeper.Spec.Version).To(Equal(initialVersion))
 	g.Expect(bookkeeper.Status.CurrentVersion).To(Equal(initialVersion))
 	g.Expect(bookkeeper.Status.TargetVersion).To(Equal(""))
