@@ -1,6 +1,6 @@
 # Bookkeeper Deploymnent
 
-Here, we briefly describe how to [install](#installing-bookkeeper-cluster)/[update](#updating bookkeeper cluster)/[uninstall](#uninstalling-the-bookkeeper-cluster)/[configure](#configuration) bookkeeper clusters atop kubernetes.
+Here, we briefly describe how to [install](#installing-bookkeeper-cluster)/[update](#Updating bookkeeper cluster)/[uninstall](#uninstalling-the-bookkeeper-cluster)/[configure](#configuration) bookkeeper clusters atop kubernetes.
 
 ## Prerequisites
 
