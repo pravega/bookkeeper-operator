@@ -39,9 +39,7 @@ func testScaleCluster(t *testing.T) {
 	bookkeeper, err := bookkeeper_e2eutil.CreateBKCluster(t, f, ctx, defaultCluster)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	// A default BookKeeper cluster should have 3 pods
-	podSize := 3
-	err = bookkeeper_e2eutil.WaitForBookkeeperClusterToBecomeReady(t, f, ctx, bookkeeper, podSize)
+	err = bookkeeper_e2eutil.WaitForBookkeeperClusterToBecomeReady(t, f, ctx, bookkeeper)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// This is to get the latest Bookkeeper cluster object
@@ -50,12 +48,11 @@ func testScaleCluster(t *testing.T) {
 
 	// Scale up Bookkeeper cluster
 	bookkeeper.Spec.Replicas = 5
-	podSize = 5
 
 	err = bookkeeper_e2eutil.UpdateBKCluster(t, f, ctx, bookkeeper)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	err = bookkeeper_e2eutil.WaitForBookkeeperClusterToBecomeReady(t, f, ctx, bookkeeper, podSize)
+	err = bookkeeper_e2eutil.WaitForBookkeeperClusterToBecomeReady(t, f, ctx, bookkeeper)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// This is to get the latest Bookkeeper cluster object
@@ -64,12 +61,11 @@ func testScaleCluster(t *testing.T) {
 
 	// Scale down Bookkeeper cluster back to default
 	bookkeeper.Spec.Replicas = 3
-	podSize = 3
 
 	err = bookkeeper_e2eutil.UpdateBKCluster(t, f, ctx, bookkeeper)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	err = bookkeeper_e2eutil.WaitForBookkeeperClusterToBecomeReady(t, f, ctx, bookkeeper, podSize)
+	err = bookkeeper_e2eutil.WaitForBookkeeperClusterToBecomeReady(t, f, ctx, bookkeeper)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// Delete cluster

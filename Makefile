@@ -18,7 +18,7 @@ TEST_REPO=testbkop/$(PROJECT_NAME)
 DOCKER_TEST_PASS=testbkop@123
 DOCKER_TEST_USER=testbkop
 TEST_IMAGE=$(TEST_REPO)-testimages:$(VERSION)
-	
+
 .PHONY: all build check clean test
 
 all: check build test
