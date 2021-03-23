@@ -146,6 +146,6 @@ spec:
     repository: "pravega/zookeeper"
     tag: latest
     pullPolicy: IfNotPresent
-  replicas: 3
+  replicas: 1
   persistence:
     reclaimPolicy: Delete
