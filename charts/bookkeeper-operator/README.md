@@ -33,6 +33,10 @@ This command deploys a pravega-operator on the Kubernetes cluster in its default
 
 >Note: If the bookkeeper-operator version is 0.1.2, webhookCert.certName and webhookCert.secretName should not be set. Also in this case, cert-manager and the certificate/issuer do not need to be deployed as prerequisites.
 
+## Upgrading Bookkeeper-Operator
+
+For upgrading bookkeeper-operator, please refer [upgrade guide](../../doc/operator-upgrade.md)
+
 ## Uninstalling  Bookkeeper-Operator
 
 To uninstall/delete the bookkeeper-operator chart, use the following command:

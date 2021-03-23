@@ -1,6 +1,6 @@
 # Bookkeeper Deploymnent
 
-Installs Bookkeeper clusters atop Kubernetes.
+Here, we briefly describe how to [install](#installing-bookkeeper-cluster)/[update](#updating bookkeeper cluster)/[uninstall](#uninstalling-the-bookkeeper-cluster)/[configure](#configuration) bookkeeper clusters atop kubernetes.
 
 ## Prerequisites
 
@@ -67,6 +67,25 @@ By default, a `BookkeeperCluster` is reachable using this kind of headless servi
 ```
 http://bookkeeper-bookie-0.bookkeeper-bookie-headless.bookkeeper-bookie:3181
 ```
+## Updating Bookkeeper Cluster
+
+For updating the bookkeeper cluster, use the following command
+
+```
+helm upgrade [RELEASE_NAME]  --version=[VERSION]  --set replicas=5
+```
+Also, we can edit replicas by `kubectl patch` command
+
+```
+kubectl patch bk bookkeeper --type='json' -p='[{"op": "replace", "path": "/spec/replicas", "value": 4}]'
+```
+ we can also update other configurable parameters at run time. For changing options `useHostNameAsBookieID` to `false` use the below command.
+
+ ```
+  helm upgrade bookkeeper charts/bookkeeper --set-string options."useHostNameAsBookieID=false"
+  ```
+Please refer [upgrade](../../doc/upgrade-cluster.md) for upgrading cluster versions.
+
 ## Uninstalling the Bookkeeper cluster
 
 To uninstall/delete the bookkeeper cluster, use the following command:
@@ -121,25 +140,6 @@ Events:  <none>
 ```
 
 >In case the operator fails to delete the zookeeper metadata, the user is expected to manually delete the metadata from zookeeper prior to reinstall.
-
-## Updating Bookkeeper Cluster
-
-For updating the bookkeeper cluster, use the following command
-
-```
-helm upgrade [RELEASE_NAME]  --version=[VERSION]  --set replicas=5
-```
-Also, we can edit replicas by `kubectl patch` command
-
-```
-kubectl patch bk bookkeeper --type='json' -p='[{"op": "replace", "path": "/spec/replicas", "value": 4}]'
-```
- we can also update other configurable parameters at run time. For changing options `useHostNameAsBookieID` to `false` use the below command.
-
- ```
-  helm upgrade bookkeeper charts/bookkeeper --set-string options."useHostNameAsBookieID=false"
-  ```
-Please refer [upgrade](../../doc/upgrade-cluster.md) for upgrading cluster versions.
 
 ## Configuration
 
