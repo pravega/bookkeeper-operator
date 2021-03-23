@@ -18,7 +18,7 @@ To understand how to deploy a Bookkeeper Operator refer to [Operator Deployment]
 
 ## Upgrade the Operator
 
-For upgrading the bookkeeper operator check the document [operator-upgrade](doc/operator-upgrade.md)
+For upgrading the bookkeeper operator check the document on [Operator Upgrade](doc/operator-upgrade.md)
 
 ## Features
 
@@ -38,12 +38,12 @@ The latest Bookkeeper releases can be found on the [Github Release](https://gith
 
 ## Contributing and Community
 
-We thrive to build a welcoming and open community for anyone who wants to use the operator or contribute to it. [Here](CONTRIBUTING.md) we describe how to contribute to bookkeepe operator.Contact the developers and community on [slack](https://pravega-io.slack.com/) ([signup](https://pravega-slack-invite.herokuapp.com/)) if you need any help.
+We thrive to build a welcoming and open community for anyone who wants to use the operator or contribute to it. [Here](https://github.com/pravega/bookkeeper-operator/wiki/Contributing) we describe how to contribute to bookkeepe operator. Contact the developers and community on [slack](https://pravega-io.slack.com/) ([signup](https://pravega-slack-invite.herokuapp.com/)) if you need any help.
 
 ## Troubleshooting
 
-Check out the [bookkeeper troubleshooting](doc/troubleshooting.md#bookkeeper-cluster-issues) for pravega issues and for operator issues [operator troubleshooting](doc/troubleshooting.md#bookkeeper-operator-issues).
+Check out the [bookkeeper troubleshooting](doc/troubleshooting.md#bookkeeper-cluster-issues) for bookkeeper issues and for operator issues [operator troubleshooting](doc/troubleshooting.md#bookkeeper-operator-issues).
 
 ## License
 
-Bookkeeper Operator is under Apache 2.0 license. See the [LICENSE](https://github.com/pravega/pravega-operator/blob/master/LICENSE) for details.
+Bookkeeper Operator is under Apache 2.0 license. See the [LICENSE](https://github.com/pravega/bookkeeper-operator/blob/master/LICENSE) for details.

@@ -1,9 +1,17 @@
 ## Development
 
-Requirements:
+## Contents
+
+ * [Requirements](#requirements)
+ * [Build the operator image](#build-the-operator-image)
+ * [Run the Operator locally](#run-the-operator-locally)
+ * [Installation on Google Kubernetes Engine](#iinstallation-on-google-kubernetes-engine)
+ * [Install the Operator in Test Mode](#install-the-operator-in-test-mode)
+
+### Requirements
   - Go 1.13+
 
-### Install Go
+#### Install Go
 
 You can install go directly or use gvm ( go version manager)
 

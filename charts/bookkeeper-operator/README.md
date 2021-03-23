@@ -1,11 +1,10 @@
 # Deploying Bookkeeper-Operator
 
-Installs [Bookkeeper Operator](https://github.com/pravega/bookkeeper-operator) to create/configure/manage Bookkeeper clusters atop Kubernetes.
+Here, we briefly describes how to install [Bookkeeper Operator](https://github.com/pravega/bookkeeper-operator) that is used to create/configure/manage Bookkeeper clusters atop Kubernetes.
 
 ## Prerequisites
   - Kubernetes 1.15+ with Beta APIs
   - Helm 3.2.1+
-  - An existing Apache Zookeeper 3.6.1 cluster. This can be easily deployed using our [Zookeeper Operator](https://github.com/pravega/zookeeper-operator)
   - Cert-Manager v0.15.0+ or some other certificate management solution in order to manage the webhook service certificates. This can be easily deployed by referring to [this](https://cert-manager.io/docs/installation/kubernetes/)
   - An Issuer and a Certificate (either self-signed or CA signed) in the same namespace that the Bookkeeper Operator will be installed (refer to [this](https://github.com/pravega/bookkeeper-operator/blob/master/deploy/certificate.yaml) manifest to create a self-signed certificate in the default namespace)
 
