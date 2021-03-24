@@ -1,20 +1,16 @@
-# Bookkeeper Operator Helm Chart
+# Deploying Bookkeeper-Operator
 
-Installs [Bookkeeper Operator](https://github.com/pravega/bookkeeper-operator) to create/configure/manage Bookkeeper clusters atop Kubernetes.
-
-## Introduction
-
-This chart bootstraps a [Bookkeeper Operator](https://github.com/pravega/bookkeeper-operator) deployment on a [Kubernetes](http://kubernetes.io) cluster using the [Helm](https://helm.sh) package manager. The chart can be installed multiple times to create Bookkeeper Operator on multiple namespaces.
+Here, we briefly describe how to install [Bookkeeper Operator](https://github.com/pravega/bookkeeper-operator) that is used to create/configure/manage Bookkeeper clusters atop Kubernetes.
 
 ## Prerequisites
   - Kubernetes 1.15+ with Beta APIs
   - Helm 3.2.1+
-  - An existing Apache Zookeeper 3.6.1 cluster. This can be easily deployed using our [Zookeeper Operator](https://github.com/pravega/zookeeper-operator)
   - Cert-Manager v0.15.0+ or some other certificate management solution in order to manage the webhook service certificates. This can be easily deployed by referring to [this](https://cert-manager.io/docs/installation/kubernetes/)
   - An Issuer and a Certificate (either self-signed or CA signed) in the same namespace that the Bookkeeper Operator will be installed (refer to [this](https://github.com/pravega/bookkeeper-operator/blob/master/deploy/certificate.yaml) manifest to create a self-signed certificate in the default namespace)
 
-## Installing the Chart
+## Installing Bookkeeper-Operator
 
+> Note: If you are running on Google Kubernetes Engine (GKE), please [check this first](../../doc/development.md#installation-on-google-kubernetes-engine).
 To install the bookkeeper-operator chart, use the following commands:
 
 ```
@@ -23,17 +19,24 @@ $ helm repo update
 $ helm install [RELEASE_NAME] pravega/bookkeeper-operator --version=[VERSION] --set webhookCert.certName=[CERT_NAME] --set webhookCert.secretName=[SECRET_NAME]
 ```
 where:
-- **[RELEASE_NAME]** is the release name for the bookkeeper-operator chart
-- **[DEPLOYMENT_NAME]** is the name of the bookkeeper-operator deployment so created. (If [RELEASE_NAME] contains the string `bookkeeper-operator`, `[DEPLOYMENT_NAME] = [RELEASE_NAME]`, else `[DEPLOYMENT_NAME] = [RELEASE_NAME]-bookkeeper-operator`. The [DEPLOYMENT_NAME] can however be overridden by providing `--set fullnameOverride=[DEPLOYMENT_NAME]` along with the helm install command)
-- **[VERSION]** can be any stable release version for bookkeeper-operator from 0.1.3 onwards
+
+- **[RELEASE_NAME]** is the release name for the bookkeeper-operator chart.
+- **[VERSION]** can be any stable release version for bookkeeper-operator from 0.1.3 onwards.
 - **[CERT_NAME]** is the name of the certificate created as a prerequisite
 - **[SECRET_NAME]** is the name of the secret created by the above certificate
 
-This command deploys a bookkeeper-operator on the Kubernetes cluster in its default configuration. The [configuration](#configuration) section lists the parameters that can be configured during installation.
+This command deploys a pravega-operator on the Kubernetes cluster in its default configuration. The [configuration](#operator-configuration) section lists the parameters that can be configured during installation.
+
+>Note: If we provide [RELEASE_NAME] same as chart name, deployment name will be same as release-name. But if we are providing a different name for release(other than bookkeeper-operator in this case), deployment name will be [RELEASE_NAME]-[chart-name]. However, deployment name can be overridden by providing --set  fullnameOverride=[DEPLOYMENT_NAME]` along with helm install command
+
 
 >Note: If the bookkeeper-operator version is 0.1.2, webhookCert.certName and webhookCert.secretName should not be set. Also in this case, cert-manager and the certificate/issuer do not need to be deployed as prerequisites.
 
-## Uninstalling the Chart
+## Upgrading Bookkeeper-Operator
+
+For upgrading bookkeeper-operator, please refer [upgrade guide](../../doc/operator-upgrade.md)
+
+## Uninstalling  Bookkeeper-Operator
 
 To uninstall/delete the bookkeeper-operator chart, use the following command:
 
@@ -43,7 +46,7 @@ $ helm uninstall [RELEASE_NAME]
 
 This command removes all the Kubernetes components associated with the chart and deletes the release.
 
-## Configuration
+## Operator Configuration
 
 The following table lists the configurable parameters of the bookkeeper-operator chart and their default values.
 

@@ -1,9 +1,17 @@
 ## Development
 
-Requirements:
+## Contents
+
+ * [Requirements](#requirements)
+ * [Build the operator image](#build-the-operator-image)
+ * [Run the Operator locally](#run-the-operator-locally)
+ * [Installation on Google Kubernetes Engine](#installation-on-google-kubernetes-engine)
+ * [Install the Operator in Test Mode](#install-the-operator-in-test-mode)
+
+### Requirements
   - Go 1.13+
 
-### Install Go
+#### Install Go
 
 You can install go directly or use gvm ( go version manager)
 
@@ -112,3 +120,6 @@ On GKE, the following command must be run before installing the Operator, replac
 ```
 $ kubectl create clusterrolebinding your-user-cluster-admin-binding --clusterrole=cluster-admin --user=your.google.cloud.email@example.org
 ```
+
+### Install the Operator in Test Mode
+ The Operator can be run in `test mode` if we want to deploy the Bookkeeper Cluster on minikube or on a cluster with very limited resources by setting `testmode: true` in `values.yaml` file. Operator running in test mode skips the minimum replica requirement checks. Test mode provides a bare minimum setup and is not recommended to be used in production environments.
