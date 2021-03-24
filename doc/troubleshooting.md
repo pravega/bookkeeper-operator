@@ -12,7 +12,7 @@
 
 ## Certificate Error: Internal error occurred: failed calling webhook
 
-while installing bookkeeper, if we get the error as  below,
+While installing bookkeeper, if we get the error as  below,
 ```
 helm install bookkeeper charts/bookkeeper
 Error: Post https://bookkeeper-webhook-svc.default.svc:443/validate-bookkeeper-pravega-io-v1alpha1-bookkeepercluster?timeout=30s: x509: certificate signed by unknown authority
@@ -21,7 +21,7 @@ We need to ensure that certificates are installed before installing the operator
 
 ## Unsupported Bookkeeper cluster version
 
-while installing pravega, if we get the below error
+While installing pravega, if we get the below error
 ```
 Error: admission webhook "bookkeeperwebhook.pravega.io" denied the request: unsupported Bookkeeper cluster version 0.10.0-2703.c9b7be114
 ```
@@ -39,7 +39,7 @@ Alternatively, we can edit the configmap and add entry as `0.10.0:0.10.0` in the
 
 ## Unsupported upgrade from version
 
-while upgrading bookkeeper, if we get the error similar to below
+While upgrading bookkeeper, if we get the error similar to below
 
 ```
 Error from server (unsupported upgrade from version 0.8.0-2640.e4c436ba9 to 0.9.0-2752.2652549b3): error when applying patch
@@ -59,7 +59,7 @@ Alternatively, we can edit the configmap and add entry as `0.8.0:0.8.0,0.9.0` in
 
 ## Invalid Cookie Exception
 
-while installing bookkeeper, if the pods are not coming to ready state `1/1` and in the bookie logs if the error messages are seen as below,
+While installing bookkeeper, if the pods are not coming to ready state `1/1` and in the bookie logs if the error messages are seen as below,
 
 ```
 2020-06-26 09:03:34,893 - ERROR - [main:Main@223] - Failed to build bookie server
@@ -79,4 +79,4 @@ we need to ensure that znode entries are cleaned up from previous installation. 
 
 ## Operator pod in container creating state
 
-while installing operator, if the operator pod goes in `ContainerCreating` state for long time, make sure certificates are installed correctly. Please refer [prerequisite](../charts/bookkeeper-operator/README.md#Prerequisites)
+While installing operator, if the operator pod goes in `ContainerCreating` state for long time, make sure certificates are installed correctly. Please refer [prerequisite](../charts/bookkeeper-operator/README.md#Prerequisites)
