@@ -1,4 +1,4 @@
-# Bookkeeper Deploymnent
+# Deploying Bookkeeper
 
 Here, we briefly describe how to [install](#installing-bookkeeper-cluster)/[update](#updating-bookkeeper-cluster)/[uninstall](#uninstalling-the-bookkeeper-cluster)/[configure](#configuration) bookkeeper clusters atop kubernetes.
 
@@ -74,15 +74,10 @@ For updating the bookkeeper cluster, use the following command
 ```
 helm upgrade [RELEASE_NAME]  --version=[VERSION]  --set replicas=5
 ```
-Also, we can edit replicas by `kubectl patch` command
-
-```
-kubectl patch bk bookkeeper --type='json' -p='[{"op": "replace", "path": "/spec/replicas", "value": 4}]'
-```
- we can also update other configurable parameters at run time. For changing options `useHostNameAsBookieID` to `false` use the below command.
+ we can also update other configurable parameters at run time. For changing options `minorCompactionInterval` to `1900` use the below command.
 
  ```
-  helm upgrade bookkeeper charts/bookkeeper --set-string options."useHostNameAsBookieID=false"
+  helm upgrade bookkeeper charts/bookkeeper --set-string options."minorCompactionInterval=1900"
   ```
 Please refer [upgrade](../../doc/upgrade-cluster.md) for upgrading cluster versions.
 

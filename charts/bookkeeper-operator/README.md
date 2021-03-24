@@ -1,6 +1,6 @@
 # Deploying Bookkeeper-Operator
 
-Here, we briefly describes how to install [Bookkeeper Operator](https://github.com/pravega/bookkeeper-operator) that is used to create/configure/manage Bookkeeper clusters atop Kubernetes.
+Here, we briefly describe how to install [Bookkeeper Operator](https://github.com/pravega/bookkeeper-operator) that is used to create/configure/manage Bookkeeper clusters atop Kubernetes.
 
 ## Prerequisites
   - Kubernetes 1.15+ with Beta APIs

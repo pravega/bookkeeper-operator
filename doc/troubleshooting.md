@@ -79,4 +79,4 @@ we need to ensure that znode entries are cleaned up from previous installation. 
 
 ## Operator pod in container creating state
 
-while installing operator, if the operator pod goes in `ContainerCreating` state for long time, make sure certificates are installed correctly.Please refer [prerequisite](../charts/bookkeeper-operator/README.md#Prerequisites)
+while installing operator, if the operator pod goes in `ContainerCreating` state for long time, make sure certificates are installed correctly. Please refer [prerequisite](../charts/bookkeeper-operator/README.md#Prerequisites)
