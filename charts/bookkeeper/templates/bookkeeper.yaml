@@ -21,6 +21,8 @@ spec:
   {{- else }}
   blockOwnerDeletion: false
   {{- end }}
+  labels:
+{{ toYaml .Values.labels | indent 4 }}
   {{- if .Values.probes }}
   probes:
     {{- if .Values.probes.readiness }}

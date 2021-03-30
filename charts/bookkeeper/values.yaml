@@ -20,7 +20,7 @@ zookeeperUri: zookeeper-client:2181
 pravegaClusterName: pravega
 autoRecovery: true
 blockOwnerDeletion: true
-
+labels: {}
 probes:
   readiness:
     initialDelaySeconds: 20
