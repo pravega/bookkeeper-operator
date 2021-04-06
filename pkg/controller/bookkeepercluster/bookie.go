@@ -413,13 +413,7 @@ func MakeBookieConfigMap(bk *v1alpha1.BookkeeperCluster) *corev1.ConfigMap {
 		"BOOKIE_GC_LOGGING_OPTS":   strings.Join(gcLoggingOpts, " "),
 		"BOOKIE_EXTRA_OPTS":        strings.Join(extraOpts, " "),
 		"ZK_URL":                   bk.Spec.ZookeeperUri,
-		"BK_useHostNameAsBookieID": "true",
-	}
-
-	if match, _ := util.CompareVersions(bk.Spec.Version, "0.5.0", "<"); match {
-		// bookkeeper < 0.5 uses BookKeeper 4.5, which does not play well
-		// with hostnames that resolve to different IP addresses over time
-		configData["BK_useHostNameAsBookieID"] = "false"
+		"BK_useHostNameAsBookieID": "false",
 	}
 
 	if *bk.Spec.AutoRecovery {

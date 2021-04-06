@@ -64,7 +64,7 @@ jvmOptions:
   extraOpts: ["-XX:+IgnoreUnrecognizedVMOptions"]
 
 options:
-  useHostNameAsBookieID: "true"
+  useHostNameAsBookieID: "false"
   ## We need an agressive data compaction policy in Bookkeeper, given that we may have IO heavy workloads that may fill up the disks.
   ## For more information on these parameters, please see https://github.com/pravega/pravega/issues/4008.
   minorCompactionThreshold: "0.4"
