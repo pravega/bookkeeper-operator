@@ -408,12 +408,11 @@ func MakeBookieConfigMap(bk *v1alpha1.BookkeeperCluster) *corev1.ConfigMap {
 	}
 
 	configData := map[string]string{
-		"BOOKIE_MEM_OPTS":          strings.Join(memoryOpts, " "),
-		"BOOKIE_GC_OPTS":           strings.Join(gcOpts, " "),
-		"BOOKIE_GC_LOGGING_OPTS":   strings.Join(gcLoggingOpts, " "),
-		"BOOKIE_EXTRA_OPTS":        strings.Join(extraOpts, " "),
-		"ZK_URL":                   bk.Spec.ZookeeperUri,
-		"BK_useHostNameAsBookieID": "false",
+		"BOOKIE_MEM_OPTS":        strings.Join(memoryOpts, " "),
+		"BOOKIE_GC_OPTS":         strings.Join(gcOpts, " "),
+		"BOOKIE_GC_LOGGING_OPTS": strings.Join(gcLoggingOpts, " "),
+		"BOOKIE_EXTRA_OPTS":      strings.Join(extraOpts, " "),
+		"ZK_URL":                 bk.Spec.ZookeeperUri,
 	}
 
 	if *bk.Spec.AutoRecovery {
