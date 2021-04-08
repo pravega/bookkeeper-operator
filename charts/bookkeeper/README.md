@@ -146,7 +146,7 @@ The following table lists the configurable parameters of the Bookkeeper chart an
 | `image.repository` | Image repository | `pravega/bookkeeper` |
 | `image.pullPolicy` | Image pull policy | `IfNotPresent` |
 | `replicas` | Number of bookkeeper replicas | `3` |
-| `maxUnavailableBookkeeperReplicas` | Number of maxUnavailableBookkeeperReplicas for bookkeeper PDB | `1` |
+| `maxUnavailableReplicas` | Maximum number of unavailable replicas for bookkeeper PDB | |
 | `zookeeperUri` | Zookeeper client service URI | `zookeeper-client:2181` |
 | `pravegaClusterName` | Name of the pravega cluster | `pravega` |
 | `autoRecovery`| Enable bookkeeper auto-recovery | `true` |

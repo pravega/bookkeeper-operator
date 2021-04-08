@@ -34,8 +34,6 @@ where:
 
 ### Triggering the upgrade
 
-#### Upgrade via helm
-
 The upgrade to Operator 0.1.3 can be triggered using the following command
 ```
 helm upgrade [BOOKKEEPER_OPERATOR_RELEASE_NAME] pravega/bookkeeper-operator --version=0.1.3 --set webhookCert.certName=[CERT_NAME] --set webhookCert.secretName=[SECRET_NAME]
@@ -43,7 +41,3 @@ helm upgrade [BOOKKEEPER_OPERATOR_RELEASE_NAME] pravega/bookkeeper-operator --ve
 where:
 - `[CERT_NAME]` is the name of the certificate that has been created
 - `[SECRET_NAME]` is the name of the secret created by the above certificate
-
-#### Upgrade manually
-
-To manually trigger the upgrade to Operator 0.1.3, run the script `operatorUpgrade.sh` under [tools](https://github.com/pravega/bookkeeper-operator/blob/master/tools) folder. This script installs the certificate, patches and creates necessary K8s artifacts, needed by 0.1.3 Operator, prior to triggering the upgrade by updating the image tag in Operator deployment.

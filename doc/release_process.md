@@ -1,7 +1,7 @@
-# Pravega Operator Release Process
+# Bookkeeper Operator Release Process
 
 ## Release Versioning
-Pravega Operator follows the [Semantic Versioning](https://semver.org/) model for numbering releases.
+Bookkeeper Operator follows the [Semantic Versioning](https://semver.org/) model for numbering releases.
 
 ## Introduction
 This page documents the tagging, branching and release process followed for Bookkeeper Operator.
@@ -13,7 +13,7 @@ This page documents the tagging, branching and release process followed for Book
 This is a minor release with backward compatible changes and bug fixes.
 
 1. Create a new branch with last number bumped up from the existing release branch.
-   For example, if the existing release branch is 0.1.2, the new branch will be named 0.1.2.
+   For example, if the existing release branch is 0.1.2, the new branch will be named 0.1.3.
 
    `$ git clone --branch <tag-name> git@github.com:pravega/bookkeeper-operator.git `
 
@@ -34,7 +34,7 @@ This is a minor release with backward compatible changes and bug fixes.
 
 5. Create a new release candidate tag on this branch.
    Tag name should correspond to release-branch-name-<release-candidate-version>.
-   For example: `0.1.2-rc1` for the first release candidate.
+   For example: `0.1.3-rc1` for the first release candidate.
 
     `$ git tag -a <tag-name> -m "<description>"`
 
@@ -50,7 +50,7 @@ This is a minor release with backward compatible changes and bug fixes.
 
     `$ docker push pravega/bookkeeper-operator:<tag-name>`
 
-7. Once a release candidate is tested and there are no more changes needed, push a final release tag and image (like `0.1.2`)
+7. Once a release candidate is tested and there are no more changes needed, push a final release tag and image (like `0.1.3`)
 
 8. Release Notes
 

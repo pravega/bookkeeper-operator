@@ -1,6 +1,6 @@
 ## Development
 
-## Contents
+### Contents
 
  * [Requirements](#requirements)
  * [Build the operator image](#build-the-operator-image)
@@ -8,10 +8,10 @@
  * [Installation on Google Kubernetes Engine](#installation-on-google-kubernetes-engine)
  * [Install the Operator in Test Mode](#install-the-operator-in-test-mode)
 
-### Requirements
+#### Requirements
   - Go 1.13+
 
-#### Install Go
+##### Install Go
 
 You can install go directly or use gvm ( go version manager)
 
@@ -55,7 +55,7 @@ For pulling the dependencies we are using go modules for more details on go modu
 
 https://blog.golang.org/using-go-modules
 
-### Build the operator image
+#### Build the operator image
 
 Use the `make` command to build the Bookkeeper operator image, it will also automatically get all the dependencies by using the go.mod file.
 
@@ -93,7 +93,7 @@ where:
 - `[REGISTRY_HOST]` is your registry host or IP (e.g. `registry.example.com`)
 - `[REGISTRY_PORT]` is your registry port (e.g. `5000`)
 
-### Run the Operator locally
+#### Run the Operator locally
 
 You can run the Operator locally to help with development, testing, and debugging tasks.
 
@@ -103,7 +103,7 @@ The following command will run the Operator locally with the default Kubernetes 
 $ make run-local
 ```
 
-### Installation on Google Kubernetes Engine
+#### Installation on Google Kubernetes Engine
 
 The Operator requires elevated privileges in order to watch for the custom resources.
 
@@ -121,5 +121,5 @@ On GKE, the following command must be run before installing the Operator, replac
 $ kubectl create clusterrolebinding your-user-cluster-admin-binding --clusterrole=cluster-admin --user=your.google.cloud.email@example.org
 ```
 
-### Install the Operator in Test Mode
+#### Install the Operator in Test Mode
  The Operator can be run in `test mode` if we want to deploy the Bookkeeper Cluster on minikube or on a cluster with very limited resources by setting `testmode: true` in `values.yaml` file. Operator running in test mode skips the minimum replica requirement checks. Test mode provides a bare minimum setup and is not recommended to be used in production environments.
