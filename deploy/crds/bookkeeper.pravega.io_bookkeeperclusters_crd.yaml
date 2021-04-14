@@ -215,6 +215,11 @@ spec:
               description: ServiceAccountName configures the service account used
                 on BookKeeper instances
               type: string
+            labels:
+              additionalProperties:
+                type: string
+              description: Labels to be added to the Bookie Pods
+              type: object
             storage:
               description: Storage configures the storage for BookKeeper
               properties:
