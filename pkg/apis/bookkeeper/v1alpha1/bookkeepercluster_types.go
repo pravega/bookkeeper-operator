@@ -498,9 +498,9 @@ func (s *BookkeeperClusterSpec) withDefaults(bk *BookkeeperCluster) (changed boo
 		s.BlockOwnerDeletion = &boolTrue
 	}
 
-	if s.affinity == nil {
+	if s.Affinity == nil {
 		changed = true
-		s.affinity = util.PodAntiAffinity("bookie", bk.Name)
+		s.Affinity = util.PodAntiAffinity("bookie", bk.Name)
 	}
 
 	return changed
