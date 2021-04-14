@@ -146,7 +146,7 @@ The following table lists the configurable parameters of the Bookkeeper chart an
 | `image.repository` | Image repository | `pravega/bookkeeper` |
 | `image.pullPolicy` | Image pull policy | `IfNotPresent` |
 | `replicas` | Number of bookkeeper replicas | `3` |
-| `maxUnavailableBookkeeperReplicas` | Number of maxUnavailableBookkeeperReplicas for bookkeeper PDB | `1` |
+| `maxUnavailableReplicas` | Maximum number of unavailable replicas for bookkeeper PDB | |
 | `zookeeperUri` | Zookeeper client service URI | `zookeeper-client:2181` |
 | `pravegaClusterName` | Name of the pravega cluster | `pravega` |
 | `autoRecovery`| Enable bookkeeper auto-recovery | `true` |
@@ -177,3 +177,4 @@ The following table lists the configurable parameters of the Bookkeeper chart an
 | `jvmOptions.gcLoggingOpts` | GC Logging Options passed to the JVM for bookkeeper performance tuning | `["-Xlog:gc*,safepoint::time,level,tags:filecount=5,filesize=64m"]` |
 | `jvmOptions.extraOpts` | Extra Options passed to the JVM for bookkeeper performance tuning | `["-XX:+IgnoreUnrecognizedVMOptions"]` |
 | `options` | List of bookkeeper options | |
+| `labels` | Labels to be added to the Bookie Pods | |

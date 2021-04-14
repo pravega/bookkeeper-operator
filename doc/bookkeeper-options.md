@@ -58,7 +58,6 @@ Default gcOpts:
 "-XX:+UseG1GC",
 "-XX:MaxGCPauseMillis=10",
 "-XX:+ParallelRefProcEnabled",
-"-XX:+AggressiveOpts",
 "-XX:+DoEscapeAnalysis",
 "-XX:ParallelGCThreads=32",
 "-XX:ConcGCThreads=32",

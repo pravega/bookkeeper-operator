@@ -247,6 +247,10 @@ type BookkeeperClusterSpec struct {
 
 	// The scheduling constraints on Bookie pods.
 	Affinity *corev1.Affinity `json:"affinity,omitempty"`
+
+	// Labels to be added to the bookie pods
+	// +optional
+	Labels map[string]string `json:"labels"`
 }
 
 // BookkeeperImageSpec defines the fields needed for a BookKeeper Docker image
@@ -503,6 +507,10 @@ func (s *BookkeeperClusterSpec) withDefaults(bk *BookkeeperCluster) (changed boo
 		s.Affinity = util.PodAntiAffinity("bookie", bk.Name)
 	}
 
+	if s.Labels == nil {
+		s.Labels = map[string]string{}
+	}
+
 	return changed
 }
 
@@ -644,6 +652,11 @@ func (bk *BookkeeperCluster) ValidateBookkeeperVersion(filename string) error {
 
 func (bk *BookkeeperCluster) LabelsForBookie() map[string]string {
 	labels := bk.LabelsForBookkeeperCluster()
+	if bk.Spec.Labels != nil {
+		for k, v := range bk.Spec.Labels {
+			labels[k] = v
+		}
+	}
 	labels["component"] = "bookie"
 	return labels
 }

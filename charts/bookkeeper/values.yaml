@@ -15,13 +15,13 @@ hooks:
   backoffLimit: 10
 
 replicas: 3
-maxUnavailableBookkeeperReplicas: 1
+maxUnavailableReplicas:
 zookeeperUri: zookeeper-client:2181
 pravegaClusterName: pravega
 autoRecovery: true
 blockOwnerDeletion: true
 affinity: {}
-
+labels: {}
 probes:
   readiness:
     initialDelaySeconds: 20

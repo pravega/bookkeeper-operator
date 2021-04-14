@@ -6,6 +6,7 @@
 * [Unsupported Bookkeeper cluster version](#unsupported-bookkeeper-cluster-version)
 * [Unsupported upgrade from version](#unsupported-upgrade-from-version)
 * [Invalid Cookie Exception](#invalid-cookie-exception)
+* [Unrecognized VM option](#unrecognized-vm-option)
 
 ## Bookkeeper operator Issues
 * [Operator pod in container creating state](#operator-pod-in-container-creating-state)
@@ -76,6 +77,21 @@ org.apache.bookkeeper.bookie.BookieException$InvalidCookieException:
 ```
 
 we need to ensure that znode entries are cleaned up from previous installation. This can be done by either cleaning up znode entries from zookeeper nodes or by completely reinstalling zookeeper.
+
+## Unrecognized VM option
+
+While installing bookkeeper, if the pods don't come up to ready state and the logs contain the error shown below
+
+```
+Unrecognized VM option 'PrintGCDateStamps'
+Error: Could not create the Java Virtual Machine.
+Error: A fatal exception has occurred. Program will exit.
+```
+This is happening because some of default JVM options added by the operator are not supported by Java version used by bookkeeper. This issue can therefore be resolved by setting an additional JVM option `IgnoreUnrecognizedVMOptions` while installing the bookkeeper cluster as shown below.
+
+```
+helm install [RELEASE_NAME] pravega/bookkeeper --version=[VERSION] --set zookeeperUri=[ZOOKEEPER_HOST] --set 'jvmOptions.extraOpts={-XX:+IgnoreUnrecognizedVMOptions}'
+```
 
 ## Operator pod in container creating state
 
