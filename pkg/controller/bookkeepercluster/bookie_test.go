@@ -90,6 +90,9 @@ var _ = Describe("Bookie", func() {
 					Labels: map[string]string{
 						"bookie-name": "dummyBookie",
 					},
+					Labels: map[string]string{
+						"bookie-name": "dummyBookie",
+					},
 				}
 				bk.WithDefaults()
 			})
