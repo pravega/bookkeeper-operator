@@ -176,3 +176,4 @@ The following table lists the configurable parameters of the Bookkeeper chart an
 | `jvmOptions.gcLoggingOpts` | GC Logging Options passed to the JVM for bookkeeper performance tuning | `["-Xlog:gc*,safepoint::time,level,tags:filecount=5,filesize=64m"]` |
 | `jvmOptions.extraOpts` | Extra Options passed to the JVM for bookkeeper performance tuning | `["-XX:+IgnoreUnrecognizedVMOptions"]` |
 | `options` | List of bookkeeper options | |
+| `labels` | Labels to be added to the Bookie Pods | |
