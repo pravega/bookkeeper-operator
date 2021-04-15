@@ -115,6 +115,11 @@ func (in *BookkeeperClusterSpec) DeepCopyInto(out *BookkeeperClusterSpec) {
 		*out = new(bool)
 		**out = **in
 	}
+	if in.Affinity != nil {
+		in, out := &in.Affinity, &out.Affinity
+		*out = new(v1.Affinity)
+		(*in).DeepCopyInto(*out)
+	}
 	if in.Labels != nil {
 		in, out := &in.Labels, &out.Labels
 		*out = make(map[string]string, len(*in))

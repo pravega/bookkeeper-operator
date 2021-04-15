@@ -160,7 +160,7 @@ type BookkeeperCluster struct {
 
 // WithDefaults set default values when not defined in the spec.
 func (bk *BookkeeperCluster) WithDefaults() (changed bool) {
-	changed = bk.Spec.withDefaults()
+	changed = bk.Spec.withDefaults(bk)
 	return changed
 }
 
@@ -244,6 +244,9 @@ type BookkeeperClusterSpec struct {
 	// reference is removed.
 	// Defaults to true
 	BlockOwnerDeletion *bool `json:"blockOwnerDeletion,omitempty"`
+
+	// The scheduling constraints on Bookie pods.
+	Affinity *corev1.Affinity `json:"affinity,omitempty"`
 
 	// Labels to be added to the bookie pods
 	// +optional
@@ -415,7 +418,7 @@ func (s *BookkeeperStorageSpec) withDefaults() (changed bool) {
 	return changed
 }
 
-func (s *BookkeeperClusterSpec) withDefaults() (changed bool) {
+func (s *BookkeeperClusterSpec) withDefaults(bk *BookkeeperCluster) (changed bool) {
 	if s.ZookeeperUri == "" {
 		changed = true
 		s.ZookeeperUri = DefaultZookeeperUri
@@ -497,6 +500,11 @@ func (s *BookkeeperClusterSpec) withDefaults() (changed bool) {
 		changed = true
 		boolTrue := true
 		s.BlockOwnerDeletion = &boolTrue
+	}
+
+	if s.Affinity == nil {
+		changed = true
+		s.Affinity = util.PodAntiAffinity("bookie", bk.Name)
 	}
 
 	if s.Labels == nil {

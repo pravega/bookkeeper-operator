@@ -249,7 +249,7 @@ func makeBookiePodSpec(bk *v1alpha1.BookkeeperCluster) *corev1.PodSpec {
 				},
 			},
 		},
-		Affinity: util.PodAntiAffinity("bookie", bk.Name),
+		Affinity: bk.Spec.Affinity,
 		Volumes:  volumes,
 	}
 

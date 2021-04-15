@@ -18,6 +18,10 @@ spec:
   zookeeperUri: {{ .Values.zookeeperUri }}
   envVars: {{ template "bookkeeper.fullname" . }}-configmap
   autoRecovery: {{ .Values.autoRecovery }}
+  {{- if .Values.affinity }}
+  affinity:
+{{ toYaml .Values.affinity | indent 6 }}
+  {{- end }}
   {{- if or (.Values.blockOwnerDeletion) (eq (.Values.blockOwnerDeletion | toString) "<nil>") }}
   blockOwnerDeletion: true
   {{- else }}
