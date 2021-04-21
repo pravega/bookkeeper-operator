@@ -86,4 +86,5 @@ options:
   # enableStatistics: "true"
   # statsProviderClass: "org.apache.bookkeeper.stats.prometheus.PrometheusMetricsProvider"
   # hostPathVolumeMounts: "foo=/tmp/foo,bar=/tmp/bar"
-  # emptyDirVolumeMounts: "baz=/tmp/baz,quux=/tmp/quux"
+  # emptyDirVolumeMounts: "heap-dump=/tmp/dumpfile/heap,log=/opt/bookkeeper/logs"
+  # configMapVolumeMounts: "bk-log4j:log4j.properties=/opt/bookkeeper/conf/log4j.properties"
