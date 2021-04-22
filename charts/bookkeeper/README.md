@@ -172,9 +172,9 @@ The following table lists the configurable parameters of the Bookkeeper chart an
 | `storage.journal.volumeSize` | Requested size for bookkeeper journal persistent volumes | `10Gi` |
 | `storage.index.className` | Storage class name for bookkeeper index | `` |
 | `storage.index.volumeSize` | Requested size for bookkeeper index persistent volumes | `10Gi` |
-| `jvmOptions.memoryOpts` | Memory Options passed to the JVM for bookkeeper performance tuning | `["-Xms1g", "-XX:MaxDirectMemorySize=2g"]` |
-| `jvmOptions.gcOpts` | Garbage Collector (GC) Options passed to the JVM for bookkeeper bookkeeper performance tuning | `[]` |
+| `jvmOptions.memoryOpts` | Memory Options passed to the JVM for bookkeeper performance tuning | `["-Xms1g", "-XX:MaxDirectMemorySize=2g", "-XX:+ExitOnOutOfMemoryError", "-XX:+CrashOnOutOfMemoryError", "-XX:+HeapDumpOnOutOfMemoryError", "-XX:+UnlockExperimentalVMOptions", "-XX:+UseContainerSupport", "-XX:MaxRAMPercentage=50.0"]` |
+| `jvmOptions.gcOpts` | Garbage Collector (GC) Options passed to the JVM for bookkeeper bookkeeper performance tuning | `["-XX:+UseG1GC", "-XX:MaxGCPauseMillis=10", "-XX:+ParallelRefProcEnabled", "-XX:+DoEscapeAnalysis", "-XX:ParallelGCThreads=32", "-XX:ConcGCThreads=32", "-XX:G1NewSizePercent=50", "-XX:+DisableExplicitGC", "-XX:-ResizePLAB"]` |
 | `jvmOptions.gcLoggingOpts` | GC Logging Options passed to the JVM for bookkeeper performance tuning | `["-Xlog:gc*,safepoint::time,level,tags:filecount=5,filesize=64m"]` |
-| `jvmOptions.extraOpts` | Extra Options passed to the JVM for bookkeeper performance tuning | `["-XX:+IgnoreUnrecognizedVMOptions"]` |
+| `jvmOptions.extraOpts` | Extra Options passed to the JVM for bookkeeper performance tuning | `[]` |
 | `options` | List of bookkeeper options | |
 | `labels` | Labels to be added to the Bookie Pods | |

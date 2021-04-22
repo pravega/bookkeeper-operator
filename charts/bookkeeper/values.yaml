@@ -56,13 +56,13 @@ storage:
     volumeSize: 10Gi
 
 jvmOptions:
-  memoryOpts: ["-Xms1g", "-XX:MaxDirectMemorySize=2g"]
-  gcOpts: []
+  memoryOpts: ["-Xms1g", "-XX:MaxDirectMemorySize=2g", "-XX:+ExitOnOutOfMemoryError", "-XX:+CrashOnOutOfMemoryError", "-XX:+HeapDumpOnOutOfMemoryError", "-XX:+UnlockExperimentalVMOptions", "-XX:+UseContainerSupport", "-XX:MaxRAMPercentage=50.0"]
+  gcOpts: ["-XX:+UseG1GC", "-XX:MaxGCPauseMillis=10", "-XX:+ParallelRefProcEnabled", "-XX:+DoEscapeAnalysis", "-XX:ParallelGCThreads=32", "-XX:ConcGCThreads=32", "-XX:G1NewSizePercent=50", "-XX:+DisableExplicitGC", "-XX:-ResizePLAB"]
   ## GC logging for Java 9+
   gcLoggingOpts: ["-Xlog:gc*,safepoint::time,level,tags:filecount=5,filesize=64m"]
   ## GC logging for Java 8
   # gcLoggingOpts: ["-XX:+PrintGCDetails","-XX:+PrintGCApplicationStoppedTime","-XX:+UseGCLogFileRotation","-XX:NumberOfGCLogFiles=5","-XX:GCLogFileSize=64m"]
-  extraOpts: ["-XX:+IgnoreUnrecognizedVMOptions"]
+  extraOpts: []
 
 options:
   useHostNameAsBookieID: "true"

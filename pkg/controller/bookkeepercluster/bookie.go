@@ -406,31 +406,15 @@ func makeBookieVolumeClaimTemplates(bk *v1alpha1.BookkeeperCluster) []corev1.Per
 
 func MakeBookieConfigMap(bk *v1alpha1.BookkeeperCluster) *corev1.ConfigMap {
 	memoryOpts := []string{
-		"-Xms1g",
-		"-XX:MaxDirectMemorySize=1g",
-		"-XX:+ExitOnOutOfMemoryError",
-		"-XX:+CrashOnOutOfMemoryError",
-		"-XX:+HeapDumpOnOutOfMemoryError",
 		"-XX:HeapDumpPath=" + heapDumpDir,
-		"-XX:+UnlockExperimentalVMOptions",
-		"-XX:+UseContainerSupport",
-		"-XX:MaxRAMPercentage=50.0",
 	}
 
 	memoryOpts = util.OverrideDefaultJVMOptions(memoryOpts, bk.Spec.JVMOptions.MemoryOpts)
 
-	gcOpts := []string{
-		"-XX:+UseG1GC",
-		"-XX:MaxGCPauseMillis=10",
-		"-XX:+ParallelRefProcEnabled",
-		"-XX:+DoEscapeAnalysis",
-		"-XX:ParallelGCThreads=32",
-		"-XX:ConcGCThreads=32",
-		"-XX:G1NewSizePercent=50",
-		"-XX:+DisableExplicitGC",
-		"-XX:-ResizePLAB",
+	gcOpts := []string{}
+	if bk.Spec.JVMOptions.GcOpts != nil {
+		gcOpts = bk.Spec.JVMOptions.GcOpts
 	}
-	gcOpts = util.OverrideDefaultJVMOptions(gcOpts, bk.Spec.JVMOptions.GcOpts)
 
 	gcLoggingOpts := []string{}
 	if bk.Spec.JVMOptions.GcLoggingOpts != nil {
@@ -442,13 +426,18 @@ func MakeBookieConfigMap(bk *v1alpha1.BookkeeperCluster) *corev1.ConfigMap {
 		extraOpts = bk.Spec.JVMOptions.ExtraOpts
 	}
 
+	useHostNameAsBookieID := "true"
+	if _, ok := bk.Spec.Options["useHostNameAsBookieID"]; ok {
+		useHostNameAsBookieID = bk.Spec.Options["useHostNameAsBookieID"]
+	}
+
 	configData := map[string]string{
 		"BOOKIE_MEM_OPTS":          strings.Join(memoryOpts, " "),
 		"BOOKIE_GC_OPTS":           strings.Join(gcOpts, " "),
 		"BOOKIE_GC_LOGGING_OPTS":   strings.Join(gcLoggingOpts, " "),
 		"BOOKIE_EXTRA_OPTS":        strings.Join(extraOpts, " "),
 		"ZK_URL":                   bk.Spec.ZookeeperUri,
-		"BK_useHostNameAsBookieID": "true",
+		"BK_useHostNameAsBookieID": useHostNameAsBookieID,
 	}
 
 	if match, _ := util.CompareVersions(bk.Spec.Version, "0.5.0", "<"); match {
