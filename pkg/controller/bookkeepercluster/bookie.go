@@ -119,6 +119,7 @@ func makeBookiePodSpec(bk *v1alpha1.BookkeeperCluster) *corev1.PodSpec {
 	var ledgerSubPath, journalSubPath, indexSubPath string
 	var hostPathVolumeMounts []string
 	var emptyDirVolumeMounts []string
+	var configMapVolumeMounts []string
 	var ok bool
 
 	if _, ok = bk.Spec.Options["ledgerDirectories"]; ok {
@@ -166,7 +167,36 @@ func makeBookiePodSpec(bk *v1alpha1.BookkeeperCluster) *corev1.PodSpec {
 	if _, ok = bk.Spec.Options["emptyDirVolumeMounts"]; ok {
 		emptyDirVolumeMounts = strings.Split(bk.Spec.Options["emptyDirVolumeMounts"], ",")
 	}
+	if _, ok = bk.Spec.Options["configMapVolumeMounts"]; ok {
+		configMapVolumeMounts = strings.Split(bk.Spec.Options["configMapVolumeMounts"], ",")
+	}
 	var volumes []corev1.Volume
+	var cmVolumeMounts []corev1.VolumeMount
+	if len(configMapVolumeMounts) > 0 {
+		for _, vm := range configMapVolumeMounts {
+			p := strings.Split(vm, "=")
+			s := strings.Split(p[0], ":")
+			v := corev1.Volume{
+				Name: s[0],
+				VolumeSource: corev1.VolumeSource{
+					ConfigMap: &corev1.ConfigMapVolumeSource{
+						LocalObjectReference: corev1.LocalObjectReference{
+							Name: s[0],
+						},
+					},
+				},
+			}
+			volumes = append(volumes, v)
+
+			m := corev1.VolumeMount{
+				Name:      s[0],
+				MountPath: p[1],
+				SubPath:   s[1],
+			}
+			cmVolumeMounts = append(cmVolumeMounts, m)
+		}
+	}
+
 	if len(hostPathVolumeMounts) > 1 {
 		for _, vm := range hostPathVolumeMounts {
 			s := strings.Split(vm, "=")
@@ -202,6 +232,11 @@ func makeBookiePodSpec(bk *v1alpha1.BookkeeperCluster) *corev1.PodSpec {
 		}
 		volumes = append(volumes, v)
 	}
+	volumeMounts := createVolumeMount(ledgerDirs, journalDirs, indexDirs,
+		ledgerSubPath, journalSubPath, indexSubPath, hostPathVolumeMounts, emptyDirVolumeMounts)
+	if len(cmVolumeMounts) > 0 {
+		volumeMounts = append(volumeMounts, cmVolumeMounts...)
+	}
 
 	podSpec := &corev1.PodSpec{
 		Containers: []corev1.Container{
@@ -216,7 +251,7 @@ func makeBookiePodSpec(bk *v1alpha1.BookkeeperCluster) *corev1.PodSpec {
 					},
 				},
 				EnvFrom:      environment,
-				VolumeMounts: createVolumeMount(ledgerDirs, journalDirs, indexDirs, ledgerSubPath, journalSubPath, indexSubPath, hostPathVolumeMounts, emptyDirVolumeMounts),
+				VolumeMounts: volumeMounts,
 				Resources:    *bk.Spec.Resources,
 				ReadinessProbe: &corev1.Probe{
 					Handler: corev1.Handler{
