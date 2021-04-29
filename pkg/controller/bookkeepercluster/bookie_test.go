@@ -223,11 +223,6 @@ var _ = Describe("Bookie", func() {
 					indexjournal := sts.Spec.Template.Spec.Containers[0].VolumeMounts[2].MountPath
 					Ω(indexjournal).Should(Equal("/bk/index"))
 				})
-				It("should have emptyDirVolumeMounts set to default value", func() {
-					sts := bookkeepercluster.MakeBookieStatefulSet(bk)
-					mountledger := sts.Spec.Template.Spec.Containers[0].VolumeMounts[3].MountPath
-					Ω(mountledger).Should(Equal("/tmp/dumpfile/heap"))
-				})
 
 				It("should have probe timeout values set to their default value", func() {
 					rp_i := bk.Spec.Probes.ReadinessProbe.InitialDelaySeconds

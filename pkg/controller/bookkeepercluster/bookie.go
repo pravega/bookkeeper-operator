@@ -28,8 +28,6 @@ const (
 	LedgerDiskName  = "ledger"
 	JournalDiskName = "journal"
 	IndexDiskName   = "index"
-	heapDumpName    = "heap-dump"
-	heapDumpDir     = "/tmp/dumpfile/heap"
 )
 
 func MakeBookieHeadlessService(bk *v1alpha1.BookkeeperCluster) *corev1.Service {
@@ -222,15 +220,6 @@ func makeBookiePodSpec(bk *v1alpha1.BookkeeperCluster) *corev1.PodSpec {
 			}
 			volumes = append(volumes, v)
 		}
-	} else {
-		// if user did not set emptyDirVolumeMounts
-		v := corev1.Volume{
-			Name: heapDumpName,
-			VolumeSource: corev1.VolumeSource{
-				EmptyDir: &corev1.EmptyDirVolumeSource{},
-			},
-		}
-		volumes = append(volumes, v)
 	}
 	volumeMounts := createVolumeMount(ledgerDirs, journalDirs, indexDirs,
 		ledgerSubPath, journalSubPath, indexSubPath, hostPathVolumeMounts, emptyDirVolumeMounts)
@@ -367,13 +356,6 @@ func createVolumeMount(ledgerDirs []string, journalDirs []string, indexDirs []st
 			}
 			volumeMounts = append(volumeMounts, v)
 		}
-	} else {
-		// if user did not set emptyDirVolumeMounts
-		v := corev1.VolumeMount{
-			Name:      heapDumpName,
-			MountPath: heapDumpDir,
-		}
-		volumeMounts = append(volumeMounts, v)
 	}
 	return volumeMounts
 }
@@ -405,11 +387,10 @@ func makeBookieVolumeClaimTemplates(bk *v1alpha1.BookkeeperCluster) []corev1.Per
 }
 
 func MakeBookieConfigMap(bk *v1alpha1.BookkeeperCluster) *corev1.ConfigMap {
-	memoryOpts := []string{
-		"-XX:HeapDumpPath=" + heapDumpDir,
+	memoryOpts := []string{}
+	if bk.Spec.JVMOptions.MemoryOpts != nil {
+		memoryOpts = bk.Spec.JVMOptions.MemoryOpts
 	}
-
-	memoryOpts = util.OverrideDefaultJVMOptions(memoryOpts, bk.Spec.JVMOptions.MemoryOpts)
 
 	gcOpts := []string{}
 	if bk.Spec.JVMOptions.GcOpts != nil {
@@ -426,18 +407,13 @@ func MakeBookieConfigMap(bk *v1alpha1.BookkeeperCluster) *corev1.ConfigMap {
 		extraOpts = bk.Spec.JVMOptions.ExtraOpts
 	}
 
-	useHostNameAsBookieID := "true"
-	if _, ok := bk.Spec.Options["useHostNameAsBookieID"]; ok {
-		useHostNameAsBookieID = bk.Spec.Options["useHostNameAsBookieID"]
-	}
-
 	configData := map[string]string{
 		"BOOKIE_MEM_OPTS":          strings.Join(memoryOpts, " "),
 		"BOOKIE_GC_OPTS":           strings.Join(gcOpts, " "),
 		"BOOKIE_GC_LOGGING_OPTS":   strings.Join(gcLoggingOpts, " "),
 		"BOOKIE_EXTRA_OPTS":        strings.Join(extraOpts, " "),
 		"ZK_URL":                   bk.Spec.ZookeeperUri,
-		"BK_useHostNameAsBookieID": useHostNameAsBookieID,
+		"BK_useHostNameAsBookieID": "true",
 	}
 
 	if match, _ := util.CompareVersions(bk.Spec.Version, "0.5.0", "<"); match {

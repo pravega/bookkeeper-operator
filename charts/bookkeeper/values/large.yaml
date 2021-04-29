@@ -10,17 +10,14 @@ resources:
 
 storage:
   ledger:
-    className: standard
+    className:
     volumeSize: 250Gi
   journal:
-    className: standard
+    className:
     volumeSize: 250Gi
   index:
-    className: standard
+    className:
     volumeSize: 10Gi
 
 jvmOptions:
   memoryOpts: ["-Xms2g", "-XX:MaxDirectMemorySize=8g"]
-  gcOpts: []
-  gcLoggingOpts: []
-  extraOpts: []
