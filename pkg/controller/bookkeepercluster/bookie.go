@@ -168,8 +168,10 @@ func makeBookiePodSpec(bk *v1alpha1.BookkeeperCluster) *corev1.PodSpec {
 	if _, ok = bk.Spec.Options["configMapVolumeMounts"]; ok {
 		configMapVolumeMounts = strings.Split(bk.Spec.Options["configMapVolumeMounts"], ",")
 	}
+
 	var volumes []corev1.Volume
 	var cmVolumeMounts []corev1.VolumeMount
+
 	if len(configMapVolumeMounts) > 0 {
 		for _, vm := range configMapVolumeMounts {
 			p := strings.Split(vm, "=")
@@ -194,8 +196,7 @@ func makeBookiePodSpec(bk *v1alpha1.BookkeeperCluster) *corev1.PodSpec {
 			cmVolumeMounts = append(cmVolumeMounts, m)
 		}
 	}
-
-	if len(hostPathVolumeMounts) > 1 {
+	if len(hostPathVolumeMounts) > 0 {
 		for _, vm := range hostPathVolumeMounts {
 			s := strings.Split(vm, "=")
 			v := corev1.Volume{
@@ -209,7 +210,7 @@ func makeBookiePodSpec(bk *v1alpha1.BookkeeperCluster) *corev1.PodSpec {
 			volumes = append(volumes, v)
 		}
 	}
-	if len(emptyDirVolumeMounts) > 1 {
+	if len(emptyDirVolumeMounts) > 0 {
 		for _, vm := range emptyDirVolumeMounts {
 			s := strings.Split(vm, "=")
 			v := corev1.Volume{
@@ -221,8 +222,10 @@ func makeBookiePodSpec(bk *v1alpha1.BookkeeperCluster) *corev1.PodSpec {
 			volumes = append(volumes, v)
 		}
 	}
+
 	volumeMounts := createVolumeMount(ledgerDirs, journalDirs, indexDirs,
 		ledgerSubPath, journalSubPath, indexSubPath, hostPathVolumeMounts, emptyDirVolumeMounts)
+
 	if len(cmVolumeMounts) > 0 {
 		volumeMounts = append(volumeMounts, cmVolumeMounts...)
 	}
@@ -337,7 +340,7 @@ func createVolumeMount(ledgerDirs []string, journalDirs []string, indexDirs []st
 		}
 		volumeMounts = append(volumeMounts, v)
 	}
-	if len(hostPathVolumeMounts) > 1 {
+	if len(hostPathVolumeMounts) > 0 {
 		for _, vm := range hostPathVolumeMounts {
 			s := strings.Split(vm, "=")
 			v := corev1.VolumeMount{
@@ -347,7 +350,7 @@ func createVolumeMount(ledgerDirs []string, journalDirs []string, indexDirs []st
 			volumeMounts = append(volumeMounts, v)
 		}
 	}
-	if len(emptyDirVolumeMounts) > 1 {
+	if len(emptyDirVolumeMounts) > 0 {
 		for _, vm := range emptyDirVolumeMounts {
 			s := strings.Split(vm, "=")
 			v := corev1.VolumeMount{
