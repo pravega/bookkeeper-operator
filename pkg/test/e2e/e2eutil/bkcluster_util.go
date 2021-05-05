@@ -237,22 +237,19 @@ func CheckEvents(t *testing.T, f *framework.Framework, ctx *framework.TestCtx, b
 	return false, nil
 }
 
-func CheckConfigMap(t *testing.T, f *framework.Framework, ctx *framework.TestCtx, b *bkapi.BookkeeperCluster) (bool, error) {
+func CheckConfigMap(t *testing.T, f *framework.Framework, ctx *framework.TestCtx, b *bkapi.BookkeeperCluster, key string, value string) error {
 	cm := &corev1.ConfigMap{}
 	name := util.ConfigMapNameForBookie(b.Name)
 	err := f.Client.Get(goctx.TODO(), types.NamespacedName{Namespace: b.Namespace, Name: name}, cm)
 	if err != nil {
-		return false, fmt.Errorf("failed to obtain configmap: %v", err)
+		return fmt.Errorf("failed to obtain configmap: %v", err)
 	}
 	if cm != nil {
-		if cm.Data["BK_autoRecoveryDaemonEnabled"] == "true" {
-			return true, nil
-		} else if cm.Data["BK_autoRecoveryDaemonEnabled"] == "false" {
-			return false, nil
+		if cm.Data[key] == value {
+			return nil
 		}
 	}
-
-	return false, fmt.Errorf("BK_autoRecoveryDaemonEnabled not found")
+	return fmt.Errorf("Configmap does not contain the expected value")
 }
 
 // WaitForBookkeeperClusterToBecomeReady will wait until all Bookkeeper cluster pods are ready

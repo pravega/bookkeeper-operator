@@ -39,9 +39,12 @@ func testCMUpgradeCluster(t *testing.T) {
 	cluster.WithDefaults()
 	initialVersion := "0.6.0"
 	upgradeVersion := "0.7.0"
+	gcOpts := []string{"-XX:+UseG1GC", "-XX:MaxGCPauseMillis=10"}
+	gcOptions := strings.Join(gcOpts, " ")
 	cluster.Spec.Version = initialVersion
 	cluster.Spec.Options["minorCompactionThreshold"] = "0.4"
 	cluster.Spec.Options["journalDirectories"] = "/bk/journal"
+	cluster.Spec.JVMOptions.GcOpts = gcOpts
 
 	bookkeeper, err := bookkeeper_e2eutil.CreateBKCluster(t, f, ctx, cluster)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -52,10 +55,15 @@ func testCMUpgradeCluster(t *testing.T) {
 	// This is to get the latest bookkeeper cluster object
 	bookkeeper, err = bookkeeper_e2eutil.GetBKCluster(t, f, ctx, bookkeeper)
 	g.Expect(err).NotTo(HaveOccurred())
+	err = bookkeeper_e2eutil.CheckConfigMap(t, f, ctx, bookkeeper, "BOOKIE_GC_OPTS", gcOptions)
+	g.Expect(err).NotTo(HaveOccurred())
 
 	// updating bookkeeper option
+	gcOpts = []string{"-XX:-UseParallelGC", "-XX:MaxGCPauseMillis=10"}
+	gcOptions = strings.Join(gcOpts, " ")
 	bookkeeper.Spec.Version = upgradeVersion
 	bookkeeper.Spec.Options["minorCompactionThreshold"] = "0.5"
+	bookkeeper.Spec.JVMOptions.GcOpts = gcOpts
 
 	// updating bookkeepercluster
 	err = bookkeeper_e2eutil.UpdateBKCluster(t, f, ctx, bookkeeper)
@@ -67,6 +75,8 @@ func testCMUpgradeCluster(t *testing.T) {
 
 	// This is to get the latest bookkeeper cluster object
 	bookkeeper, err = bookkeeper_e2eutil.GetBKCluster(t, f, ctx, bookkeeper)
+	g.Expect(err).NotTo(HaveOccurred())
+	err = bookkeeper_e2eutil.CheckConfigMap(t, f, ctx, bookkeeper, "BOOKIE_GC_OPTS", gcOptions)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(bookkeeper.Spec.Version).To(Equal(upgradeVersion))
 	g.Expect(bookkeeper.Spec.Options["minorCompactionThreshold"]).To(Equal("0.5"))

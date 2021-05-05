@@ -14,6 +14,7 @@ import (
 	. "github.com/onsi/gomega"
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
 	bookkeeper_e2eutil "github.com/pravega/bookkeeper-operator/pkg/test/e2e/e2eutil"
+	"strconv"
 	"testing"
 	"time"
 )
@@ -52,9 +53,8 @@ func testMultiBKCluster(t *testing.T) {
 
 	bk1, err = bookkeeper_e2eutil.GetBKCluster(t, f, ctx, bk1)
 	g.Expect(err).NotTo(HaveOccurred())
-	value, err := bookkeeper_e2eutil.CheckConfigMap(t, f, ctx, bk1)
+	err = bookkeeper_e2eutil.CheckConfigMap(t, f, ctx, bk1, "BK_autoRecoveryDaemonEnabled", strconv.FormatBool(autorecovery))
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(value).To(Equal(autorecovery))
 
 	// Create second cluster
 	cluster = bookkeeper_e2eutil.NewDefaultCluster(namespace)
@@ -75,9 +75,8 @@ func testMultiBKCluster(t *testing.T) {
 
 	bk2, err = bookkeeper_e2eutil.GetBKCluster(t, f, ctx, bk2)
 	g.Expect(err).NotTo(HaveOccurred())
-	value, err = bookkeeper_e2eutil.CheckConfigMap(t, f, ctx, bk2)
+	err = bookkeeper_e2eutil.CheckConfigMap(t, f, ctx, bk2, "BK_autoRecoveryDaemonEnabled", strconv.FormatBool(autorecovery))
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(value).To(Equal(autorecovery))
 
 	// Create third cluster
 	cluster = bookkeeper_e2eutil.NewDefaultCluster(namespace)
