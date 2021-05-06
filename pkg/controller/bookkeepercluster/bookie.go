@@ -61,9 +61,10 @@ func MakeBookieStatefulSet(bk *v1alpha1.BookkeeperCluster) *appsv1.StatefulSet {
 			APIVersion: "apps/v1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      util.StatefulSetNameForBookie(bk.Name),
-			Namespace: bk.Namespace,
-			Labels:    bk.LabelsForBookie(),
+			Name:        util.StatefulSetNameForBookie(bk.Name),
+			Namespace:   bk.Namespace,
+			Labels:      bk.LabelsForBookie(),
+			Annotations: bk.AnnotationsForBookie(),
 		},
 		Spec: appsv1.StatefulSetSpec{
 			ServiceName:         util.HeadlessServiceNameForBookie(bk.Name),
@@ -85,7 +86,7 @@ func MakeBookiePodTemplate(bk *v1alpha1.BookkeeperCluster) corev1.PodTemplateSpe
 	return corev1.PodTemplateSpec{
 		ObjectMeta: metav1.ObjectMeta{
 			Labels:      bk.LabelsForBookie(),
-			Annotations: map[string]string{"bookkeeper.version": bk.Spec.Version},
+			Annotations: bk.AnnotationsForBookie(),
 		},
 		Spec: *makeBookiePodSpec(bk),
 	}
