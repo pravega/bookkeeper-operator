@@ -41,7 +41,7 @@ var _ = Describe("Bookie", func() {
 				},
 			}
 		})
-		Context("User is specifying bookkeeper journal and ledger path ", func() {
+		Context("User is specifying bookkeeper journal and ledger path", func() {
 
 			var (
 				customReq *corev1.ResourceRequirements
@@ -79,6 +79,12 @@ var _ = Describe("Bookie", func() {
 							SuccessThreshold:    1,
 							TimeoutSeconds:      2,
 						},
+					},
+					JVMOptions: &v1alpha1.JVMOptions{
+						MemoryOpts:    []string{"-XX:MaxDirectMemorySize=2g"},
+						GcOpts:        []string{"-XX:+UseG1GC", "-XX:MaxGCPauseMillis=10"},
+						GcLoggingOpts: []string{},
+						ExtraOpts:     []string{"-XX:+IgnoreUnrecognizedVMOptions"},
 					},
 					Options: map[string]string{
 						"journalDirectories":    "/bk/journal/j0,/bk/journal/j1,/bk/journal/j2,/bk/journal/j3",
@@ -120,6 +126,18 @@ var _ = Describe("Bookie", func() {
 					Ω(ss.Labels["bookie-name"]).Should(Equal("dummyBookie"))
 				})
 
+				It("should set the JVM options given by user", func() {
+					cm := bookkeepercluster.MakeBookieConfigMap(bk)
+					memoryOpts := cm.Data["BOOKIE_MEM_OPTS"]
+					gcOpts := cm.Data["BOOKIE_GC_OPTS"]
+					gcLoggingOpts := cm.Data["BOOKIE_GC_LOGGING_OPTS"]
+					extraOpts := cm.Data["BOOKIE_EXTRA_OPTS"]
+					Ω(memoryOpts).Should(Equal("-XX:MaxDirectMemorySize=2g"))
+					Ω(gcOpts).Should(Equal("-XX:+UseG1GC -XX:MaxGCPauseMillis=10"))
+					Ω(gcLoggingOpts).Should(Equal(""))
+					Ω(extraOpts).Should(Equal("-XX:+IgnoreUnrecognizedVMOptions"))
+				})
+
 				It("should have journal and ledgers dir set to the values given by user", func() {
 					sts := bookkeepercluster.MakeBookieStatefulSet(bk)
 					mountledger0 := sts.Spec.Template.Spec.Containers[0].VolumeMounts[0].MountPath
@@ -159,6 +177,7 @@ var _ = Describe("Bookie", func() {
 					Ω(mounthostpath0).Should(Equal("/tmp/baz"))
 					Ω(mounthostpath1).Should(Equal("/tmp/quux"))
 				})
+
 				It("should have configMapVolumeMounts set to the values given by user", func() {
 					sts := bookkeepercluster.MakeBookieStatefulSet(bk)
 					mounthostpath0 := sts.Spec.Template.Spec.Containers[0].VolumeMounts[14].MountPath
@@ -189,9 +208,15 @@ var _ = Describe("Bookie", func() {
 				})
 			})
 		})
-		Context("User is not specifying bookkeeper journal and ledger path ", func() {
+
+		Context("User is not specifying bookkeeper journal and ledger path", func() {
 			BeforeEach(func() {
-				bk.Spec = v1alpha1.BookkeeperClusterSpec{}
+				bk.Spec = v1alpha1.BookkeeperClusterSpec{
+					Options: map[string]string{
+						"hostPathVolumeMounts": "foo=/tmp/foo",
+						"emptyDirVolumeMounts": "baz=/tmp/baz",
+					},
+				}
 				bk.WithDefaults()
 			})
 			Context("Bookkeeper", func() {
@@ -214,6 +239,7 @@ var _ = Describe("Bookie", func() {
 					ss := bookkeepercluster.MakeBookieStatefulSet(bk)
 					Ω(ss.Name).Should(Equal(util.StatefulSetNameForBookie(bk.Name)))
 				})
+
 				It("should have journal and ledgers dir set to default value", func() {
 					sts := bookkeepercluster.MakeBookieStatefulSet(bk)
 					mountledger := sts.Spec.Template.Spec.Containers[0].VolumeMounts[0].MountPath
@@ -223,10 +249,17 @@ var _ = Describe("Bookie", func() {
 					indexjournal := sts.Spec.Template.Spec.Containers[0].VolumeMounts[2].MountPath
 					Ω(indexjournal).Should(Equal("/bk/index"))
 				})
-				It("should have emptyDirVolumeMounts set to default value", func() {
+
+				It("should have hostPathVolumeMounts set to the value given by user", func() {
 					sts := bookkeepercluster.MakeBookieStatefulSet(bk)
-					mountledger := sts.Spec.Template.Spec.Containers[0].VolumeMounts[3].MountPath
-					Ω(mountledger).Should(Equal("/tmp/dumpfile/heap"))
+					mounthostpath := sts.Spec.Template.Spec.Containers[0].VolumeMounts[3].MountPath
+					Ω(mounthostpath).Should(Equal("/tmp/foo"))
+				})
+
+				It("should have emptyDirVolumeMounts set to the value given by user", func() {
+					sts := bookkeepercluster.MakeBookieStatefulSet(bk)
+					mounthostpath := sts.Spec.Template.Spec.Containers[0].VolumeMounts[4].MountPath
+					Ω(mounthostpath).Should(Equal("/tmp/baz"))
 				})
 
 				It("should have probe timeout values set to their default value", func() {

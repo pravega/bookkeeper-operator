@@ -28,8 +28,6 @@ const (
 	LedgerDiskName  = "ledger"
 	JournalDiskName = "journal"
 	IndexDiskName   = "index"
-	heapDumpName    = "heap-dump"
-	heapDumpDir     = "/tmp/dumpfile/heap"
 )
 
 func MakeBookieHeadlessService(bk *v1alpha1.BookkeeperCluster) *corev1.Service {
@@ -170,8 +168,10 @@ func makeBookiePodSpec(bk *v1alpha1.BookkeeperCluster) *corev1.PodSpec {
 	if _, ok = bk.Spec.Options["configMapVolumeMounts"]; ok {
 		configMapVolumeMounts = strings.Split(bk.Spec.Options["configMapVolumeMounts"], ",")
 	}
+
 	var volumes []corev1.Volume
 	var cmVolumeMounts []corev1.VolumeMount
+
 	if len(configMapVolumeMounts) > 0 {
 		for _, vm := range configMapVolumeMounts {
 			p := strings.Split(vm, "=")
@@ -196,8 +196,7 @@ func makeBookiePodSpec(bk *v1alpha1.BookkeeperCluster) *corev1.PodSpec {
 			cmVolumeMounts = append(cmVolumeMounts, m)
 		}
 	}
-
-	if len(hostPathVolumeMounts) > 1 {
+	if len(hostPathVolumeMounts) > 0 {
 		for _, vm := range hostPathVolumeMounts {
 			s := strings.Split(vm, "=")
 			v := corev1.Volume{
@@ -211,7 +210,7 @@ func makeBookiePodSpec(bk *v1alpha1.BookkeeperCluster) *corev1.PodSpec {
 			volumes = append(volumes, v)
 		}
 	}
-	if len(emptyDirVolumeMounts) > 1 {
+	if len(emptyDirVolumeMounts) > 0 {
 		for _, vm := range emptyDirVolumeMounts {
 			s := strings.Split(vm, "=")
 			v := corev1.Volume{
@@ -222,18 +221,11 @@ func makeBookiePodSpec(bk *v1alpha1.BookkeeperCluster) *corev1.PodSpec {
 			}
 			volumes = append(volumes, v)
 		}
-	} else {
-		// if user did not set emptyDirVolumeMounts
-		v := corev1.Volume{
-			Name: heapDumpName,
-			VolumeSource: corev1.VolumeSource{
-				EmptyDir: &corev1.EmptyDirVolumeSource{},
-			},
-		}
-		volumes = append(volumes, v)
 	}
+
 	volumeMounts := createVolumeMount(ledgerDirs, journalDirs, indexDirs,
 		ledgerSubPath, journalSubPath, indexSubPath, hostPathVolumeMounts, emptyDirVolumeMounts)
+
 	if len(cmVolumeMounts) > 0 {
 		volumeMounts = append(volumeMounts, cmVolumeMounts...)
 	}
@@ -348,7 +340,7 @@ func createVolumeMount(ledgerDirs []string, journalDirs []string, indexDirs []st
 		}
 		volumeMounts = append(volumeMounts, v)
 	}
-	if len(hostPathVolumeMounts) > 1 {
+	if len(hostPathVolumeMounts) > 0 {
 		for _, vm := range hostPathVolumeMounts {
 			s := strings.Split(vm, "=")
 			v := corev1.VolumeMount{
@@ -358,7 +350,7 @@ func createVolumeMount(ledgerDirs []string, journalDirs []string, indexDirs []st
 			volumeMounts = append(volumeMounts, v)
 		}
 	}
-	if len(emptyDirVolumeMounts) > 1 {
+	if len(emptyDirVolumeMounts) > 0 {
 		for _, vm := range emptyDirVolumeMounts {
 			s := strings.Split(vm, "=")
 			v := corev1.VolumeMount{
@@ -367,13 +359,6 @@ func createVolumeMount(ledgerDirs []string, journalDirs []string, indexDirs []st
 			}
 			volumeMounts = append(volumeMounts, v)
 		}
-	} else {
-		// if user did not set emptyDirVolumeMounts
-		v := corev1.VolumeMount{
-			Name:      heapDumpName,
-			MountPath: heapDumpDir,
-		}
-		volumeMounts = append(volumeMounts, v)
 	}
 	return volumeMounts
 }
@@ -405,32 +390,15 @@ func makeBookieVolumeClaimTemplates(bk *v1alpha1.BookkeeperCluster) []corev1.Per
 }
 
 func MakeBookieConfigMap(bk *v1alpha1.BookkeeperCluster) *corev1.ConfigMap {
-	memoryOpts := []string{
-		"-Xms1g",
-		"-XX:MaxDirectMemorySize=1g",
-		"-XX:+ExitOnOutOfMemoryError",
-		"-XX:+CrashOnOutOfMemoryError",
-		"-XX:+HeapDumpOnOutOfMemoryError",
-		"-XX:HeapDumpPath=" + heapDumpDir,
-		"-XX:+UnlockExperimentalVMOptions",
-		"-XX:+UseContainerSupport",
-		"-XX:MaxRAMPercentage=50.0",
+	memoryOpts := []string{}
+	if bk.Spec.JVMOptions.MemoryOpts != nil {
+		memoryOpts = bk.Spec.JVMOptions.MemoryOpts
 	}
 
-	memoryOpts = util.OverrideDefaultJVMOptions(memoryOpts, bk.Spec.JVMOptions.MemoryOpts)
-
-	gcOpts := []string{
-		"-XX:+UseG1GC",
-		"-XX:MaxGCPauseMillis=10",
-		"-XX:+ParallelRefProcEnabled",
-		"-XX:+DoEscapeAnalysis",
-		"-XX:ParallelGCThreads=32",
-		"-XX:ConcGCThreads=32",
-		"-XX:G1NewSizePercent=50",
-		"-XX:+DisableExplicitGC",
-		"-XX:-ResizePLAB",
+	gcOpts := []string{}
+	if bk.Spec.JVMOptions.GcOpts != nil {
+		gcOpts = bk.Spec.JVMOptions.GcOpts
 	}
-	gcOpts = util.OverrideDefaultJVMOptions(gcOpts, bk.Spec.JVMOptions.GcOpts)
 
 	gcLoggingOpts := []string{}
 	if bk.Spec.JVMOptions.GcLoggingOpts != nil {

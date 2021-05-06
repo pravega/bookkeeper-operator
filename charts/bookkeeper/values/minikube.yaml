@@ -10,13 +10,13 @@ resources:
 
 storage:
   ledger:
-    className: standard
+    className:
     volumeSize: 10Gi
   journal:
-    className: standard
+    className:
     volumeSize: 10Gi
   index:
-    className: standard
+    className:
     volumeSize: 10Gi
 
 jvmOptions:
