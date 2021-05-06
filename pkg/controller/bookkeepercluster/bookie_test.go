@@ -80,6 +80,12 @@ var _ = Describe("Bookie", func() {
 							TimeoutSeconds:      2,
 						},
 					},
+					JVMOptions: &v1alpha1.JVMOptions{
+						MemoryOpts:    []string{"-XX:MaxDirectMemorySize=2g"},
+						GcOpts:        []string{"-XX:+UseG1GC", "-XX:MaxGCPauseMillis=10"},
+						GcLoggingOpts: []string{},
+						ExtraOpts:     []string{"-XX:+IgnoreUnrecognizedVMOptions"},
+					},
 					Options: map[string]string{
 						"journalDirectories":    "/bk/journal/j0,/bk/journal/j1,/bk/journal/j2,/bk/journal/j3",
 						"ledgerDirectories":     "/bk/ledgers/l0,/bk/ledgers/l1,/bk/ledgers/l2,/bk/ledgers/l3",
@@ -118,6 +124,18 @@ var _ = Describe("Bookie", func() {
 				It("should create a stateful set", func() {
 					ss := bookkeepercluster.MakeBookieStatefulSet(bk)
 					Ω(ss.Labels["bookie-name"]).Should(Equal("dummyBookie"))
+				})
+
+				It("should set the JVM options given by user", func() {
+					cm := bookkeepercluster.MakeBookieConfigMap(bk)
+					memoryOpts := cm.Data["BOOKIE_MEM_OPTS"]
+					gcOpts := cm.Data["BOOKIE_GC_OPTS"]
+					gcLoggingOpts := cm.Data["BOOKIE_GC_LOGGING_OPTS"]
+					extraOpts := cm.Data["BOOKIE_EXTRA_OPTS"]
+					Ω(memoryOpts).Should(Equal("-XX:MaxDirectMemorySize=2g"))
+					Ω(gcOpts).Should(Equal("-XX:+UseG1GC -XX:MaxGCPauseMillis=10"))
+					Ω(gcLoggingOpts).Should(Equal(""))
+					Ω(extraOpts).Should(Equal("-XX:+IgnoreUnrecognizedVMOptions"))
 				})
 
 				It("should have journal and ledgers dir set to the values given by user", func() {
