@@ -106,11 +106,12 @@ var _ = Describe("BookkeeperCluster Types Spec", func() {
 
 			bk = &v1alpha1.BookkeeperCluster{
 				ObjectMeta: metav1.ObjectMeta{
-					Name:        "default",
-					Annotations: bk.AnnotationsForBookie(),
+					Name: "default",
 				},
 			}
 			bk.WithDefaults()
+			bk.Spec.Annotations = map[string]string{"bookkeeperAnnotation": "dummyAnnotation"}
+			bk.Annotations = bk.AnnotationsForBookie()
 			s := scheme.Scheme
 			s.AddKnownTypes(v1alpha1.SchemeGroupVersion, bk)
 
