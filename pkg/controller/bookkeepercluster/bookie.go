@@ -37,7 +37,7 @@ func MakeBookieHeadlessService(bk *v1alpha1.BookkeeperCluster) *corev1.Service {
 			APIVersion: "v1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      util.HeadlessServiceNameForBookie(bk.Name),
+			Name:      bk.HeadlessServiceNameForBookie(),
 			Namespace: bk.Namespace,
 			Labels:    bk.LabelsForBookie(),
 		},
@@ -67,7 +67,7 @@ func MakeBookieStatefulSet(bk *v1alpha1.BookkeeperCluster) *appsv1.StatefulSet {
 			Annotations: bk.AnnotationsForBookie(),
 		},
 		Spec: appsv1.StatefulSetSpec{
-			ServiceName:         util.HeadlessServiceNameForBookie(bk.Name),
+			ServiceName:         bk.HeadlessServiceNameForBookie(),
 			Replicas:            &bk.Spec.Replicas,
 			PodManagementPolicy: appsv1.ParallelPodManagement,
 			UpdateStrategy: appsv1.StatefulSetUpdateStrategy{

@@ -46,10 +46,6 @@ func StatefulSetNameForBookie(clusterName string) string {
 	return fmt.Sprintf("%s-bookie", clusterName)
 }
 
-func HeadlessServiceNameForBookie(clusterName string) string {
-	return fmt.Sprintf("%s-bookie-headless", clusterName)
-}
-
 func IsOrphan(k8sObjectName string, replicas int32) bool {
 	index := strings.LastIndexAny(k8sObjectName, "-")
 	if index == -1 {

@@ -106,7 +106,7 @@ var _ = Describe("Bookie", func() {
 			Context("Bookkeeper", func() {
 				It("should create a headless service", func() {
 					headlessservice := bookkeepercluster.MakeBookieHeadlessService(bk)
-					Ω(headlessservice.Name).Should(Equal(util.HeadlessServiceNameForBookie(bk.Name)))
+					Ω(headlessservice.Name).Should(Equal(bk.HeadlessServiceNameForBookie()))
 				})
 
 				It("should create a pod disruption budget", func() {
@@ -226,7 +226,7 @@ var _ = Describe("Bookie", func() {
 			Context("Bookkeeper", func() {
 				It("should create a headless service", func() {
 					headlessService := bookkeepercluster.MakeBookieHeadlessService(bk)
-					Ω(headlessService.Name).Should(Equal(util.HeadlessServiceNameForBookie(bk.Name)))
+					Ω(headlessService.Name).Should(Equal(bk.HeadlessServiceNameForBookie()))
 				})
 
 				It("should create a pod disruption budget", func() {
