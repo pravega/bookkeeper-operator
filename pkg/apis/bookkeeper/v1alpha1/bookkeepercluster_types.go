@@ -512,10 +512,12 @@ func (s *BookkeeperClusterSpec) withDefaults(bk *BookkeeperCluster) (changed boo
 	}
 
 	if s.Labels == nil {
+		changed = true
 		s.Labels = map[string]string{}
 	}
 
 	if s.Annotations == nil {
+		changed = true
 		s.Annotations = map[string]string{}
 	}
 
