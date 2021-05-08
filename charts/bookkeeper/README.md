@@ -178,3 +178,4 @@ The following table lists the configurable parameters of the Bookkeeper chart an
 | `jvmOptions.extraOpts` | Extra Options passed to the JVM for bookkeeper performance tuning | `[]` |
 | `options` | List of bookkeeper options | |
 | `labels` | Labels to be added to the Bookie Pods | |
+| `annotations` | Annotations to be added to the Bookie Pods | |

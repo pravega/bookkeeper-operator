@@ -251,6 +251,10 @@ type BookkeeperClusterSpec struct {
 	// Labels to be added to the bookie pods
 	// +optional
 	Labels map[string]string `json:"labels"`
+
+	// Annotations to be added to the bookie pods
+	// +optional
+	Annotations map[string]string `json:"annotations"`
 }
 
 // BookkeeperImageSpec defines the fields needed for a BookKeeper Docker image
@@ -508,7 +512,13 @@ func (s *BookkeeperClusterSpec) withDefaults(bk *BookkeeperCluster) (changed boo
 	}
 
 	if s.Labels == nil {
+		changed = true
 		s.Labels = map[string]string{}
+	}
+
+	if s.Annotations == nil {
+		changed = true
+		s.Annotations = map[string]string{}
 	}
 
 	return changed
@@ -659,6 +669,16 @@ func (bk *BookkeeperCluster) LabelsForBookie() map[string]string {
 	}
 	labels["component"] = "bookie"
 	return labels
+}
+
+func (bk *BookkeeperCluster) AnnotationsForBookie() map[string]string {
+	annotations := map[string]string{"bookkeeper.version": bk.Spec.Version}
+	if bk.Spec.Annotations != nil {
+		for k, v := range bk.Spec.Annotations {
+			annotations[k] = v
+		}
+	}
+	return annotations
 }
 
 func (bookkeeperCluster *BookkeeperCluster) LabelsForBookkeeperCluster() map[string]string {

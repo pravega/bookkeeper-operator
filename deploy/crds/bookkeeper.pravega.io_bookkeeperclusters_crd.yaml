@@ -837,6 +837,11 @@ spec:
                 type: string
               description: Labels to be added to the Bookie Pods
               type: object
+            annotations:
+              additionalProperties:
+                type: string
+              description: annotations to be added to the Bookie Pods
+              type: object
             storage:
               description: Storage configures the storage for BookKeeper
               properties:

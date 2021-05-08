@@ -110,6 +110,8 @@ var _ = Describe("BookkeeperCluster Types Spec", func() {
 				},
 			}
 			bk.WithDefaults()
+			bk.Spec.Annotations = map[string]string{"bookkeeperAnnotation": "dummyAnnotation"}
+			bk.Annotations = bk.AnnotationsForBookie()
 			s := scheme.Scheme
 			s.AddKnownTypes(v1alpha1.SchemeGroupVersion, bk)
 
@@ -189,6 +191,7 @@ var _ = Describe("BookkeeperCluster Types Spec", func() {
 					Name: "default",
 				},
 			}
+			bk.Spec.Labels = map[string]string{"bookkeeperLabel": "dummyLabel"}
 			str1 = bk.LabelsForBookie()
 		})
 		It("should return label for app", func() {

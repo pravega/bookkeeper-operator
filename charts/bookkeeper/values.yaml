@@ -22,6 +22,7 @@ autoRecovery: true
 blockOwnerDeletion: true
 affinity: {}
 labels: {}
+annotations: {}
 probes:
   readiness:
     initialDelaySeconds: 20
