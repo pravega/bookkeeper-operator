@@ -97,6 +97,9 @@ var _ = Describe("Bookie", func() {
 					Labels: map[string]string{
 						"bookie-name": "dummyBookie",
 					},
+					Annotations: map[string]string{
+						"bookie-annotation": "dummyBookie",
+					},
 				}
 				bk.WithDefaults()
 			})
@@ -124,6 +127,7 @@ var _ = Describe("Bookie", func() {
 				It("should create a stateful set", func() {
 					ss := bookkeepercluster.MakeBookieStatefulSet(bk)
 					Ω(ss.Labels["bookie-name"]).Should(Equal("dummyBookie"))
+					Ω(ss.Annotations["bookie-annotation"]).Should(Equal("dummyBookie"))
 				})
 
 				It("should set the JVM options given by user", func() {
