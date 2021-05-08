@@ -106,7 +106,8 @@ var _ = Describe("BookkeeperCluster Types Spec", func() {
 
 			bk = &v1alpha1.BookkeeperCluster{
 				ObjectMeta: metav1.ObjectMeta{
-					Name: "default",
+					Name:        "default",
+					Annotations: bk.AnnotationsForBookie(),
 				},
 			}
 			bk.WithDefaults()
