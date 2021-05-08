@@ -191,6 +191,7 @@ var _ = Describe("BookkeeperCluster Types Spec", func() {
 					Name: "default",
 				},
 			}
+			bk.Spec.Labels = map[string]string{"bookkeeperLabel": "dummyLabel"}
 			str1 = bk.LabelsForBookie()
 		})
 		It("should return label for app", func() {
