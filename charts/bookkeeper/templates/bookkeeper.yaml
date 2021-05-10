@@ -31,9 +31,9 @@ spec:
 {{ toYaml .Values.labels | indent 4 }}
   annotations:
 {{ toYaml .Values.annotations | indent 4 }}
- {{- if .Values.headlessSvcNameSuffix }}
- headlessSvcNameSuffix: {{ .Values.headlessSvcNameSuffix }}
- {{- end }}
+  {{- if .Values.headlessSvcNameSuffix }}
+  headlessSvcNameSuffix: {{ .Values.headlessSvcNameSuffix }}
+  {{- end }}
   {{- if .Values.probes }}
   probes:
     {{- if .Values.probes.readiness }}
