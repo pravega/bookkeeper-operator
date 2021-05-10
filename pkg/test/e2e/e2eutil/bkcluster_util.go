@@ -252,6 +252,15 @@ func CheckConfigMap(t *testing.T, f *framework.Framework, ctx *framework.TestCtx
 	return fmt.Errorf("Configmap does not contain the expected value")
 }
 
+func CheckServiceExists(t *testing.T, f *framework.Framework, ctx *framework.TestCtx, b *bkapi.BookkeeperCluster, svcName string) error {
+	svc := &corev1.Service{}
+	err := f.Client.Get(goctx.TODO(), types.NamespacedName{Namespace: b.Namespace, Name: svcName}, svc)
+	if err != nil {
+		return fmt.Errorf("service doesnt exist: %v", err)
+	}
+	return nil
+}
+
 // WaitForBookkeeperClusterToBecomeReady will wait until all Bookkeeper cluster pods are ready
 func WaitForBookkeeperClusterToBecomeReady(t *testing.T, f *framework.Framework, ctx *framework.TestCtx, b *bkapi.BookkeeperCluster) error {
 	t.Logf("waiting for cluster pods to become ready: %s", b.Name)
