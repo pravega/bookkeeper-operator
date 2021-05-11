@@ -546,7 +546,28 @@ func (bk *BookkeeperCluster) SetupWebhookWithManager(mgr ctrl.Manager) error {
 // ValidateCreate implements webhook.Validator so a webhook will be registered for the type
 func (bk *BookkeeperCluster) ValidateCreate() error {
 	log.Printf("validate create %s", bk.Name)
-	return bk.ValidateBookkeeperVersion("")
+	err := bk.ValidateBookkeeperVersion("")
+	if err != nil {
+		return err
+	}
+
+	if val, ok := bk.Spec.Options["journalDirectories"]; ok {
+		journalDirectories := strings.Split(val, ",")
+		for _, journalDirectory := range journalDirectories {
+			if !strings.HasPrefix(journalDirectory, "/") {
+				return fmt.Errorf("path of journal directories should start with /")
+			}
+		}
+	}
+	if val, ok := bk.Spec.Options["ledgerDirectories"]; ok {
+		ledgerDirectories := strings.Split(val, ",")
+		for _, ledgerDirectory := range ledgerDirectories {
+			if !strings.HasPrefix(ledgerDirectory, "/") {
+				return fmt.Errorf("path of ledger directories should start with /")
+			}
+		}
+	}
+	return nil
 }
 
 // ValidateUpdate implements webhook.Validator so a webhook will be registered for the type
@@ -744,19 +765,19 @@ func (bk *BookkeeperCluster) validateConfigMap() error {
 	if val, ok := bk.Spec.Options["journalDirectories"]; ok {
 		eq := configmap.Data["BK_journalDirectories"] == val
 		if !eq {
-			return fmt.Errorf("path of journal directories should not be changed ")
+			return fmt.Errorf("path of journal directories should not be changed")
 		}
 	}
 	if val, ok := bk.Spec.Options["ledgerDirectories"]; ok {
 		eq := configmap.Data["BK_ledgerDirectories"] == val
 		if !eq {
-			return fmt.Errorf("path of ledger directories should not be changed ")
+			return fmt.Errorf("path of ledger directories should not be changed")
 		}
 	}
 	if val, ok := bk.Spec.Options["indexDirectories"]; ok {
 		eq := configmap.Data["BK_indexDirectories"] == val
 		if !eq {
-			return fmt.Errorf("path of index directories should not be changed ")
+			return fmt.Errorf("path of index directories should not be changed")
 		}
 	}
 	log.Print("validateConfigMap:: No error found...returning...")
