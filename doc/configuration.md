@@ -7,4 +7,4 @@ This document explains how to configure Bookkeeper
 * [Installing on a Custom Namespace with RBAC enabled](rbac.md#installing-on-a-custom-namespace-with-rbac-enabled)
 * [Tune Bookkeeper Configuration](bookkeeper-options.md)
 * [Enable admission webhook](webhook.md)
-* [Confuring Service Name](service-configuration.md)
+* [Configuring Service Name](service-configuration.md)
