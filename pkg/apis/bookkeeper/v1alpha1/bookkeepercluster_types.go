@@ -550,24 +550,8 @@ func (bk *BookkeeperCluster) ValidateCreate() error {
 	if err != nil {
 		return err
 	}
-
-	if val, ok := bk.Spec.Options["journalDirectories"]; ok {
-		journalDirectories := strings.Split(val, ",")
-		for _, journalDirectory := range journalDirectories {
-			if !strings.HasPrefix(journalDirectory, "/") {
-				return fmt.Errorf("path of journal directories should start with /")
-			}
-		}
-	}
-	if val, ok := bk.Spec.Options["ledgerDirectories"]; ok {
-		ledgerDirectories := strings.Split(val, ",")
-		for _, ledgerDirectory := range ledgerDirectories {
-			if !strings.HasPrefix(ledgerDirectory, "/") {
-				return fmt.Errorf("path of ledger directories should start with /")
-			}
-		}
-	}
-	return nil
+	err = bk.ValidateAbsolutePath([]string{"journalDirectories", "ledgerDirectories", "indexDirectories"})
+	return err
 }
 
 // ValidateUpdate implements webhook.Validator so a webhook will be registered for the type
@@ -590,8 +574,8 @@ func (bk *BookkeeperCluster) ValidateDelete() error {
 	// TODO(user): fill in your validation logic upon object deletion.
 	return nil
 }
-func getSupportedVersions(filename string) (map[string]string, error) {
 
+func getSupportedVersions(filename string) (map[string]string, error) {
 	supportedVersions := make(map[string]string)
 	filepath := filename
 	if filename == "" {
@@ -610,6 +594,7 @@ func getSupportedVersions(filename string) (map[string]string, error) {
 	file.Close()
 	return supportedVersions, nil
 }
+
 func (bk *BookkeeperCluster) ValidateBookkeeperVersion(filename string) error {
 	supportedVersions, err := getSupportedVersions(filename)
 	if err != nil {
@@ -681,6 +666,20 @@ func (bk *BookkeeperCluster) ValidateBookkeeperVersion(filename string) error {
 	return nil
 }
 
+func (bk *BookkeeperCluster) ValidateAbsolutePath(dirs []string) error {
+	for _, dir := range dirs {
+		if val, ok := bk.Spec.Options[dir]; ok {
+			paths := strings.Split(val, ",")
+			for _, path := range paths {
+				if !strings.HasPrefix(path, "/") {
+					return fmt.Errorf("path (%s) of %s should start with /", path, dir)
+				}
+			}
+		}
+	}
+	return nil
+}
+
 func (bk *BookkeeperCluster) LabelsForBookie() map[string]string {
 	labels := bk.LabelsForBookkeeperCluster()
 	if bk.Spec.Labels != nil {
@@ -708,6 +707,7 @@ func (bookkeeperCluster *BookkeeperCluster) LabelsForBookkeeperCluster() map[str
 		"bookkeeper_cluster": bookkeeperCluster.Name,
 	}
 }
+
 func (bk *BookkeeperCluster) GetClusterExpectedSize() (size int) {
 	return int(bk.Spec.Replicas)
 }
@@ -783,6 +783,7 @@ func (bk *BookkeeperCluster) validateConfigMap() error {
 	log.Print("validateConfigMap:: No error found...returning...")
 	return nil
 }
+
 func (bk *BookkeeperCluster) NewEvent(name string, reason string, message string, eventType string) *corev1.Event {
 	now := metav1.Now()
 	operatorName, _ := k8s.GetOperatorName()
