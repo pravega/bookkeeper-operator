@@ -43,7 +43,7 @@ var _ = Describe("BookkeeperCluster Types Spec", func() {
 		}
 	})
 
-	Context("#WithDefaults", func() {
+	Context("WithDefaults", func() {
 		var changed bool
 
 		BeforeEach(func() {
@@ -61,7 +61,6 @@ var _ = Describe("BookkeeperCluster Types Spec", func() {
 		It("should set version to 0.9.0", func() {
 			Ω(bk.Spec.Version).Should(Equal("0.9.0"))
 		})
-
 	})
 	Context("NewEvent", func() {
 		var bk *v1alpha1.BookkeeperCluster
@@ -245,6 +244,7 @@ var _ = Describe("BookkeeperCluster Types Spec", func() {
 	Context("ValidateBookkeeperVersion", func() {
 		var (
 			bk    *v1alpha1.BookkeeperCluster
+			err   error
 			file1 *os.File
 		)
 		BeforeEach(func() {
@@ -274,9 +274,6 @@ var _ = Describe("BookkeeperCluster Types Spec", func() {
 			file1.WriteString("0.9.0:0.9.0 \n")
 		})
 		Context("Spec version empty", func() {
-			var (
-				err error
-			)
 			BeforeEach(func() {
 				bk.Spec.Version = ""
 				err = bk.ValidateBookkeeperVersion("filename")
@@ -285,10 +282,23 @@ var _ = Describe("BookkeeperCluster Types Spec", func() {
 				Ω(err).To(BeNil())
 			})
 		})
+		Context("Absolute Path is incorrect", func() {
+			BeforeEach(func() {
+				bk.Spec = v1alpha1.BookkeeperClusterSpec{
+					Options: map[string]string{
+						"journalDirectories": "bk/journal/j0,bk/journal/j1,bk/journal/j2,bk/journal/j3",
+						"ledgerDirectories":  "bk/ledgers/l0,bk/ledgers/l1,bk/ledgers/l2,bk/ledgers/l3",
+						"indexDirectories":   "",
+					},
+				}
+				bk.WithDefaults()
+				err = bk.ValidateAbsolutePath([]string{"journalDirectories", "ledgerDirectories", "indexDirectories"})
+			})
+			It("should return error", func() {
+				Ω(strings.ContainsAny(err.Error(), "Error validating absolute paths of journal/ledger/index directories")).Should(Equal(true))
+			})
+		})
 		Context("Version not in valid format", func() {
-			var (
-				err error
-			)
 			BeforeEach(func() {
 				bk.Spec.Version = "999"
 				err = bk.ValidateBookkeeperVersion("filename")
@@ -298,9 +308,6 @@ var _ = Describe("BookkeeperCluster Types Spec", func() {
 			})
 		})
 		Context("Version not supported", func() {
-			var (
-				err error
-			)
 			BeforeEach(func() {
 				bk.Spec.Version = "0.7.5"
 				err = bk.ValidateBookkeeperVersion("filename")
@@ -310,9 +317,6 @@ var _ = Describe("BookkeeperCluster Types Spec", func() {
 			})
 		})
 		Context("Spec version and current version same", func() {
-			var (
-				err error
-			)
 			BeforeEach(func() {
 				bk.Spec.Version = "0.7.0"
 				bk.Status.CurrentVersion = "0.7.0"
@@ -323,9 +327,6 @@ var _ = Describe("BookkeeperCluster Types Spec", func() {
 			})
 		})
 		Context("Unsupported current version", func() {
-			var (
-				err error
-			)
 			BeforeEach(func() {
 				bk.Spec.Version = "0.7.0"
 				bk.Status.CurrentVersion = "0.9.0"
@@ -334,12 +335,8 @@ var _ = Describe("BookkeeperCluster Types Spec", func() {
 			It("should return error", func() {
 				Ω(strings.ContainsAny(err.Error(), "failed to find current cluster version in the supported versions")).Should(Equal(true))
 			})
-
 		})
 		Context("current version not in correct format", func() {
-			var (
-				err error
-			)
 			BeforeEach(func() {
 				bk.Spec.Version = "0.7.0"
 				bk.Status.CurrentVersion = "999"
@@ -348,12 +345,8 @@ var _ = Describe("BookkeeperCluster Types Spec", func() {
 			It("should return error", func() {
 				Ω(strings.ContainsAny(err.Error(), "found version is not in valid format")).Should(Equal(true))
 			})
-
 		})
 		Context("unsupported upgrade to a version", func() {
-			var (
-				err error
-			)
 			BeforeEach(func() {
 				bk.Status.CurrentVersion = "0.7.0"
 				bk.Spec.Version = "0.7.2"
@@ -362,12 +355,8 @@ var _ = Describe("BookkeeperCluster Types Spec", func() {
 			It("should return error", func() {
 				Ω(strings.ContainsAny(err.Error(), "unsupported upgrade from version")).Should(Equal(true))
 			})
-
 		})
 		Context("supported upgrade to a version", func() {
-			var (
-				err error
-			)
 			BeforeEach(func() {
 				bk.Status.CurrentVersion = "0.7.0"
 				bk.Spec.Version = "0.7.1"
@@ -376,12 +365,8 @@ var _ = Describe("BookkeeperCluster Types Spec", func() {
 			It("should return nil", func() {
 				Ω(err).To(BeNil())
 			})
-
 		})
 		Context("validation while cluster upgrade in progress", func() {
-			var (
-				err error
-			)
 			BeforeEach(func() {
 				bk.Status.SetUpgradingConditionTrue(" ", " ")
 				bk.Spec.Version = "0.7.1"
@@ -391,12 +376,8 @@ var _ = Describe("BookkeeperCluster Types Spec", func() {
 			It("should return error", func() {
 				Ω(strings.ContainsAny(err.Error(), "failed to process the request, cluster is upgrading")).Should(Equal(true))
 			})
-
 		})
 		Context("validation while cluster rollback in progress", func() {
-			var (
-				err error
-			)
 			BeforeEach(func() {
 				bk.Status.CurrentVersion = "0.7.0"
 				bk.Status.Init()
@@ -404,31 +385,22 @@ var _ = Describe("BookkeeperCluster Types Spec", func() {
 				bk.Status.SetRollbackConditionTrue(" ", " ")
 				bk.Spec.Version = "0.7.0"
 				err = bk.ValidateBookkeeperVersion("filename")
-
 			})
 			It("should return error", func() {
 				Ω(strings.ContainsAny(err.Error(), "failed to process the request, rollback in progress")).Should(Equal(true))
 			})
 		})
 		Context("validation while cluster in error state", func() {
-			var (
-				err error
-			)
 			BeforeEach(func() {
 				bk.Status.SetErrorConditionTrue("some err", " ")
 				bk.Spec.Version = "0.7.0"
-
 				err = bk.ValidateBookkeeperVersion("filename")
-
 			})
 			It("should return error", func() {
 				Ω(strings.ContainsAny(err.Error(), "failed to process the request, cluster is in error state")).Should(Equal(true))
 			})
 		})
 		Context("validation while cluster in upgradefailed state", func() {
-			var (
-				err error
-			)
 			BeforeEach(func() {
 				bk.Status.CurrentVersion = "0.7.0"
 				bk.Status.Init()
@@ -442,9 +414,6 @@ var _ = Describe("BookkeeperCluster Types Spec", func() {
 			})
 		})
 		Context("validation while cluster in upgradefailed state and supported rollback version", func() {
-			var (
-				err error
-			)
 			BeforeEach(func() {
 				bk.Status.CurrentVersion = "0.6.0"
 				bk.Status.Init()
@@ -458,9 +427,6 @@ var _ = Describe("BookkeeperCluster Types Spec", func() {
 			})
 		})
 		Context("validation with configmap not present", func() {
-			var (
-				err error
-			)
 			BeforeEach(func() {
 				bk.Spec.Version = "0.7.0"
 				err = bk.ValidateBookkeeperVersion("")

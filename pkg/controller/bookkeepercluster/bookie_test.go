@@ -41,8 +41,8 @@ var _ = Describe("Bookie", func() {
 				},
 			}
 		})
-		Context("User is specifying bookkeeper journal and ledger path", func() {
 
+		Context("User is specifying bookkeeper journal and ledger path", func() {
 			var (
 				customReq *corev1.ResourceRequirements
 			)
