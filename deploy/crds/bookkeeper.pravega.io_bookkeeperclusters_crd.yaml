@@ -66,6 +66,10 @@ spec:
                 to provide additional key-value pairs that need to be configured into
                 the bookie pods as environmental variables
               type: string
+            headlessSvcNameSuffix:
+              description: This is used as suffix for bookkeeper headless service
+                name
+              type: string
             image:
               description: Image defines the BookKeeper Docker image to use. By default,
                 "pravega/bookkeeper" will be used.
@@ -119,7 +123,7 @@ spec:
               description: MaxUnavailableBookkeeperReplicas defines the MaxUnavailable
                 Bookkeeper Replicas Default is 1.
               format: int32
-              type: integer              
+              type: integer
             options:
               additionalProperties:
                 type: string

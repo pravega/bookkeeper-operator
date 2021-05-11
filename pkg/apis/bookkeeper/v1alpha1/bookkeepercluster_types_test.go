@@ -440,4 +440,15 @@ var _ = Describe("BookkeeperCluster Types Spec", func() {
 			os.Remove("filename")
 		})
 	})
+	Context("HeadlessServiceNameForBookie", func() {
+		var str1 string
+		BeforeEach(func() {
+			bk.WithDefaults()
+			str1 = bk.HeadlessServiceNameForBookie()
+		})
+		It("should return headless service name", func() {
+			Ω(str1).To(Equal("default-bookie-headless"))
+		})
+	})
+
 })

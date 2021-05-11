@@ -255,6 +255,10 @@ type BookkeeperClusterSpec struct {
 	// Annotations to be added to the bookie pods
 	// +optional
 	Annotations map[string]string `json:"annotations"`
+
+	// This is used as suffix for bookkeeper headless service name
+	// +optional
+	HeadlessSvcNameSuffix string `json:"headlessSvcNameSuffix,omitempty"`
 }
 
 // BookkeeperImageSpec defines the fields needed for a BookKeeper Docker image
@@ -520,6 +524,10 @@ func (s *BookkeeperClusterSpec) withDefaults(bk *BookkeeperCluster) (changed boo
 		changed = true
 		s.Annotations = map[string]string{}
 	}
+	if s.HeadlessSvcNameSuffix == "" {
+		changed = true
+		s.HeadlessSvcNameSuffix = "bookie-headless"
+	}
 
 	return changed
 }
@@ -721,6 +729,10 @@ func (bk *BookkeeperCluster) BookkeeperTargetImage() (string, error) {
 		return "", fmt.Errorf("target version is not set")
 	}
 	return fmt.Sprintf("%s:%s", bk.Spec.Image.Repository, bk.Status.TargetVersion), nil
+}
+
+func (bk *BookkeeperCluster) HeadlessServiceNameForBookie() string {
+	return fmt.Sprintf("%s-%s", bk.Name, bk.Spec.HeadlessSvcNameSuffix)
 }
 
 // Wait for pods in cluster to be terminated

@@ -11,6 +11,7 @@
 package e2e
 
 import (
+	"fmt"
 	"testing"
 
 	. "github.com/onsi/gomega"
@@ -35,11 +36,16 @@ func testCreateRecreateCluster(t *testing.T) {
 
 	defaultCluster := bookkeeper_e2eutil.NewDefaultCluster(namespace)
 	defaultCluster.WithDefaults()
+	defaultCluster.Spec.HeadlessSvcNameSuffix = "headlesssvc"
 
 	bookkeeper, err := bookkeeper_e2eutil.CreateBKCluster(t, f, ctx, defaultCluster)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	err = bookkeeper_e2eutil.WaitForBookkeeperClusterToBecomeReady(t, f, ctx, bookkeeper)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	svcName := fmt.Sprintf("%s-headlesssvc", bookkeeper.Name)
+	err = bookkeeper_e2eutil.CheckServiceExists(t, f, ctx, bookkeeper, svcName)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	err = bookkeeper_e2eutil.DeleteBKCluster(t, f, ctx, bookkeeper)
@@ -55,6 +61,10 @@ func testCreateRecreateCluster(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 
 	err = bookkeeper_e2eutil.WaitForBookkeeperClusterToBecomeReady(t, f, ctx, bookkeeper)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	svcName = fmt.Sprintf("%s-bookie-headless", bookkeeper.Name)
+	err = bookkeeper_e2eutil.CheckServiceExists(t, f, ctx, bookkeeper, svcName)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	err = bookkeeper_e2eutil.DeleteBKCluster(t, f, ctx, bookkeeper)

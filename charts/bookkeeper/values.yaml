@@ -23,6 +23,7 @@ blockOwnerDeletion: true
 affinity: {}
 labels: {}
 annotations: {}
+headlessSvcNameSuffix:
 probes:
   readiness:
     initialDelaySeconds: 20

@@ -54,15 +54,7 @@ var _ = Describe("bookkeepercluster", func() {
 			Ω(str1).To(Equal("bk-bookie"))
 		})
 	})
-	Context("HeadlessServiceNameForBookie", func() {
-		var str1 string
-		BeforeEach(func() {
-			str1 = HeadlessServiceNameForBookie("bk")
-		})
-		It("should return headless service name", func() {
-			Ω(str1).To(Equal("bk-bookie-headless"))
-		})
-	})
+
 	Context("IsOrphan", func() {
 		var result1, result2, result3, result4 bool
 		BeforeEach(func() {

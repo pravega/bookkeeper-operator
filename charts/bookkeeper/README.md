@@ -152,6 +152,7 @@ The following table lists the configurable parameters of the Bookkeeper chart an
 | `autoRecovery`| Enable bookkeeper auto-recovery | `true` |
 | `blockOwnerDeletion`| Enable blockOwnerDeletion | `true` |
 | `affinity` | Specifies scheduling constraints on bookie pods | `{}` |
+| `headlessSvcNameSuffix` | suffix for bookkeeper headless service name | `bookie-headless` |
 | `probes.readiness.initialDelaySeconds` | Number of seconds after the container has started before readiness probe is initiated | `20` |
 | `probes.readiness.periodSeconds` | Number of seconds in which readiness probe will be performed | `10` |
 | `probes.readiness.failureThreshold` | Number of seconds after which the readiness probe times out | `9` |
