@@ -152,6 +152,9 @@ The following table lists the configurable parameters of the Bookkeeper chart an
 | `autoRecovery`| Enable bookkeeper auto-recovery | `true` |
 | `blockOwnerDeletion`| Enable blockOwnerDeletion | `true` |
 | `affinity` | Specifies scheduling constraints on bookie pods | `{}` |
+| `labels` | Labels to be added to the Bookie Pods | |
+| `annotations` | Annotations to be added to the Bookie Pods | |
+| `initContainers` | Init Conatiners to be added to the Bookie Pods | `[]` |
 | `headlessSvcNameSuffix` | suffix for bookkeeper headless service name | `bookie-headless` |
 | `probes.readiness.initialDelaySeconds` | Number of seconds after the container has started before readiness probe is initiated | `20` |
 | `probes.readiness.periodSeconds` | Number of seconds in which readiness probe will be performed | `10` |
@@ -178,5 +181,3 @@ The following table lists the configurable parameters of the Bookkeeper chart an
 | `jvmOptions.gcLoggingOpts` | GC Logging Options passed to the JVM for bookkeeper performance tuning | `["-Xlog:gc*,safepoint::time,level,tags:filecount=5,filesize=64m"]` |
 | `jvmOptions.extraOpts` | Extra Options passed to the JVM for bookkeeper performance tuning | `[]` |
 | `options` | List of bookkeeper options | |
-| `labels` | Labels to be added to the Bookie Pods | |
-| `annotations` | Annotations to be added to the Bookie Pods | |

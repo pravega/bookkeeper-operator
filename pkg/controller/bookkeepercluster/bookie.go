@@ -285,6 +285,10 @@ func makeBookiePodSpec(bk *v1alpha1.BookkeeperCluster) *corev1.PodSpec {
 		podSpec.ServiceAccountName = bk.Spec.ServiceAccountName
 	}
 
+	if bk.Spec.InitContainers != nil {
+		podSpec.InitContainers = bk.Spec.InitContainers
+	}
+
 	return podSpec
 }
 

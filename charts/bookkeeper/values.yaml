@@ -23,6 +23,7 @@ blockOwnerDeletion: true
 affinity: {}
 labels: {}
 annotations: {}
+initContainers: []
 headlessSvcNameSuffix:
 probes:
   readiness:
