@@ -154,7 +154,7 @@ The following table lists the configurable parameters of the Bookkeeper chart an
 | `affinity` | Specifies scheduling constraints on bookie pods | `{}` |
 | `labels` | Labels to be added to the Bookie Pods | |
 | `annotations` | Annotations to be added to the Bookie Pods | |
-| `initContainers` | Init Conatiners to be added to the Bookie Pods | `[]` |
+| `initContainers` | Init Containers to be added to the Bookie Pods | `[]` |
 | `headlessSvcNameSuffix` | suffix for bookkeeper headless service name | `bookie-headless` |
 | `probes.readiness.initialDelaySeconds` | Number of seconds after the container has started before readiness probe is initiated | `20` |
 | `probes.readiness.periodSeconds` | Number of seconds in which readiness probe will be performed | `10` |

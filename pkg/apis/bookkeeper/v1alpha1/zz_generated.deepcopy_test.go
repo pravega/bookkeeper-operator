@@ -13,6 +13,7 @@ package v1alpha1_test
 import (
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"strings"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -48,6 +49,14 @@ var _ = Describe("DeepCopy", func() {
 			bk1.Spec.Probes.ReadinessProbe.InitialDelaySeconds = 5
 			bk1.Spec.Probes.LivenessProbe.FailureThreshold = 2
 			bk2.Spec.Probes = bk1.Spec.Probes.DeepCopy()
+			initContainer := []v1.Container{
+				v1.Container{
+					Name:    "testing",
+					Image:   "dummy-image",
+					Command: []string{"sh", "-c", "ls;pwd"},
+				},
+			}
+			bk1.Spec.InitContainers = initContainer
 			bk1.Spec.JVMOptions.MemoryOpts = []string{"1g"}
 			bk2.Spec.JVMOptions = bk1.Spec.JVMOptions.DeepCopy()
 			bk2.Spec.Storage = bk1.Spec.Storage.DeepCopy()
@@ -84,6 +93,11 @@ var _ = Describe("DeepCopy", func() {
 		})
 		It("checking bk2 options ledger field", func() {
 			Ω(bk2.Spec.Options["ledgers"]).To(Equal("l1"))
+		})
+		It("checking init containers", func() {
+			Ω(bk2.Spec.InitContainers[0].Name).To(Equal("testing"))
+			Ω(bk2.Spec.InitContainers[0].Image).To(Equal("dummy-image"))
+			Ω(strings.Contains(bk2.Spec.InitContainers[0].Command[2], "ls;pwd")).To(BeTrue())
 		})
 		It("checking bk2 ready members", func() {
 			Ω(bk2.Status.Members.Ready[0]).To(Equal("bookie-0"))
