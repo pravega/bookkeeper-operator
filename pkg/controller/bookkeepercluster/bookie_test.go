@@ -11,6 +11,7 @@
 package bookkeepercluster_test
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/pravega/bookkeeper-operator/pkg/apis/bookkeeper/v1alpha1"
@@ -99,6 +100,13 @@ var _ = Describe("Bookie", func() {
 					},
 					Annotations: map[string]string{
 						"bookie-annotation": "dummyBookie",
+					},
+					InitContainers: []corev1.Container{
+						corev1.Container{
+							Name:    "testing",
+							Image:   "dummy-image",
+							Command: []string{"sh", "-c", "ls;pwd"},
+						},
 					},
 				}
 				bk.WithDefaults()
@@ -209,6 +217,13 @@ var _ = Describe("Bookie", func() {
 					Ω(lp_f).Should(Equal(int32(5)))
 					Ω(lp_s).Should(Equal(int32(1)))
 					Ω(lp_t).Should(Equal(int32(2)))
+				})
+
+				It("should have init container", func() {
+					podTemplate := bookkeepercluster.MakeBookiePodTemplate(bk)
+					Ω(podTemplate.Spec.InitContainers[0].Name).To(Equal("testing"))
+					Ω(podTemplate.Spec.InitContainers[0].Image).To(Equal("dummy-image"))
+					Ω(strings.Contains(podTemplate.Spec.InitContainers[0].Command[2], "ls;pwd")).Should(BeTrue())
 				})
 			})
 		})

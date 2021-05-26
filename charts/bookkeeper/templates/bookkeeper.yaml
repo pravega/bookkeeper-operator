@@ -27,10 +27,18 @@ spec:
   {{- else }}
   blockOwnerDeletion: false
   {{- end }}
+  {{- if .Values.labels }}
   labels:
 {{ toYaml .Values.labels | indent 4 }}
+  {{- end }}
+  {{- if .Values.annotations }}
   annotations:
 {{ toYaml .Values.annotations | indent 4 }}
+  {{- end }}
+  {{- if .Values.initContainers }}
+  initContainers:
+{{ toYaml .Values.initContainers | indent 4 }}
+  {{- end }}
   {{- if .Values.headlessSvcNameSuffix }}
   headlessSvcNameSuffix: {{ .Values.headlessSvcNameSuffix }}
   {{- end }}

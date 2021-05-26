@@ -256,6 +256,10 @@ type BookkeeperClusterSpec struct {
 	// +optional
 	Annotations map[string]string `json:"annotations"`
 
+	// InitContainers to be added to the bookie pods
+	// +optional
+	InitContainers []corev1.Container `json:"initContainers,omitempty"`
+
 	// This is used as suffix for bookkeeper headless service name
 	// +optional
 	HeadlessSvcNameSuffix string `json:"headlessSvcNameSuffix,omitempty"`
