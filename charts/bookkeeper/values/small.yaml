@@ -20,4 +20,4 @@ storage:
     volumeSize: 10Gi
 
 jvmOptions:
-  memoryOpts: ["-Xms1g", "-XX:MaxDirectMemorySize=2g"]
+  memoryOpts: ["-Xms1g", "-XX:MaxDirectMemorySize=2g", "-XX:+ExitOnOutOfMemoryError", "-XX:+CrashOnOutOfMemoryError", "-XX:+HeapDumpOnOutOfMemoryError", "-XX:HeapDumpPath=/tmp/dumpfile/heap", "-XX:+UnlockExperimentalVMOptions", "-XX:+UseContainerSupport", "-XX:MaxRAMPercentage=50.0"]

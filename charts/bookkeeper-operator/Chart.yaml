@@ -1,8 +1,8 @@
 apiVersion: v2
 name: bookkeeper-operator
 description: Bookkeeper Operator Helm chart for Kubernetes
-version: 0.1.3
-appVersion: 0.1.3
+version: 0.1.4
+appVersion: 0.1.4
 keywords:
   - log storage
   - stream storage

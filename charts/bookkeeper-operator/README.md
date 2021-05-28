@@ -53,7 +53,7 @@ The following table lists the configurable parameters of the bookkeeper-operator
 | Parameter | Description | Default |
 | ----- | ----------- | ------ |
 | `image.repository` | Image repository | `pravega/bookkeeper-operator` |
-| `image.tag` | Image tag | `0.1.3` |
+| `image.tag` | Image tag | `0.1.4` |
 | `image.pullPolicy` | Image pull policy | `IfNotPresent` |
 | `crd.create` | Create bookkeeper CRD | `true` |
 | `rbac.create` | Create RBAC resources | `true` |
