@@ -11,7 +11,6 @@
 package v1alpha1_test
 
 import (
-	"os"
 	"strings"
 	"testing"
 
@@ -62,6 +61,7 @@ var _ = Describe("BookkeeperCluster Types Spec", func() {
 			Ω(bk.Spec.Version).Should(Equal("0.9.0"))
 		})
 	})
+
 	Context("NewEvent", func() {
 		var bk *v1alpha1.BookkeeperCluster
 		var event *corev1.Event
@@ -80,6 +80,7 @@ var _ = Describe("BookkeeperCluster Types Spec", func() {
 			Ω(event.Size()).ShouldNot(Equal(0))
 		})
 	})
+
 	Context("NewApplicationEvent", func() {
 		var bk *v1alpha1.BookkeeperCluster
 		var event *corev1.Event
@@ -97,6 +98,7 @@ var _ = Describe("BookkeeperCluster Types Spec", func() {
 			Ω(event.Size()).ShouldNot(Equal(0))
 		})
 	})
+
 	Context("WaitForClusterToTerminate", func() {
 		var bk *v1alpha1.BookkeeperCluster
 		var client client.Client
@@ -121,6 +123,7 @@ var _ = Describe("BookkeeperCluster Types Spec", func() {
 			Ω(err).Should(BeNil())
 		})
 	})
+
 	Context("GetClusterExpectedSize", func() {
 		var replicas int
 		var bk *v1alpha1.BookkeeperCluster
@@ -138,6 +141,7 @@ var _ = Describe("BookkeeperCluster Types Spec", func() {
 			Ω(replicas).To(Equal(3))
 		})
 	})
+
 	Context("BookkeeperImage", func() {
 		var image string
 		var bk *v1alpha1.BookkeeperCluster
@@ -159,6 +163,7 @@ var _ = Describe("BookkeeperCluster Types Spec", func() {
 
 		})
 	})
+
 	Context("BookkeeperTargetImage", func() {
 		var image, image1 string
 		var bk *v1alpha1.BookkeeperCluster
@@ -181,6 +186,7 @@ var _ = Describe("BookkeeperCluster Types Spec", func() {
 			Ω(image1).To(Equal("pravega/bookkeeper:0.6.1"))
 		})
 	})
+
 	Context("LabelsForBookie", func() {
 		var str1 map[string]string
 		var bk *v1alpha1.BookkeeperCluster
@@ -203,25 +209,7 @@ var _ = Describe("BookkeeperCluster Types Spec", func() {
 			Ω(str1["component"]).To(Equal("bookie"))
 		})
 	})
-	Context("ValidateCreate", func() {
-		var (
-			bk  *v1alpha1.BookkeeperCluster
-			err error
-		)
-		BeforeEach(func() {
-			bk = &v1alpha1.BookkeeperCluster{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "default",
-				},
-			}
-			bk.WithDefaults()
-			err = bk.ValidateCreate()
 
-		})
-		It("should return error", func() {
-			Ω(strings.ContainsAny(err.Error(), "Error retrieving suported versions")).Should(Equal(true))
-		})
-	})
 	Context("ValidateDelete", func() {
 		var (
 			bk  *v1alpha1.BookkeeperCluster
@@ -241,12 +229,13 @@ var _ = Describe("BookkeeperCluster Types Spec", func() {
 			Ω(err).To(BeNil())
 		})
 	})
+
 	Context("ValidateBookkeeperVersion", func() {
 		var (
-			bk    *v1alpha1.BookkeeperCluster
-			err   error
-			file1 *os.File
+			bk  *v1alpha1.BookkeeperCluster
+			err error
 		)
+
 		BeforeEach(func() {
 			bk = &v1alpha1.BookkeeperCluster{
 				ObjectMeta: metav1.ObjectMeta{
@@ -254,34 +243,18 @@ var _ = Describe("BookkeeperCluster Types Spec", func() {
 				},
 			}
 			bk.WithDefaults()
-
-			file1, _ = os.Create("filename")
-
-			file1, _ = os.OpenFile("filename", os.O_RDWR, 0644)
-			file1.WriteString("0.1.0:0.1.0 \n")
-			file1.WriteString("0.2.0:0.2.0 \n")
-			file1.WriteString("0.3.0:0.3.0,0.3.1,0.3.2 \n")
-			file1.WriteString("0.3.1:0.3.1,0.3.2 \n")
-			file1.WriteString("0.4.0:0.4.0 \n")
-			file1.WriteString("0.5.0:0.5.0,0.5.1,0.6.0,0.6.1,0.6.2,0.7.0,0.7.1 \n")
-			file1.WriteString("0.5.1:0.5.1,0.6.0,0.6.1,0.6.2,0.7.0,0.7.1 \n")
-			file1.WriteString("0.6.0:0.6.0,0.6.1,0.6.2,0.7.0,0.7.1 \n")
-			file1.WriteString("0.6.1:0.6.1,0.6.2,0.7.0,0.7.1  \n")
-			file1.WriteString("0.6.2:0.6.2,0.7.0,0.7.1 \n")
-			file1.WriteString("0.7.0:0.7.0,0.7.1 \n")
-			file1.WriteString("0.7.1:0.7.1 \n")
-			file1.WriteString("0.7.2:0.7.2 \n")
-			file1.WriteString("0.9.0:0.9.0 \n")
 		})
+
 		Context("Spec version empty", func() {
 			BeforeEach(func() {
 				bk.Spec.Version = ""
-				err = bk.ValidateBookkeeperVersion("filename")
+				err = bk.ValidateBookkeeperVersion()
 			})
 			It("should return nil", func() {
 				Ω(err).To(BeNil())
 			})
 		})
+
 		Context("Absolute Path is incorrect", func() {
 			BeforeEach(func() {
 				bk.Spec = v1alpha1.BookkeeperClusterSpec{
@@ -298,85 +271,62 @@ var _ = Describe("BookkeeperCluster Types Spec", func() {
 				Ω(strings.ContainsAny(err.Error(), "Error validating absolute paths of journal/ledger/index directories")).Should(Equal(true))
 			})
 		})
+
 		Context("Version not in valid format", func() {
 			BeforeEach(func() {
 				bk.Spec.Version = "999"
-				err = bk.ValidateBookkeeperVersion("filename")
+				err = bk.ValidateBookkeeperVersion()
 			})
 			It("should return error", func() {
 				Ω(strings.ContainsAny(err.Error(), "request version is not in valid format")).Should(Equal(true))
 			})
 		})
-		Context("Version not supported", func() {
-			BeforeEach(func() {
-				bk.Spec.Version = "0.7.5"
-				err = bk.ValidateBookkeeperVersion("filename")
-			})
-			It("should return error", func() {
-				Ω(strings.ContainsAny(err.Error(), "unsupported Bookkeeper cluster version")).Should(Equal(true))
-			})
-		})
+
 		Context("Spec version and current version same", func() {
 			BeforeEach(func() {
 				bk.Spec.Version = "0.7.0"
 				bk.Status.CurrentVersion = "0.7.0"
-				err = bk.ValidateBookkeeperVersion("filename")
+				err = bk.ValidateBookkeeperVersion()
 			})
 			It("should return nil", func() {
 				Ω(err).To(BeNil())
 			})
 		})
-		Context("Unsupported current version", func() {
-			BeforeEach(func() {
-				bk.Spec.Version = "0.7.0"
-				bk.Status.CurrentVersion = "0.9.0"
-				err = bk.ValidateBookkeeperVersion("filename")
-			})
-			It("should return error", func() {
-				Ω(strings.ContainsAny(err.Error(), "failed to find current cluster version in the supported versions")).Should(Equal(true))
-			})
-		})
+
 		Context("current version not in correct format", func() {
 			BeforeEach(func() {
 				bk.Spec.Version = "0.7.0"
 				bk.Status.CurrentVersion = "999"
-				err = bk.ValidateBookkeeperVersion("filename")
+				err = bk.ValidateBookkeeperVersion()
 			})
 			It("should return error", func() {
 				Ω(strings.ContainsAny(err.Error(), "found version is not in valid format")).Should(Equal(true))
 			})
 		})
-		Context("unsupported upgrade to a version", func() {
-			BeforeEach(func() {
-				bk.Status.CurrentVersion = "0.7.0"
-				bk.Spec.Version = "0.7.2"
-				err = bk.ValidateBookkeeperVersion("filename")
-			})
-			It("should return error", func() {
-				Ω(strings.ContainsAny(err.Error(), "unsupported upgrade from version")).Should(Equal(true))
-			})
-		})
+
 		Context("supported upgrade to a version", func() {
 			BeforeEach(func() {
 				bk.Status.CurrentVersion = "0.7.0"
-				bk.Spec.Version = "0.7.1"
-				err = bk.ValidateBookkeeperVersion("filename")
+				bk.Spec.Version = "0.7.3"
+				err = bk.ValidateBookkeeperVersion()
 			})
 			It("should return nil", func() {
 				Ω(err).To(BeNil())
 			})
 		})
+
 		Context("validation while cluster upgrade in progress", func() {
 			BeforeEach(func() {
 				bk.Status.SetUpgradingConditionTrue(" ", " ")
 				bk.Spec.Version = "0.7.1"
 				bk.Status.TargetVersion = "0.7.0"
-				err = bk.ValidateBookkeeperVersion("filename")
+				err = bk.ValidateBookkeeperVersion()
 			})
 			It("should return error", func() {
 				Ω(strings.ContainsAny(err.Error(), "failed to process the request, cluster is upgrading")).Should(Equal(true))
 			})
 		})
+
 		Context("validation while cluster rollback in progress", func() {
 			BeforeEach(func() {
 				bk.Status.CurrentVersion = "0.7.0"
@@ -384,22 +334,24 @@ var _ = Describe("BookkeeperCluster Types Spec", func() {
 				bk.Status.AddToVersionHistory("0.6.0")
 				bk.Status.SetRollbackConditionTrue(" ", " ")
 				bk.Spec.Version = "0.7.0"
-				err = bk.ValidateBookkeeperVersion("filename")
+				err = bk.ValidateBookkeeperVersion()
 			})
 			It("should return error", func() {
 				Ω(strings.ContainsAny(err.Error(), "failed to process the request, rollback in progress")).Should(Equal(true))
 			})
 		})
+
 		Context("validation while cluster in error state", func() {
 			BeforeEach(func() {
 				bk.Status.SetErrorConditionTrue("some err", " ")
 				bk.Spec.Version = "0.7.0"
-				err = bk.ValidateBookkeeperVersion("filename")
+				err = bk.ValidateBookkeeperVersion()
 			})
 			It("should return error", func() {
 				Ω(strings.ContainsAny(err.Error(), "failed to process the request, cluster is in error state")).Should(Equal(true))
 			})
 		})
+
 		Context("validation while cluster in upgradefailed state", func() {
 			BeforeEach(func() {
 				bk.Status.CurrentVersion = "0.7.0"
@@ -407,12 +359,13 @@ var _ = Describe("BookkeeperCluster Types Spec", func() {
 				bk.Status.AddToVersionHistory("0.6.0")
 				bk.Status.SetErrorConditionTrue("UpgradeFailed", " ")
 				bk.Spec.Version = "0.7.0"
-				err = bk.ValidateBookkeeperVersion("filename")
+				err = bk.ValidateBookkeeperVersion()
 			})
 			It("should return error", func() {
 				Ω(strings.ContainsAny(err.Error(), "Rollback to version 0.7.0 not supported")).Should(Equal(true))
 			})
 		})
+
 		Context("validation while cluster in upgradefailed state and supported rollback version", func() {
 			BeforeEach(func() {
 				bk.Status.CurrentVersion = "0.6.0"
@@ -420,26 +373,14 @@ var _ = Describe("BookkeeperCluster Types Spec", func() {
 				bk.Status.AddToVersionHistory("0.6.0")
 				bk.Status.SetErrorConditionTrue("UpgradeFailed", " ")
 				bk.Spec.Version = "0.6.0"
-				err = bk.ValidateBookkeeperVersion("filename")
+				err = bk.ValidateBookkeeperVersion()
 			})
 			It("should return nil", func() {
 				Ω(err).To(BeNil())
 			})
 		})
-		Context("validation with configmap not present", func() {
-			BeforeEach(func() {
-				bk.Spec.Version = "0.7.0"
-				err = bk.ValidateBookkeeperVersion("")
-			})
-			It("should return error", func() {
-				Ω(strings.ContainsAny(err.Error(), "Error retrieving suported versions")).Should(Equal(true))
-			})
-		})
-		AfterEach(func() {
-			file1.Close()
-			os.Remove("filename")
-		})
 	})
+
 	Context("HeadlessServiceNameForBookie", func() {
 		var str1 string
 		BeforeEach(func() {
