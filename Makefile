@@ -45,7 +45,7 @@ test-e2e: test-e2e-remote
 test-e2e-remote: login
 		operator-sdk build $(TEST_IMAGE)
 		docker push $(TEST_IMAGE)
-		source /root/.gvm/scripts/gvm;operator-sdk test local ./test/e2e --operator-namespace default --image $(TEST_IMAGE) --go-test-flags "-v -timeout 0"
+		operator-sdk test local ./test/e2e --operator-namespace default --image $(TEST_IMAGE) --go-test-flags "-v -parallel=1"
 
 login:
 		echo "$(DOCKER_TEST_PASS)" | docker login -u "$(DOCKER_TEST_USER)" --password-stdin
