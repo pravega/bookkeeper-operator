@@ -17,6 +17,12 @@ env:
 
 # jobs to run
 jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup upterm session
+      uses: lhotari/action-upterm@v1
   check:
     runs-on: ubuntu-latest
     steps:
@@ -96,8 +102,6 @@ jobs:
         ssh -o StrictHostKeyChecking=no root@$CLUSTER_IP "kubectl get nodes"
         echo "CLUSTER_ID1=$CLUSTER_ID1" >> $GITHUB_ENV
         echo "CLUSTER_ID2=$CLUSTER_ID2" >> $GITHUB_ENV
-    - name: Setup upterm session
-      uses: lhotari/action-upterm@v1
     - name: Make setup before running e2e
       run: |
         ssh -o StrictHostKeyChecking=no root@$CLUSTER_IP "mkdir /data;kubectl create -f /root/bookkeeper-operator/test/e2e/resources/local-storage.yaml"
