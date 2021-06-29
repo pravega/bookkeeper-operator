@@ -636,8 +636,8 @@ func (bk *BookkeeperCluster) ValidateBookkeeperVersion() error {
 		// It should never happen
 		return fmt.Errorf("found version is not in valid format, something bad happens: %v", err)
 	}
-	if match,_ := util.CompareVersions(normRequestVersion, normFoundVersion, "<"); match {
-		return fmt.Errorf("downgrades are not allowed")
+	if match, _ := util.CompareVersions(normRequestVersion, normFoundVersion, "<"); match {
+		return fmt.Errorf("downgrading the cluster from version %s to %s is not supported", bk.Status.CurrentVersion, requestVersion)
 	}
 	log.Printf("validateBookkeeperVersion:: normFoundVersion %s", normFoundVersion)
 

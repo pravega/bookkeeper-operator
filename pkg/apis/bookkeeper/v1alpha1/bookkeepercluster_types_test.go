@@ -304,6 +304,17 @@ var _ = Describe("BookkeeperCluster Types Spec", func() {
 			})
 		})
 
+		Context("unsupported upgrade to a version", func() {
+			BeforeEach(func() {
+				bk.Status.CurrentVersion = "0.7.2"
+				bk.Spec.Version = "0.7.0"
+				err = bk.ValidateBookkeeperVersion()
+			})
+			It("should return error", func() {
+				Ω(strings.ContainsAny(err.Error(), "downgrading the cluster from version 0.7.2 to 0.7.0 is not supported")).Should(Equal(true))
+			})
+		})
+
 		Context("supported upgrade to a version", func() {
 			BeforeEach(func() {
 				bk.Status.CurrentVersion = "0.7.0"

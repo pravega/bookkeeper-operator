@@ -49,10 +49,12 @@ func testWebhook(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// Try to downgrade the cluster
-	// bookkeeper.Spec.Version = "0.5.0"
-	// err = bookkeeper_e2eutil.UpdateBKCluster(t, f, ctx, bookkeeper)
-	// g.Expect(err).To(HaveOccurred(), "Should not allow downgrade")
-	// g.Expect(err.Error()).To(ContainSubstring("unsupported upgrade from version 0.6.0 to 0.5.0"))
+	bookkeeper, err = bookkeeper_e2eutil.GetBKCluster(t, f, ctx, bookkeeper)
+	g.Expect(err).NotTo(HaveOccurred())
+	bookkeeper.Spec.Version = "0.5.0"
+	err = bookkeeper_e2eutil.UpdateBKCluster(t, f, ctx, bookkeeper)
+	g.Expect(err).To(HaveOccurred(), "Should not allow downgrade")
+	g.Expect(err.Error()).To(ContainSubstring("downgrading the cluster from version 0.6.0 to 0.5.0 is not supported"))
 
 	// Delete cluster
 	err = bookkeeper_e2eutil.DeleteBKCluster(t, f, ctx, bookkeeper)
