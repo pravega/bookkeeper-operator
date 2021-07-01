@@ -46,8 +46,8 @@ func CreateBKCluster(t *testing.T, f *framework.Framework, ctx *framework.TestCt
 	b.Spec.EnvVars = "bookkeeper-configmap"
 	b.Spec.ZookeeperUri = "zookeeper-client:2181"
 	b.Spec.Image.ImageSpec.PullPolicy = "IfNotPresent"
-	b.Spec.Probes.ReadinessProbe.PeriodSeconds = 15
-	b.Spec.Probes.ReadinessProbe.TimeoutSeconds = 10
+	b.Spec.Probes.ReadinessProbe.PeriodSeconds = 35
+	b.Spec.Probes.ReadinessProbe.TimeoutSeconds = 30
 	b.Spec.Storage.LedgerVolumeClaimTemplate = &corev1.PersistentVolumeClaimSpec{
 		AccessModes: []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
 		Resources: corev1.ResourceRequirements{
@@ -92,8 +92,8 @@ func CreateBKClusterWithCM(t *testing.T, f *framework.Framework, ctx *framework.
 	b.Spec.EnvVars = cm
 	b.Spec.ZookeeperUri = "zookeeper-client:2181"
 	b.Spec.Image.ImageSpec.PullPolicy = "IfNotPresent"
-	b.Spec.Probes.ReadinessProbe.PeriodSeconds = 15
-	b.Spec.Probes.ReadinessProbe.TimeoutSeconds = 10
+	b.Spec.Probes.ReadinessProbe.PeriodSeconds = 35
+	b.Spec.Probes.ReadinessProbe.TimeoutSeconds = 30
 	b.Spec.Storage.LedgerVolumeClaimTemplate = &corev1.PersistentVolumeClaimSpec{
 		AccessModes: []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
 		Resources: corev1.ResourceRequirements{
