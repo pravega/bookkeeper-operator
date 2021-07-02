@@ -96,7 +96,7 @@ func testMultiBKCluster(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// Scale up replicas in the first Bookkeeper cluster
-	bk1.Spec.Replicas = 4
+	bk1.Spec.Replicas = 5
 
 	err = bookkeeper_e2eutil.UpdateBKCluster(t, f, ctx, bk1)
 	g.Expect(err).NotTo(HaveOccurred())
