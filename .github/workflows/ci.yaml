@@ -17,12 +17,6 @@ env:
 
 # jobs to run
 jobs:
-  # build:
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #   - uses: actions/checkout@v2
-  #   - name: Setup upterm session
-  #     uses: lhotari/action-upterm@v1
   check:
     runs-on: ubuntu-latest
     steps:
