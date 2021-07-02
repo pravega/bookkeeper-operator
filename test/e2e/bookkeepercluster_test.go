@@ -12,6 +12,7 @@ package e2e
 
 import (
 	"testing"
+	"time"
 
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
 	"github.com/operator-framework/operator-sdk/pkg/test/e2eutil"
@@ -52,6 +53,7 @@ func testBookkeeperCluster(t *testing.T) {
 	f := framework.Global
 	// wait for bookkeeper-operator to be ready
 	err = e2eutil.WaitForOperatorDeployment(t, f.KubeClient, namespace, "bookkeeper-operator", 1, bookkeeper_e2eutil.RetryInterval, bookkeeper_e2eutil.Timeout)
+	time.Sleep(60 * time.Second)
 	if err != nil {
 		t.Fatal(err)
 	}
