@@ -19,10 +19,6 @@ NAME        VERSION   DESIRED MEMBERS   READY MEMBERS   AGE
 bookkeeper  0.4.0        7                 7            11m
 ```
 
-## Valid Upgrade Paths
-
-To understand the valid upgrade paths for a bookkeeper cluster, refer to the [version map](https://github.com/pravega/bookkeeper-operator/blob/master/deploy/version_map.yaml). The key indicates the base version of the cluster, and the value against each key indicates the list of valid versions this base version can be upgraded to.
-
 ## Trigger an upgrade
 
 ### Upgrading via Helm
