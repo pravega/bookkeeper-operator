@@ -7,10 +7,6 @@ Bookkeeper operator can be upgraded to a version **[VERSION]** via helm using th
 ```
 $ helm upgrade [BOOKKEEPER_OPERATOR_RELEASE_NAME] pravega/bookkeeper-operator --version=[VERSION]
 ```
-The bookkeeper operator with deployment name **[DEPLOYMENT_NAME]** can also be upgraded manually by modifying the image tag using kubectl edit, patch or apply
-```
-$ kubectl edit deploy [DEPLOYMENT_NAME]
-```
 
 ## Upgrading to 0.1.3
 
