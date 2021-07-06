@@ -20,7 +20,7 @@ bookkeeper  0.4.0        7                 7            11m
 ```
 
 ## Valid Upgrade Paths
-Upgrade of bookkeeper cluster to any version will be allowed as long as the used does not try to downgrade the cluster version.
+Upgrade of bookkeeper cluster to any version will be allowed as long as the user does not try to downgrade the cluster version.
 
 ## Trigger an upgrade
 
