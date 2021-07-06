@@ -11,7 +11,6 @@
 package v1alpha1
 
 import (
-	"bufio"
 	"context"
 	"fmt"
 	"log"
@@ -558,7 +557,7 @@ func (bk *BookkeeperCluster) SetupWebhookWithManager(mgr ctrl.Manager) error {
 // ValidateCreate implements webhook.Validator so a webhook will be registered for the type
 func (bk *BookkeeperCluster) ValidateCreate() error {
 	log.Printf("validate create %s", bk.Name)
-	err := bk.ValidateBookkeeperVersion("")
+	err := bk.ValidateBookkeeperVersion()
 	if err != nil {
 		return err
 	}
@@ -569,7 +568,7 @@ func (bk *BookkeeperCluster) ValidateCreate() error {
 // ValidateUpdate implements webhook.Validator so a webhook will be registered for the type
 func (bk *BookkeeperCluster) ValidateUpdate(old runtime.Object) error {
 	log.Printf("validate update %s", bk.Name)
-	err := bk.ValidateBookkeeperVersion("")
+	err := bk.ValidateBookkeeperVersion()
 	if err != nil {
 		return err
 	}
@@ -587,31 +586,7 @@ func (bk *BookkeeperCluster) ValidateDelete() error {
 	return nil
 }
 
-func getSupportedVersions(filename string) (map[string]string, error) {
-	supportedVersions := make(map[string]string)
-	filepath := filename
-	if filename == "" {
-		filepath = "/tmp/config/keys"
-	}
-
-	file, err := os.Open(filepath)
-	if err != nil {
-		return supportedVersions, fmt.Errorf("Version map /tmp/config/keys not found")
-	}
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		data := strings.Split(scanner.Text(), ":")
-		supportedVersions[data[0]] = data[1]
-	}
-	file.Close()
-	return supportedVersions, nil
-}
-
-func (bk *BookkeeperCluster) ValidateBookkeeperVersion(filename string) error {
-	supportedVersions, err := getSupportedVersions(filename)
-	if err != nil {
-		return fmt.Errorf("Error retrieving suported versions %v", err)
-	}
+func (bk *BookkeeperCluster) ValidateBookkeeperVersion() error {
 
 	if bk.Spec.Version == "" {
 		bk.Spec.Version = DefaultBookkeeperVersion
@@ -637,15 +612,12 @@ func (bk *BookkeeperCluster) ValidateBookkeeperVersion(filename string) error {
 	if bk.Status.IsClusterInErrorState() {
 		return fmt.Errorf("failed to process the request, cluster is in error state.")
 	}
+
 	// Check if the request has a valid Bookkeeper version
 	normRequestVersion, err := util.NormalizeVersion(requestVersion)
 	log.Printf("validateBookkeeperVersion:: normRequestVersion %s", normRequestVersion)
 	if err != nil {
 		return fmt.Errorf("request version is not in valid format: %v", err)
-	}
-
-	if _, ok := supportedVersions[normRequestVersion]; !ok {
-		return fmt.Errorf("unsupported Bookkeeper cluster version %s", requestVersion)
 	}
 
 	if bk.Status.CurrentVersion == "" {
@@ -657,23 +629,18 @@ func (bk *BookkeeperCluster) ValidateBookkeeperVersion(filename string) error {
 	if bk.Status.CurrentVersion == requestVersion {
 		return nil
 	}
+
 	// This is an upgrade, check if requested version is in the upgrade path
 	normFoundVersion, err := util.NormalizeVersion(bk.Status.CurrentVersion)
 	if err != nil {
 		// It should never happen
 		return fmt.Errorf("found version is not in valid format, something bad happens: %v", err)
 	}
-
+	if match, _ := util.CompareVersions(normRequestVersion, normFoundVersion, "<"); match {
+		return fmt.Errorf("downgrading the cluster from version %s to %s is not supported", bk.Status.CurrentVersion, requestVersion)
+	}
 	log.Printf("validateBookkeeperVersion:: normFoundVersion %s", normFoundVersion)
-	upgradeString, ok := supportedVersions[normFoundVersion]
-	if !ok {
-		// It should never happen
-		return fmt.Errorf("failed to find current cluster version in the supported versions")
-	}
-	upgradeList := strings.Split(upgradeString, ",")
-	if !util.ContainsVersion(upgradeList, normRequestVersion) {
-		return fmt.Errorf("unsupported upgrade from version %s to %s", bk.Status.CurrentVersion, requestVersion)
-	}
+
 	log.Print("validateBookkeeperVersion:: No error found...returning...")
 	return nil
 }

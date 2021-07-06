@@ -10,7 +10,7 @@
 
 > Note: If you are running on Google Kubernetes Engine (GKE), please [check this first](#installation-on-google-kubernetes-engine).
 
-In case you dont have a cert-manager, Install the cert-manager v0.15.0+ from the following link:-
+In case you don't have a cert-manager, Install the cert-manager v0.15.0+ from the following link:-
 
 https://cert-manager.io/docs/installation/kubernetes/
 
@@ -43,12 +43,6 @@ Install the operator.
 $ kubectl create -f deploy/operator.yaml
 ```
 
-Finally create a ConfigMap which contains the list of supported upgrade paths for the Bookkeeper cluster.
-
-```
-$ kubectl create -f deploy/version_map.yaml
-```
-
 #### Install the Operator in Test Mode
 The operator can be deployed in `test mode` by providing the argument `-test` inside the `operator.yaml` file in the following way.
 
@@ -64,16 +58,15 @@ containers:
     imagePullPolicy: Always
     args: [-test]
 ```
-For more details check [this](../README.md#install-the-operator-in-test-mode)
 
 ### Install the Bookkeeper cluster manually
 > Note: the Bookkeeper cluster must be installed in the same namespace as the Zookeeper cluster.
 
-If the BookKeeper cluster is expected to work with Pravega, we need to create a ConfigMap which needs to have the following values
+If the Bookkeeper cluster is expected to work with Pravega, we need to create a ConfigMap which needs to have the following values
 
 | KEY | VALUE |
 |---|---|
-| *PRAVEGA_CLUSTER_NAME* | Name of Pravega Cluster using this BookKeeper Cluster |
+| *PRAVEGA_CLUSTER_NAME* | Name of the Pravega Cluster using this Bookkeeper Cluster |
 | *WAIT_FOR* | Zookeeper URL |
 
 To create this ConfigMap, use the following command:
@@ -82,7 +75,7 @@ To create this ConfigMap, use the following command:
 $ kubectl create -f deploy/config_map.yaml
 ```
 
-The name of this ConfigMap needs to be mentioned in the field `envVars` present in the BookKeeper Spec. For more details about this ConfigMap refer to [this](bookkeeper-options.md#bookkeeper-custom-configuration).
+The name of this ConfigMap needs to be mentioned in the field `envVars` present in the Bookkeeper Spec. For more details about this ConfigMap refer to [this](bookkeeper-options.md#bookkeeper-custom-configuration).
 
 Once all these have been installed, you can use the following YAML template to install a small development Bookkeeper Cluster. Create a `bookkeeper.yaml` file with the following content.
 
@@ -106,7 +99,7 @@ where:
 
 - `[ZOOKEEPER_HOST]` is the Zookeeper service endpoint of your Zookeeper deployment (e.g. `zookeeper-client:2181`). It expects the zookeeper service URL in the given format `<service-name>:<port-number>`
 
-Check out other sample CR files in the [`example`](../example) directory.
+Check out other sample CR files in the [example](../example) directory.
 
 Deploy the Bookkeeper cluster.
 

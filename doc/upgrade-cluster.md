@@ -20,8 +20,7 @@ bookkeeper  0.4.0        7                 7            11m
 ```
 
 ## Valid Upgrade Paths
-
-To understand the valid upgrade paths for a bookkeeper cluster, refer to the [version map](https://github.com/pravega/bookkeeper-operator/blob/master/deploy/version_map.yaml). The key indicates the base version of the cluster, and the value against each key indicates the list of valid versions this base version can be upgraded to.
+Upgrade of bookkeeper cluster to any version will be allowed as long as the user does not try to downgrade the cluster version.
 
 ## Trigger an upgrade
 

@@ -32,14 +32,14 @@ func testWebhook(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 	f := framework.Global
 
-	//Test webhook with an unsupported Bookkeeper cluster version
-	invalidVersion := bookkeeper_e2eutil.NewClusterWithVersion(namespace, "99.0.0")
+	//Test webhook with an invalid Bookkeeper cluster version format
+	invalidVersion := bookkeeper_e2eutil.NewClusterWithVersion(namespace, "999")
 	invalidVersion.WithDefaults()
 	_, err = bookkeeper_e2eutil.CreateBKCluster(t, f, ctx, invalidVersion)
-	g.Expect(err).To(HaveOccurred(), "Should reject deployment of unsupported version")
-	g.Expect(err.Error()).To(ContainSubstring("unsupported Bookkeeper cluster version 99.0.0"))
+	g.Expect(err).To(HaveOccurred(), "Should reject deployment of invalid version format")
+	g.Expect(err.Error()).To(ContainSubstring("request version is not in valid format:"))
 
-	// Test webhook with a supported Bookkeeper cluster version
+	// Test webhook with a valid Bookkeeper cluster version format
 	validVersion := bookkeeper_e2eutil.NewClusterWithVersion(namespace, "0.6.0")
 	validVersion.WithDefaults()
 	bookkeeper, err := bookkeeper_e2eutil.CreateBKCluster(t, f, ctx, validVersion)
@@ -48,20 +48,13 @@ func testWebhook(t *testing.T) {
 	err = bookkeeper_e2eutil.WaitForBookkeeperClusterToBecomeReady(t, f, ctx, bookkeeper)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	// Try to upgrade to a non-supported version
+	// Try to downgrade the cluster
 	bookkeeper, err = bookkeeper_e2eutil.GetBKCluster(t, f, ctx, bookkeeper)
 	g.Expect(err).NotTo(HaveOccurred())
-
-	bookkeeper.Spec.Version = "99.0.0"
-	err = bookkeeper_e2eutil.UpdateBKCluster(t, f, ctx, bookkeeper)
-	g.Expect(err).To(HaveOccurred(), "Should reject upgrade to an unsupported version")
-	g.Expect(err.Error()).To(ContainSubstring("unsupported Bookkeeper cluster version 99.0.0"))
-
-	// Try to downgrade the cluster
 	bookkeeper.Spec.Version = "0.5.0"
 	err = bookkeeper_e2eutil.UpdateBKCluster(t, f, ctx, bookkeeper)
 	g.Expect(err).To(HaveOccurred(), "Should not allow downgrade")
-	g.Expect(err.Error()).To(ContainSubstring("unsupported upgrade from version 0.6.0 to 0.5.0"))
+	g.Expect(err.Error()).To(ContainSubstring("downgrading the cluster from version 0.6.0 to 0.5.0 is not supported"))
 
 	// Delete cluster
 	err = bookkeeper_e2eutil.DeleteBKCluster(t, f, ctx, bookkeeper)
