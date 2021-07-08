@@ -68,6 +68,9 @@ data:
     #!/bin/sh
     set -e
     sleep 30
+    echo "$(kubectl api-resources )"
+    sleep 3000
+
 
     if [ -z "$(kubectl api-resources | grep BookkeeperCluster )" ]; then
         exit 1
