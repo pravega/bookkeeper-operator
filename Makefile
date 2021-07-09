@@ -10,8 +10,10 @@ SHELL=/bin/bash -o pipefail
 
 PROJECT_NAME=bookkeeper-operator
 REPO=pravega/$(PROJECT_NAME)
-VERSION=$(shell git describe --always --tags --dirty | sed "s/\(.*\)-g`git rev-parse --short HEAD`/\1/")
+BASE_VERSION=0.1.6
+ID=$(shell git rev-list `git rev-list --tags --no-walk --max-count=1`..HEAD --count)
 GIT_SHA=$(shell git rev-parse --short HEAD)
+VERSION=$(BASE_VERSION)-$(ID)-$(GIT_SHA)
 GOOS=linux
 GOARCH=amd64
 TEST_REPO=testbkop/$(PROJECT_NAME)
