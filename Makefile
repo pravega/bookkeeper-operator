@@ -32,6 +32,7 @@ build-go:
 
 build-image:
 	echo "$(REPO)"
+	echo "$(VERSION)"
 	docker build --no-cache --build-arg VERSION=$(VERSION) --build-arg DOCKER_REGISTRY=$(DOCKER_REGISTRY) --build-arg GIT_SHA=$(GIT_SHA) -t $(REPO):$(VERSION) .
 	docker tag $(REPO):$(VERSION) $(REPO):latest
 
