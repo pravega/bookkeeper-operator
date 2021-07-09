@@ -69,7 +69,7 @@ data:
     set -e
     sleep 30
     echo "$(kubectl api-resources )"
-    sleep 2000
+    sleep 1000
 
 
     if [ -z "$(kubectl api-resources | grep BookkeeperCluster )" ]; then
