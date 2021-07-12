@@ -11,7 +11,7 @@ SHELL=/bin/bash -o pipefail
 PROJECT_NAME=bookkeeper-operator
 REPO=pravega/$(PROJECT_NAME)
 BASE_VERSION=0.1.6
-ID=$(shell git rev-list `git rev-list --tags --no-walk --max-count=1`..HEAD --count)
+ID=$(shell git rev-list HEAD --count)
 GIT_SHA=$(shell git rev-parse --short HEAD)
 VERSION=$(BASE_VERSION)-$(ID)-$(GIT_SHA)
 GOOS=linux
