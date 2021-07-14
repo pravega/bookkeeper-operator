@@ -119,6 +119,7 @@ func makeBookiePodSpec(bk *v1alpha1.BookkeeperCluster) *corev1.PodSpec {
 	var hostPathVolumeMounts []string
 	var emptyDirVolumeMounts []string
 	var configMapVolumeMounts []string
+	var multiVolumesSetPerBookieEnabled bool
 	var ok bool
 
 	if _, ok = bk.Spec.Options["ledgerDirectories"]; ok {
@@ -168,6 +169,13 @@ func makeBookiePodSpec(bk *v1alpha1.BookkeeperCluster) *corev1.PodSpec {
 	}
 	if _, ok = bk.Spec.Options["configMapVolumeMounts"]; ok {
 		configMapVolumeMounts = strings.Split(bk.Spec.Options["configMapVolumeMounts"], ",")
+	}
+
+	if _, ok = bk.Spec.Options["multiVolumesSetPerBookieEnabled"]; ok {
+		multiVolumesSetPerBookieEnabled, _ = strconv.ParseBool(bk.Spec.Options["multiVolumesSetPerBookieEnabled"])
+	} else {
+		// default value if user did not set multiVolumesSetPerBookieEnabled in options
+		multiVolumesSetPerBookieEnabled = false
 	}
 
 	var volumes []corev1.Volume
@@ -225,7 +233,8 @@ func makeBookiePodSpec(bk *v1alpha1.BookkeeperCluster) *corev1.PodSpec {
 	}
 
 	volumeMounts := createVolumeMount(ledgerDirs, journalDirs, indexDirs,
-		ledgerSubPath, journalSubPath, indexSubPath, hostPathVolumeMounts, emptyDirVolumeMounts)
+		ledgerSubPath, journalSubPath, indexSubPath, hostPathVolumeMounts,
+		emptyDirVolumeMounts, multiVolumesSetPerBookieEnabled)
 
 	if len(cmVolumeMounts) > 0 {
 		volumeMounts = append(volumeMounts, cmVolumeMounts...)
@@ -292,17 +301,26 @@ func makeBookiePodSpec(bk *v1alpha1.BookkeeperCluster) *corev1.PodSpec {
 	return podSpec
 }
 
-func createVolumeMount(ledgerDirs []string, journalDirs []string, indexDirs []string, ledgerSubPath string, journalSubPath string, indexSubPath string, hostPathVolumeMounts []string, emptyDirVolumeMounts []string) []corev1.VolumeMount {
+func createVolumeMount(ledgerDirs []string, journalDirs []string, indexDirs []string, ledgerSubPath string, journalSubPath string, indexSubPath string, hostPathVolumeMounts []string, emptyDirVolumeMounts []string, multiVolumesSetPerBookieEnabled bool) []corev1.VolumeMount {
 	var volumeMounts []corev1.VolumeMount
 	if len(ledgerDirs) > 1 {
-		for i, ledger := range ledgerDirs {
-			name := ledgerSubPath + strconv.Itoa(i)
-			v := corev1.VolumeMount{
-				Name:      LedgerDiskName,
-				MountPath: ledger,
-				SubPath:   name,
+		if multiVolumesSetPerBookieEnabled {
+			for i, ledger := range ledgerDirs {
+				v := corev1.VolumeMount{
+					Name:      LedgerDiskName + strconv.Itoa(i),
+					MountPath: ledger,
+				}
+				volumeMounts = append(volumeMounts, v)
 			}
-			volumeMounts = append(volumeMounts, v)
+		} else {
+			for i, ledger := range ledgerDirs {
+				v := corev1.VolumeMount{
+					Name:      LedgerDiskName,
+					MountPath: ledger,
+					SubPath:   ledgerSubPath + strconv.Itoa(i),
+				}
+				volumeMounts = append(volumeMounts, v)
+			}
 		}
 	} else {
 		v := corev1.VolumeMount{
@@ -312,14 +330,23 @@ func createVolumeMount(ledgerDirs []string, journalDirs []string, indexDirs []st
 		volumeMounts = append(volumeMounts, v)
 	}
 	if len(journalDirs) > 1 {
-		for i, journal := range journalDirs {
-			name := journalSubPath + strconv.Itoa(i)
-			v := corev1.VolumeMount{
-				Name:      JournalDiskName,
-				MountPath: journal,
-				SubPath:   name,
+		if multiVolumesSetPerBookieEnabled {
+			for i, journal := range journalDirs {
+				v := corev1.VolumeMount{
+					Name:      JournalDiskName + strconv.Itoa(i),
+					MountPath: journal,
+				}
+				volumeMounts = append(volumeMounts, v)
 			}
-			volumeMounts = append(volumeMounts, v)
+		} else {
+			for i, journal := range journalDirs {
+				v := corev1.VolumeMount{
+					Name:      JournalDiskName,
+					MountPath: journal,
+					SubPath:   journalSubPath + strconv.Itoa(i),
+				}
+				volumeMounts = append(volumeMounts, v)
+			}
 		}
 	} else {
 		v := corev1.VolumeMount{
@@ -329,14 +356,23 @@ func createVolumeMount(ledgerDirs []string, journalDirs []string, indexDirs []st
 		volumeMounts = append(volumeMounts, v)
 	}
 	if len(indexDirs) > 1 {
-		for i, index := range indexDirs {
-			name := indexSubPath + strconv.Itoa(i)
-			v := corev1.VolumeMount{
-				Name:      IndexDiskName,
-				MountPath: index,
-				SubPath:   name,
+		if multiVolumesSetPerBookieEnabled {
+			for i, index := range indexDirs {
+				v := corev1.VolumeMount{
+					Name:      IndexDiskName + strconv.Itoa(i),
+					MountPath: index,
+				}
+				volumeMounts = append(volumeMounts, v)
 			}
-			volumeMounts = append(volumeMounts, v)
+		} else {
+			for i, index := range indexDirs {
+				v := corev1.VolumeMount{
+					Name:      IndexDiskName,
+					MountPath: index,
+					SubPath:   indexSubPath + strconv.Itoa(i),
+				}
+				volumeMounts = append(volumeMounts, v)
+			}
 		}
 	} else {
 		v := corev1.VolumeMount{
@@ -369,29 +405,106 @@ func createVolumeMount(ledgerDirs []string, journalDirs []string, indexDirs []st
 }
 
 func makeBookieVolumeClaimTemplates(bk *v1alpha1.BookkeeperCluster) []corev1.PersistentVolumeClaim {
-	return []corev1.PersistentVolumeClaim{
-		{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      JournalDiskName,
-				Namespace: bk.Namespace,
-			},
-			Spec: *bk.Spec.Storage.JournalVolumeClaimTemplate,
-		},
-		{
+	var ledgerDirs, journalDirs, indexDirs []string
+	var multiVolumesSetPerBookieEnabled bool
+	var ok bool
+
+	if _, ok = bk.Spec.Options["ledgerDirectories"]; ok {
+		ledgerDirs = strings.Split(bk.Spec.Options["ledgerDirectories"], ",")
+	} else {
+		// default value if user did not set ledgerDirectories in options
+		ledgerDirs = append(ledgerDirs, "/bk/ledgers")
+	}
+
+	if _, ok = bk.Spec.Options["journalDirectories"]; ok {
+		journalDirs = strings.Split(bk.Spec.Options["journalDirectories"], ",")
+	} else {
+		// default value if user did not set journalDirectories in options
+		journalDirs = append(journalDirs, "/bk/journal")
+	}
+
+	if _, ok = bk.Spec.Options["indexDirectories"]; ok {
+		indexDirs = strings.Split(bk.Spec.Options["indexDirectories"], ",")
+	} else {
+		// default value if user did not set indexDirectories in options
+		indexDirs = append(indexDirs, "/bk/index")
+	}
+
+	if _, ok = bk.Spec.Options["multiVolumesSetPerBookieEnabled"]; ok {
+		multiVolumesSetPerBookieEnabled, _ = strconv.ParseBool(bk.Spec.Options["multiVolumesSetPerBookieEnabled"])
+	} else {
+		// default value if user did not set multiVolumesSetPerBookieEnabled in options
+		multiVolumesSetPerBookieEnabled = false
+	}
+
+	var claims []corev1.PersistentVolumeClaim
+	if multiVolumesSetPerBookieEnabled && len(ledgerDirs) > 1 {
+		for i := 0; i < len(ledgerDirs); i++ {
+			pvc := corev1.PersistentVolumeClaim{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      LedgerDiskName + strconv.Itoa(i),
+					Namespace: bk.Namespace,
+				},
+				Spec: *bk.Spec.Storage.LedgerVolumeClaimTemplate,
+			}
+			claims = append(claims, pvc)
+		}
+	} else {
+		pvc := corev1.PersistentVolumeClaim{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      LedgerDiskName,
 				Namespace: bk.Namespace,
 			},
 			Spec: *bk.Spec.Storage.LedgerVolumeClaimTemplate,
-		},
-		{
+		}
+		claims = append(claims, pvc)
+	}
+
+	if multiVolumesSetPerBookieEnabled && len(journalDirs) > 1 {
+		for i := 0; i < len(journalDirs); i++ {
+			pvc := corev1.PersistentVolumeClaim{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      JournalDiskName + strconv.Itoa(i),
+					Namespace: bk.Namespace,
+				},
+				Spec: *bk.Spec.Storage.JournalVolumeClaimTemplate,
+			}
+			claims = append(claims, pvc)
+		}
+	} else {
+		pvc := corev1.PersistentVolumeClaim{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      JournalDiskName,
+				Namespace: bk.Namespace,
+			},
+			Spec: *bk.Spec.Storage.JournalVolumeClaimTemplate,
+		}
+		claims = append(claims, pvc)
+	}
+
+	if multiVolumesSetPerBookieEnabled && len(indexDirs) > 1 {
+		for i := 0; i < len(indexDirs); i++ {
+			pvc := corev1.PersistentVolumeClaim{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      IndexDiskName + strconv.Itoa(i),
+					Namespace: bk.Namespace,
+				},
+				Spec: *bk.Spec.Storage.IndexVolumeClaimTemplate,
+			}
+			claims = append(claims, pvc)
+		}
+	} else {
+		pvc := corev1.PersistentVolumeClaim{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      IndexDiskName,
 				Namespace: bk.Namespace,
 			},
 			Spec: *bk.Spec.Storage.IndexVolumeClaimTemplate,
-		},
+		}
+		claims = append(claims, pvc)
 	}
+
+	return claims
 }
 
 func MakeBookieConfigMap(bk *v1alpha1.BookkeeperCluster) *corev1.ConfigMap {
