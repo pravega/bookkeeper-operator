@@ -216,6 +216,11 @@ func (in *BookkeeperStorageSpec) DeepCopyInto(out *BookkeeperStorageSpec) {
 		*out = new(v1.PersistentVolumeClaimSpec)
 		(*in).DeepCopyInto(*out)
 	}
+	if in.BookieIdVolumeClaimTemplate != nil {
+		in, out := &in.BookieIdVolumeClaimTemplate, &out.BookieIdVolumeClaimTemplate
+		*out = new(v1.PersistentVolumeClaimSpec)
+		(*in).DeepCopyInto(*out)
+	}
 	return
 }
 
