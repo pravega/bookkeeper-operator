@@ -114,8 +114,8 @@ func makeBookiePodSpec(bk *v1alpha1.BookkeeperCluster) *corev1.PodSpec {
 		})
 	}
 
-	var ledgerDirs, journalDirs, indexDirs []string
-	var ledgerSubPath, journalSubPath, indexSubPath string
+	var ledgerDirs, journalDirs []string
+	var ledgerSubPath, journalSubPath string
 	var hostPathVolumeMounts []string
 	var emptyDirVolumeMounts []string
 	var configMapVolumeMounts []string
@@ -143,21 +143,8 @@ func makeBookiePodSpec(bk *v1alpha1.BookkeeperCluster) *corev1.PodSpec {
 	if _, ok = bk.Spec.Options["journalSubPath"]; ok {
 		journalSubPath = bk.Spec.Options["journalSubPath"]
 	} else {
-		// default value if user did not set ledgerDirectories in options
+		// default value if user did not set journalDirectories in options
 		journalSubPath = JournalDiskName
-	}
-
-	if _, ok = bk.Spec.Options["indexDirectories"]; ok {
-		indexDirs = strings.Split(bk.Spec.Options["indexDirectories"], ",")
-	} else {
-		// default value if user did not set indexDirectories in options
-		indexDirs = append(indexDirs, "/bk/index")
-	}
-	if _, ok = bk.Spec.Options["indexSubPath"]; ok {
-		indexSubPath = bk.Spec.Options["indexSubPath"]
-	} else {
-		// default value if user did not set ledgerDirectories in options
-		indexSubPath = IndexDiskName
 	}
 
 	if _, ok = bk.Spec.Options["hostPathVolumeMounts"]; ok {
@@ -224,8 +211,8 @@ func makeBookiePodSpec(bk *v1alpha1.BookkeeperCluster) *corev1.PodSpec {
 		}
 	}
 
-	volumeMounts := createVolumeMount(ledgerDirs, journalDirs, indexDirs,
-		ledgerSubPath, journalSubPath, indexSubPath, hostPathVolumeMounts, emptyDirVolumeMounts)
+	volumeMounts := createVolumeMount(ledgerDirs, journalDirs,
+		ledgerSubPath, journalSubPath, hostPathVolumeMounts, emptyDirVolumeMounts)
 
 	if len(cmVolumeMounts) > 0 {
 		volumeMounts = append(volumeMounts, cmVolumeMounts...)
@@ -292,7 +279,7 @@ func makeBookiePodSpec(bk *v1alpha1.BookkeeperCluster) *corev1.PodSpec {
 	return podSpec
 }
 
-func createVolumeMount(ledgerDirs []string, journalDirs []string, indexDirs []string, ledgerSubPath string, journalSubPath string, indexSubPath string, hostPathVolumeMounts []string, emptyDirVolumeMounts []string) []corev1.VolumeMount {
+func createVolumeMount(ledgerDirs []string, journalDirs []string, ledgerSubPath string, journalSubPath string, hostPathVolumeMounts []string, emptyDirVolumeMounts []string) []corev1.VolumeMount {
 	var volumeMounts []corev1.VolumeMount
 	if len(ledgerDirs) > 1 {
 		for i, ledger := range ledgerDirs {
@@ -328,23 +315,11 @@ func createVolumeMount(ledgerDirs []string, journalDirs []string, indexDirs []st
 		}
 		volumeMounts = append(volumeMounts, v)
 	}
-	if len(indexDirs) > 1 {
-		for i, index := range indexDirs {
-			name := indexSubPath + strconv.Itoa(i)
-			v := corev1.VolumeMount{
-				Name:      IndexDiskName,
-				MountPath: index,
-				SubPath:   name,
-			}
-			volumeMounts = append(volumeMounts, v)
-		}
-	} else {
-		v := corev1.VolumeMount{
-			Name:      IndexDiskName,
-			MountPath: indexDirs[0],
-		}
-		volumeMounts = append(volumeMounts, v)
+	v := corev1.VolumeMount{
+		Name:      IndexDiskName,
+		MountPath: "/bk/index",
 	}
+	volumeMounts = append(volumeMounts, v)
 	if len(hostPathVolumeMounts) > 0 {
 		for _, vm := range hostPathVolumeMounts {
 			s := strings.Split(vm, "=")
@@ -416,12 +391,11 @@ func MakeBookieConfigMap(bk *v1alpha1.BookkeeperCluster) *corev1.ConfigMap {
 	}
 
 	configData := map[string]string{
-		"BOOKIE_MEM_OPTS":          strings.Join(memoryOpts, " "),
-		"BOOKIE_GC_OPTS":           strings.Join(gcOpts, " "),
-		"BOOKIE_GC_LOGGING_OPTS":   strings.Join(gcLoggingOpts, " "),
-		"BOOKIE_EXTRA_OPTS":        strings.Join(extraOpts, " "),
-		"ZK_URL":                   bk.Spec.ZookeeperUri,
-		"BK_useHostNameAsBookieID": "true",
+		"BOOKIE_MEM_OPTS":        strings.Join(memoryOpts, " "),
+		"BOOKIE_GC_OPTS":         strings.Join(gcOpts, " "),
+		"BOOKIE_GC_LOGGING_OPTS": strings.Join(gcLoggingOpts, " "),
+		"BOOKIE_EXTRA_OPTS":      strings.Join(extraOpts, " "),
+		"ZK_URL":                 bk.Spec.ZookeeperUri,
 	}
 
 	if match, _ := util.CompareVersions(bk.Spec.Version, "0.5.0", "<"); match {
@@ -442,6 +416,19 @@ func MakeBookieConfigMap(bk *v1alpha1.BookkeeperCluster) *corev1.ConfigMap {
 	for k, v := range bk.Spec.Options {
 		prefixKey := fmt.Sprintf("BK_%s", k)
 		configData[prefixKey] = v
+	}
+
+	setNewBookieID := true
+	if _, ok := bk.Spec.Options["setNewBookieID"]; ok {
+		if strings.EqualFold(bk.Spec.Options["setNewBookieID"], "false") {
+			setNewBookieID = false
+		}
+	}
+
+	if match, _ := util.CompareVersions(bk.Spec.Version, "0.10.0", ">="); match && setNewBookieID {
+		configData["BK_setNewBookieID"] = "true"
+	} else {
+		configData["BK_setNewBookieID"] = "false"
 	}
 
 	return &corev1.ConfigMap{

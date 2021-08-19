@@ -90,7 +90,6 @@ var _ = Describe("Bookie", func() {
 					Options: map[string]string{
 						"journalDirectories":    "/bk/journal/j0,/bk/journal/j1,/bk/journal/j2,/bk/journal/j3",
 						"ledgerDirectories":     "/bk/ledgers/l0,/bk/ledgers/l1,/bk/ledgers/l2,/bk/ledgers/l3",
-						"indexDirectories":      "/bk/index/i0,/bk/index/i1",
 						"hostPathVolumeMounts":  "foo=/tmp/foo,bar=/tmp/bar",
 						"emptyDirVolumeMounts":  "baz=/tmp/baz,quux=/tmp/quux",
 						"configMapVolumeMounts": "bk-log4j:log4j.properties=/opt/bookkeeper/conf/log4j.properties",
@@ -168,31 +167,29 @@ var _ = Describe("Bookie", func() {
 					Ω(mountjournal1).Should(Equal("/bk/journal/j1"))
 					Ω(mountjournal2).Should(Equal("/bk/journal/j2"))
 					Ω(mountjournal3).Should(Equal("/bk/journal/j3"))
-					mountindex0 := sts.Spec.Template.Spec.Containers[0].VolumeMounts[8].MountPath
-					mountindex1 := sts.Spec.Template.Spec.Containers[0].VolumeMounts[9].MountPath
-					Ω(mountindex0).Should(Equal("/bk/index/i0"))
-					Ω(mountindex1).Should(Equal("/bk/index/i1"))
+					mountindex := sts.Spec.Template.Spec.Containers[0].VolumeMounts[8].MountPath
+					Ω(mountindex).Should(Equal("/bk/index"))
 				})
 
 				It("should have hostPathVolumeMounts set to the values given by user", func() {
 					sts := bookkeepercluster.MakeBookieStatefulSet(bk)
-					mounthostpath0 := sts.Spec.Template.Spec.Containers[0].VolumeMounts[10].MountPath
-					mounthostpath1 := sts.Spec.Template.Spec.Containers[0].VolumeMounts[11].MountPath
+					mounthostpath0 := sts.Spec.Template.Spec.Containers[0].VolumeMounts[9].MountPath
+					mounthostpath1 := sts.Spec.Template.Spec.Containers[0].VolumeMounts[10].MountPath
 					Ω(mounthostpath0).Should(Equal("/tmp/foo"))
 					Ω(mounthostpath1).Should(Equal("/tmp/bar"))
 				})
 
 				It("should have emptyDirVolumeMounts set to the values given by user", func() {
 					sts := bookkeepercluster.MakeBookieStatefulSet(bk)
-					mounthostpath0 := sts.Spec.Template.Spec.Containers[0].VolumeMounts[12].MountPath
-					mounthostpath1 := sts.Spec.Template.Spec.Containers[0].VolumeMounts[13].MountPath
+					mounthostpath0 := sts.Spec.Template.Spec.Containers[0].VolumeMounts[11].MountPath
+					mounthostpath1 := sts.Spec.Template.Spec.Containers[0].VolumeMounts[12].MountPath
 					Ω(mounthostpath0).Should(Equal("/tmp/baz"))
 					Ω(mounthostpath1).Should(Equal("/tmp/quux"))
 				})
 
 				It("should have configMapVolumeMounts set to the values given by user", func() {
 					sts := bookkeepercluster.MakeBookieStatefulSet(bk)
-					mounthostpath0 := sts.Spec.Template.Spec.Containers[0].VolumeMounts[14].MountPath
+					mounthostpath0 := sts.Spec.Template.Spec.Containers[0].VolumeMounts[13].MountPath
 					Ω(mounthostpath0).Should(Equal("/opt/bookkeeper/conf/log4j.properties"))
 				})
 
