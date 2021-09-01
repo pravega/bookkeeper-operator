@@ -16,7 +16,6 @@ import (
 	"reflect"
 	"sort"
 	"strings"
-	"strconv"
 	"time"
 
 	bookkeeperv1alpha1 "github.com/pravega/bookkeeper-operator/pkg/apis/bookkeeper/v1alpha1"
@@ -30,11 +29,7 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/kubernetes/scheme"
-	"k8s.io/client-go/tools/remotecommand"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
@@ -206,6 +201,16 @@ func (r *ReconcileBookkeeperCluster) deployBookie(p *bookkeeperv1alpha1.Bookkeep
 		return err
 	}
 
+	if util.ContainsStringWithPrefix(p.ObjectMeta.Finalizers, util.ZkFinalizer) {
+		_, pravegaClusterName := getFinalizerAndClusterName(p.ObjectMeta.Finalizers)
+		fmt.Println("Calling create znode, cluster name is : ", pravegaClusterName)
+		err = util.CreateZnode(p.Spec.ZookeeperUri, p.Namespace, pravegaClusterName, p.Spec.Replicas)
+		if err != nil {
+			fmt.Println("Error returned from CreateZnode : ", err)
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -226,99 +231,27 @@ func (r *ReconcileBookkeeperCluster) syncBookieSize(bk *bookkeeperv1alpha1.Bookk
 	}
 
 	if *sts.Spec.Replicas != bk.Spec.Replicas {
-		if bk.Spec.Replicas < *sts.Spec.Replicas {
-			// scale down
-			selector, err := metav1.LabelSelectorAsSelector(&metav1.LabelSelector{
-				MatchLabels: sts.Spec.Template.Labels,
-			})
+		if util.ContainsStringWithPrefix(bk.ObjectMeta.Finalizers, util.ZkFinalizer) {
+			_, pravegaClusterName := getFinalizerAndClusterName(bk.ObjectMeta.Finalizers)
+			fmt.Println("Calling update znode, cluster name is : ", pravegaClusterName)
+			err = util.UpdateZnode(bk.Spec.ZookeeperUri, bk.Namespace, pravegaClusterName, bk.Spec.Replicas)
 			if err != nil {
-				return fmt.Errorf("failed to convert label selector: %v", err)
-			}
-			podList := &corev1.PodList{}
-			podlistOps := &client.ListOptions{
-				Namespace:     sts.Namespace,
-				LabelSelector: selector,
-			}
-			err = r.client.List(context.TODO(), podList, podlistOps)
-			if err != nil {
+				fmt.Println("Error returned from UpdateZnode : ", err)
 				return err
 			}
-			for _, podItem := range podList.Items {
-				name := podItem.GetName()
-				fmt.Println("In pod ", name)
-				index := strings.LastIndex(name, "-")
-				number := name[index+1:]
-				n, err := strconv.ParseInt(number, 10, 64)
-				fmt.Println("number = ",n)
-				if err != nil {
-					fmt.Println(err)
-					return err
-				}
-				if int32(n) >= bk.Spec.Replicas {
-					fmt.Println("Deleting the pod ", name)
-					restConfig, err := config.GetConfig()
-    			if err != nil {
-						fmt.Println("Error creating restconfig")
-						fmt.Printf("%+v", err)
-        		return err
-    			}
-					fmt.Println("Restconfig created")
-					clientset, err := kubernetes.NewForConfig(restConfig)
-    			if err != nil {
-						fmt.Println("Error creating clientset")
-						fmt.Printf("%+v", err)
-        		return err
-    			}
-					fmt.Println("Clientset created")
-					// exec into pod and run bookieformat
-					fmt.Println("Creating req")
-					req := clientset.CoreV1().RESTClient().Post().Resource("pods").Name(name).Namespace(bk.GetNamespace()).
-									SubResource("exec").Param("container", "bookie")
-					req.VersionedParams(&corev1.PodExecOptions{
-							Container: "bookie",
-							Command:   []string{"/bin/sh", "-c", "/opt/bookkeeper/bin/bookkeeper shell bookieformat -nonInteractive -force -deleteCookie"},
-							Stdin:     false,
-							Stdout:    true,
-							Stderr:    true,
-							TTY:       false,
-					}, scheme.ParameterCodec)
-					fmt.Printf("Req = %+v", req)
-					exec, err := remotecommand.NewSPDYExecutor(restConfig, "POST", req.URL())
-					fmt.Printf("Exec is : %+v", exec)
-					fmt.Printf("Err is : %+v", err)
-    			if err != nil {
-						fmt.Println("Error creating NewSPDYExecutor")
-						fmt.Printf("%+v", err)
-        		return err
-    			}
-					fmt.Println("Creating stream")
-					err = exec.Stream(remotecommand.StreamOptions{})
-					if err != nil {
-						fmt.Println("Error creating Stream")
-						fmt.Printf("%+v", err)
-						return err
-					}
-					fmt.Println("Command succesfully executed in the pod ", name)
-				} else {
-					fmt.Println("Not deleting the pod ", name)
-				}
-			}
 		}
-		fmt.Println("Updating STS replica count")
+
 		sts.Spec.Replicas = &(bk.Spec.Replicas)
 		err = r.client.Update(context.TODO(), sts)
 		if err != nil {
 			return fmt.Errorf("failed to update size of stateful-set (%s): %v", sts.Name, err)
 		}
-		fmt.Println("STS replica count updated")
 
 		err = r.syncStatefulSetPvc(sts)
 		if err != nil {
 			return fmt.Errorf("failed to sync pvcs of stateful-set (%s): %v", sts.Name, err)
 		}
-		fmt.Println("PVC count updated")
 	}
-	fmt.Println("Returning from syncBookieSize")
 	return nil
 }
 
@@ -381,7 +314,6 @@ func (r *ReconcileBookkeeperCluster) cleanUpZookeeperMeta(bk *bookkeeperv1alpha1
 }
 
 func (r *ReconcileBookkeeperCluster) syncStatefulSetPvc(sts *appsv1.StatefulSet) error {
-	fmt.Println("Inside syncStatefulSetPvc")
 	selector, err := metav1.LabelSelectorAsSelector(&metav1.LabelSelector{
 		MatchLabels: sts.Spec.Template.Labels,
 	})
@@ -407,15 +339,12 @@ func (r *ReconcileBookkeeperCluster) syncStatefulSetPvc(sts *appsv1.StatefulSet)
 					Namespace: pvcItem.Namespace,
 				},
 			}
-			fmt.Println("Deleting PVC ", pvcDelete)
 			err = r.client.Delete(context.TODO(), pvcDelete)
 			if err != nil {
 				return fmt.Errorf("failed to delete pvc: %v", err)
 			}
-			fmt.Println("PVC successfully deleted")
 		}
 	}
-	fmt.Println("Returning from syncStatefulSetPvc")
 	return nil
 }
 func (r *ReconcileBookkeeperCluster) reconcileConfigMap(bk *bookkeeperv1alpha1.BookkeeperCluster) (err error) {

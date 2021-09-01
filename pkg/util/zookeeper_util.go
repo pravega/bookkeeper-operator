@@ -14,6 +14,7 @@ import (
 	"container/list"
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 	"time"
 
@@ -26,8 +27,7 @@ const (
 	ZkFinalizer = "cleanUpZookeeper"
 )
 
-// Delete all znodes related to a specific Bookkeeper cluster
-func DeleteAllZnodes(uri string, namespace string, pravegaClusterName string) (err error) {
+func getHost(uri string, namespace string) []string {
 	zkUri := strings.Split(uri, ":")
 	zkSvcName := ""
 	zkSvcPort := ""
@@ -40,10 +40,63 @@ func DeleteAllZnodes(uri string, namespace string, pravegaClusterName string) (e
 		}
 	}
 	hostname := zkSvcName + "." + namespace + ".svc.cluster.local:" + zkSvcPort
-	host := []string{hostname}
+	return []string{hostname}
+}
+
+func CreateZnode(uri string, namespace string, pravegaClusterName string, replicas int32) (err error) {
+	host := getHost(uri, namespace)
 	conn, _, err := zk.Connect(host, time.Second*5)
 	if err != nil {
-		return fmt.Errorf("failed to connect to zookeeper (%s): %v", hostname, err)
+		return fmt.Errorf("failed to connect to zookeeper (%s): %v", host[0], err)
+	}
+	defer conn.Close()
+
+	zNodePath := fmt.Sprintf("/%s/%s/bookkeeper/conf", PravegaPath, pravegaClusterName)
+	exist, _, err := conn.Exists(zNodePath)
+	if err != nil {
+		return fmt.Errorf("failed to check if zookeeper path exists: %v", err)
+	}
+	if exist {
+		return nil
+	} else {
+		data := "CLUSTER_SIZE=" + strconv.Itoa(int(replicas))
+		if _, err := conn.Create(zNodePath, []byte(data), 0, zk.WorldACL(zk.PermAll)); err != nil {
+			fmt.Println("Error in creating znode, returning err : ", err)
+			return fmt.Errorf("Error creating znode: %s: %v", zNodePath, err)
+		}
+	}
+	return nil
+}
+
+func UpdateZnode(uri string, namespace string, pravegaClusterName string, replicas int32) (err error) {
+	host := getHost(uri, namespace)
+	conn, _, err := zk.Connect(host, time.Second*5)
+	if err != nil {
+		return fmt.Errorf("failed to connect to zookeeper (%s): %v", host[0], err)
+	}
+	defer conn.Close()
+
+	zNodePath := fmt.Sprintf("/%s/%s/bookkeeper/conf", PravegaPath, pravegaClusterName)
+	exist, zNodeStat, err := conn.Exists(zNodePath)
+	if err != nil {
+		return fmt.Errorf("failed to check if zookeeper path exists: %v", err)
+	}
+	if exist {
+		data := "CLUSTER_SIZE=" + strconv.Itoa(int(replicas))
+		if _, err := conn.Set(zNodePath, []byte(data), zNodeStat.Version); err != nil {
+			fmt.Println("Error in updating znode, returning err : ", err)
+			return fmt.Errorf("Error updating zkNode: %v", err)
+		}
+	}
+	return nil
+}
+
+// Delete all znodes related to a specific Bookkeeper cluster
+func DeleteAllZnodes(uri string, namespace string, pravegaClusterName string) (err error) {
+	host := getHost(uri, namespace)
+	conn, _, err := zk.Connect(host, time.Second*5)
+	if err != nil {
+		return fmt.Errorf("failed to connect to zookeeper (%s): %v", host[0], err)
 	}
 	defer conn.Close()
 

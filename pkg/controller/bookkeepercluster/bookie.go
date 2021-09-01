@@ -275,6 +275,13 @@ func makeBookiePodSpec(bk *v1alpha1.BookkeeperCluster) *corev1.PodSpec {
 					SuccessThreshold:    bk.Spec.Probes.LivenessProbe.SuccessThreshold,
 					TimeoutSeconds:      bk.Spec.Probes.LivenessProbe.TimeoutSeconds,
 				},
+				Lifecycle: &corev1.Lifecycle{
+					PreStop: &corev1.Handler{
+						Exec: &corev1.ExecAction{
+							Command: []string{"/bin/sh", "-c", "/opt/bookkeeper/scripts/bookkeeperTeardown.sh"},
+						},
+					},
+				},
 			},
 		},
 		Affinity: bk.Spec.Affinity,
