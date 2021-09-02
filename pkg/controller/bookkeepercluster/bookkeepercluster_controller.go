@@ -205,7 +205,7 @@ func (r *ReconcileBookkeeperCluster) deployBookie(p *bookkeeperv1alpha1.Bookkeep
 		_, pravegaClusterName := getFinalizerAndClusterName(p.ObjectMeta.Finalizers)
 		err = util.CreateZnode(p.Spec.ZookeeperUri, p.Namespace, pravegaClusterName, p.Spec.Replicas)
 		if err != nil {
-			return err
+			log.Printf("failed to create znode: %v", err)
 		}
 	}
 
@@ -233,7 +233,7 @@ func (r *ReconcileBookkeeperCluster) syncBookieSize(bk *bookkeeperv1alpha1.Bookk
 			_, pravegaClusterName := getFinalizerAndClusterName(bk.ObjectMeta.Finalizers)
 			err = util.UpdateZnode(bk.Spec.ZookeeperUri, bk.Namespace, pravegaClusterName, bk.Spec.Replicas)
 			if err != nil {
-				return err
+				log.Printf("failed to update znode: %v", err)
 			}
 		}
 		sts.Spec.Replicas = &(bk.Spec.Replicas)

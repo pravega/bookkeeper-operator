@@ -85,7 +85,7 @@ func CreateZnode(uri string, namespace string, name string, replicas int32) (err
 	} else {
 		data := "CLUSTER_SIZE=" + strconv.Itoa(int(replicas))
 		if _, err := conn.Create(zNodePath, []byte(data), 0, zk.WorldACL(zk.PermAll)); err != nil {
-			return fmt.Errorf("Error creating znode: %s: %v", zNodePath, err)
+			return fmt.Errorf("failed to create znode (%s) : %v", zNodePath, err)
 		}
 	}
 	return nil
@@ -107,7 +107,7 @@ func UpdateZnode(uri string, namespace string, name string, replicas int32) (err
 	if exist {
 		data := "CLUSTER_SIZE=" + strconv.Itoa(int(replicas))
 		if _, err := conn.Set(zNodePath, []byte(data), zNodeStat.Version); err != nil {
-			return fmt.Errorf("Error updating zkNode: %v", err)
+			return fmt.Errorf("failed to update znode (%s) : %v", zNodePath, err)
 		}
 	}
 	return nil
