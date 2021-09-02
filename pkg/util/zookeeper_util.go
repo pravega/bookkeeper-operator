@@ -55,7 +55,6 @@ func getHost(uri string, namespace string) []string {
 	} else {
 		hostname = zkSvcName + "." + namespace + ".svc.cluster.local:" + zkSvcPort
 	}
-	fmt.Println("ZK hostname : ", hostname)
 	return []string{hostname}
 }
 

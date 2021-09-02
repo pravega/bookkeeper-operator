@@ -15,11 +15,31 @@ import (
 )
 
 var _ = Describe("zookeeperutil", func() {
-	Context("DeleteAllZnodes", func() {
+	Context("CreateZnode", func() {
+		var err1, err2 error
+		BeforeEach(func() {
+			err1 = CreateZnode("zookeeper-client:2181", "default", "pravega", 3)
+			err2 = CreateZnode("127.0.0.1:2181", "default", "pravega", 3)
+		})
+		It("should not be nil", func() {
+			Ω(err1).ShouldNot(BeNil())
+			Ω(err2).ShouldNot(BeNil())
+		})
+	})
 
+	Context("UpdateZnode", func() {
 		var err error
 		BeforeEach(func() {
+			err = UpdateZnode("zookeeper-client:2181", "default", "pravega", 5)
+		})
+		It("should not be nil", func() {
+			Ω(err).ShouldNot(BeNil())
+		})
+	})
 
+	Context("DeleteAllZnodes", func() {
+		var err error
+		BeforeEach(func() {
 			err = DeleteAllZnodes("zookeeper-client:2181", "default", "bookie")
 		})
 		It("should not be nil", func() {
