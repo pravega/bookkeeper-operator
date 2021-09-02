@@ -745,6 +745,12 @@ func (bk *BookkeeperCluster) validateConfigMap() error {
 			return fmt.Errorf("failed to get configmap (%s): %v", configmap.Name, err)
 		}
 	}
+	if val, ok := bk.Spec.Options["useHostNameAsBookieID"]; ok {
+		eq := configmap.Data["BK_useHostNameAsBookieID"] == val
+		if !eq {
+			return fmt.Errorf("value of useHostNameAsBookieID should not be changed")
+		}
+	}
 	if val, ok := bk.Spec.Options["journalDirectories"]; ok {
 		eq := configmap.Data["BK_journalDirectories"] == val
 		if !eq {

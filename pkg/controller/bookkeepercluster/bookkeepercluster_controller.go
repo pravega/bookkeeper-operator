@@ -201,6 +201,14 @@ func (r *ReconcileBookkeeperCluster) deployBookie(p *bookkeeperv1alpha1.Bookkeep
 		return err
 	}
 
+	if util.ContainsStringWithPrefix(p.ObjectMeta.Finalizers, util.ZkFinalizer) {
+		_, pravegaClusterName := getFinalizerAndClusterName(p.ObjectMeta.Finalizers)
+		err = util.CreateZnode(p.Spec.ZookeeperUri, p.Namespace, pravegaClusterName, p.Spec.Replicas)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -221,6 +229,13 @@ func (r *ReconcileBookkeeperCluster) syncBookieSize(bk *bookkeeperv1alpha1.Bookk
 	}
 
 	if *sts.Spec.Replicas != bk.Spec.Replicas {
+		if util.ContainsStringWithPrefix(bk.ObjectMeta.Finalizers, util.ZkFinalizer) {
+			_, pravegaClusterName := getFinalizerAndClusterName(bk.ObjectMeta.Finalizers)
+			err = util.UpdateZnode(bk.Spec.ZookeeperUri, bk.Namespace, pravegaClusterName, bk.Spec.Replicas)
+			if err != nil {
+				return err
+			}
+		}
 		sts.Spec.Replicas = &(bk.Spec.Replicas)
 		err = r.client.Update(context.TODO(), sts)
 		if err != nil {
