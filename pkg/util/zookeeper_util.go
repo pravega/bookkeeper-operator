@@ -13,12 +13,12 @@ package util
 import (
 	"container/list"
 	"fmt"
+	"github.com/samuel/go-zookeeper/zk"
 	"log"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
-	"github.com/samuel/go-zookeeper/zk"
 )
 
 var (
@@ -27,9 +27,9 @@ var (
 
 const (
 	// Set in https://github.com/pravega/bookkeeper/blob/master/docker/bookkeeper/entrypoint.sh#L21
-	PravegaPath = "pravega"
-	ZkFinalizer = "cleanUpZookeeper"
-	IPRegexp string = `([1-9][0-9]*\.[0-9]+\.[0-9]+\.[0-9]+)`
+	PravegaPath        = "pravega"
+	ZkFinalizer        = "cleanUpZookeeper"
+	IPRegexp    string = `([1-9][0-9]*\.[0-9]+\.[0-9]+\.[0-9]+)`
 )
 
 func init() {
