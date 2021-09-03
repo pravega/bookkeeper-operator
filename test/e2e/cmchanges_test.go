@@ -44,6 +44,7 @@ func testCMUpgradeCluster(t *testing.T) {
 	cluster.Spec.Version = initialVersion
 	cluster.Spec.Options["minorCompactionThreshold"] = "0.4"
 	cluster.Spec.Options["journalDirectories"] = "/bk/journal"
+	cluster.Spec.Options["useHostNameAsBookieID"] = "true"
 	cluster.Spec.JVMOptions.GcOpts = gcOpts
 
 	bookkeeper, err := bookkeeper_e2eutil.CreateBKCluster(t, f, ctx, cluster)
@@ -81,7 +82,7 @@ func testCMUpgradeCluster(t *testing.T) {
 	g.Expect(bookkeeper.Spec.Version).To(Equal(upgradeVersion))
 	g.Expect(bookkeeper.Spec.Options["minorCompactionThreshold"]).To(Equal("0.5"))
 
-	// updating bookkeeper option
+	// updating bookkeeper option for journalDirectories
 	bookkeeper.Spec.Options["journalDirectories"] = "journal"
 
 	//updating bookkeepercluster
@@ -91,6 +92,17 @@ func testCMUpgradeCluster(t *testing.T) {
 	bookkeeper, err = bookkeeper_e2eutil.GetBKCluster(t, f, ctx, bookkeeper)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(bookkeeper.Spec.Options["journalDirectories"]).To(Equal("/bk/journal"))
+
+	// updating bookkeeper option for useHostNameAsBookieID
+	bookkeeper.Spec.Options["useHostNameAsBookieID"] = "false"
+
+	//updating bookkeepercluster
+	err = bookkeeper_e2eutil.UpdateBKCluster(t, f, ctx, bookkeeper)
+	g.Expect(strings.ContainsAny(err.Error(), "value of useHostNameAsBookieID should not be changed")).To(Equal(true))
+
+	bookkeeper, err = bookkeeper_e2eutil.GetBKCluster(t, f, ctx, bookkeeper)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(bookkeeper.Spec.Options["useHostNameAsBookieID"]).To(Equal("true"))
 
 	// Delete cluster
 	err = bookkeeper_e2eutil.DeleteBKCluster(t, f, ctx, bookkeeper)

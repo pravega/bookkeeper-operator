@@ -40,6 +40,7 @@ func getHost(uri string, namespace string) []string {
 	zkUri := strings.Split(uri, ":")
 	zkSvcName := ""
 	zkSvcPort := ""
+	hostname := ""
 	if len(zkUri) >= 1 {
 		zkSvcName = zkUri[0]
 		if len(zkUri) == 1 {
@@ -49,7 +50,6 @@ func getHost(uri string, namespace string) []string {
 		}
 	}
 	match := re.MatchString(zkSvcName)
-	hostname := ""
 	if match {
 		hostname = zkSvcName + ":" + zkSvcPort
 	} else {
@@ -63,7 +63,7 @@ func getRoot(name string) string {
 }
 
 func getZnode(name string) string {
-	return fmt.Sprintf("/%s/bookkeeper/conf", getRoot(name))
+	return fmt.Sprintf("%s/bookkeeper/conf", getRoot(name))
 }
 
 func CreateZnode(uri string, namespace string, name string, replicas int32) (err error) {
@@ -75,10 +75,7 @@ func CreateZnode(uri string, namespace string, name string, replicas int32) (err
 	defer conn.Close()
 
 	zNodePath := getZnode(name)
-	exist, _, err := conn.Exists(zNodePath)
-	if err != nil {
-		return fmt.Errorf("failed to check if zookeeper path exists: %v", err)
-	}
+	exist, _, _ := conn.Exists(zNodePath)
 	if exist {
 		return nil
 	} else {
@@ -101,7 +98,7 @@ func UpdateZnode(uri string, namespace string, name string, replicas int32) (err
 	zNodePath := getZnode(name)
 	exist, zNodeStat, err := conn.Exists(zNodePath)
 	if err != nil {
-		return fmt.Errorf("failed to check if zookeeper path exists: %v", err)
+		return fmt.Errorf("failed to check if znode (%s) exists: %v", zNodePath, err)
 	}
 	if exist {
 		data := "CLUSTER_SIZE=" + strconv.Itoa(int(replicas))

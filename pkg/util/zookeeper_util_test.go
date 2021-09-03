@@ -23,7 +23,7 @@ var _ = Describe("zookeeperutil", func() {
 		})
 		It("should not be nil", func() {
 			Ω(err1).ShouldNot(BeNil())
-			Ω(err2).ShouldNot(BeNil())
+			Ω(err2).Should(BeNil())
 		})
 	})
 
