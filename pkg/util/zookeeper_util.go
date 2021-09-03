@@ -26,7 +26,7 @@ var (
 )
 
 const (
-	// Set in https://github.com/pravega/bookkeeper/blob/master/docker/bookkeeper/entrypoint.sh#L21
+	// Set in https://github.com/pravega/pravega/blob/master/docker/bookkeeper/entrypoint.sh#L33
 	PravegaPath        = "pravega"
 	ZkFinalizer        = "cleanUpZookeeper"
 	IPRegexp    string = `([1-9][0-9]*\.[0-9]+\.[0-9]+\.[0-9]+)`
@@ -58,15 +58,15 @@ func getHost(uri string, namespace string) []string {
 	return []string{hostname}
 }
 
-func getRoot(name string) string {
-	return fmt.Sprintf("/%s/%s", PravegaPath, name)
+func getRoot(pravegaClusterName string) string {
+	return fmt.Sprintf("/%s/%s", PravegaPath, pravegaClusterName)
 }
 
-func getZnode(name string) string {
-	return fmt.Sprintf("%s/bookkeeper/conf", getRoot(name))
+func getZnode(pravegaClusterName string) string {
+	return fmt.Sprintf("%s/bookkeeper/conf", getRoot(pravegaClusterName))
 }
 
-func CreateZnode(uri string, namespace string, name string, replicas int32) (err error) {
+func CreateZnode(uri string, namespace string, pravegaClusterName string, replicas int32) (err error) {
 	host := getHost(uri, namespace)
 	conn, _, err := zk.Connect(host, time.Second*5)
 	if err != nil {
@@ -74,7 +74,7 @@ func CreateZnode(uri string, namespace string, name string, replicas int32) (err
 	}
 	defer conn.Close()
 
-	zNodePath := getZnode(name)
+	zNodePath := getZnode(pravegaClusterName)
 	exist, _, _ := conn.Exists(zNodePath)
 	if exist {
 		return nil
