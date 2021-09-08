@@ -66,7 +66,7 @@ func getZnode(pravegaClusterName string) string {
 	return fmt.Sprintf("%s/bookkeeper/conf", getRoot(pravegaClusterName))
 }
 
-func CreateZnode(uri string, namespace string, pravegaClusterName string, replicas int32) (err error) {
+func CreateClusterSizeZnode(uri string, namespace string, pravegaClusterName string, replicas int32) (err error) {
 	host := getHost(uri, namespace)
 	conn, _, err := zk.Connect(host, time.Second*5)
 	if err != nil {
@@ -87,7 +87,7 @@ func CreateZnode(uri string, namespace string, pravegaClusterName string, replic
 	return nil
 }
 
-func UpdateZnode(uri string, namespace string, name string, replicas int32) (err error) {
+func UpdateClusterSizeZnode(uri string, namespace string, name string, replicas int32) (err error) {
 	host := getHost(uri, namespace)
 	conn, _, err := zk.Connect(host, time.Second*5)
 	if err != nil {

@@ -15,11 +15,11 @@ import (
 )
 
 var _ = Describe("zookeeperutil", func() {
-	Context("CreateZnode", func() {
+	Context("CreateClusterSizeZnode", func() {
 		var err1, err2 error
 		BeforeEach(func() {
-			err1 = CreateZnode("zookeeper-client:2181", "default", "pravega", 3)
-			err2 = CreateZnode("127.0.0.1:2181", "default", "pravega", 3)
+			err1 = CreateClusterSizeZnode("zookeeper-client:2181", "default", "pravega", 3)
+			err2 = CreateClusterSizeZnode("127.0.0.1:2181", "default", "pravega", 3)
 		})
 		It("should not be nil", func() {
 			Ω(err1).ShouldNot(BeNil())
@@ -27,10 +27,10 @@ var _ = Describe("zookeeperutil", func() {
 		})
 	})
 
-	Context("UpdateZnode", func() {
+	Context("UpdateClusterSizeZnode", func() {
 		var err error
 		BeforeEach(func() {
-			err = UpdateZnode("zookeeper-client:2181", "default", "pravega", 5)
+			err = UpdateClusterSizeZnode("zookeeper-client:2181", "default", "pravega", 5)
 		})
 		It("should not be nil", func() {
 			Ω(err).ShouldNot(BeNil())
