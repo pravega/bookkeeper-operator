@@ -391,7 +391,7 @@ type BookkeeperStorageSpec struct {
 }
 
 func (s *BookkeeperStorageSpec) withDefaults() (changed bool) {
-	if s.LedgerVolumeClaimTemplate == nil {
+	if s.LedgerVolumeClaimTemplate == nil || s.LedgerVolumeClaimTemplate.Resources.Requests[corev1.ResourceStorage].Format == "" {
 		changed = true
 		s.LedgerVolumeClaimTemplate = &corev1.PersistentVolumeClaimSpec{
 			AccessModes: []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
@@ -403,7 +403,7 @@ func (s *BookkeeperStorageSpec) withDefaults() (changed bool) {
 		}
 	}
 
-	if s.JournalVolumeClaimTemplate == nil {
+	if s.JournalVolumeClaimTemplate == nil || s.JournalVolumeClaimTemplate.Resources.Requests[corev1.ResourceStorage].Format == "" {
 		changed = true
 		s.JournalVolumeClaimTemplate = &corev1.PersistentVolumeClaimSpec{
 			AccessModes: []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
@@ -415,7 +415,7 @@ func (s *BookkeeperStorageSpec) withDefaults() (changed bool) {
 		}
 	}
 
-	if s.IndexVolumeClaimTemplate == nil {
+	if s.IndexVolumeClaimTemplate == nil || s.IndexVolumeClaimTemplate.Resources.Requests[corev1.ResourceStorage].Format == "" {
 		changed = true
 		s.IndexVolumeClaimTemplate = &corev1.PersistentVolumeClaimSpec{
 			AccessModes: []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
