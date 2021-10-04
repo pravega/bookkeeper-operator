@@ -3,8 +3,8 @@
 ## Declare variables to be passed into your templates.
 
 image:
-  repository: devops-repo.isus.emc.com:8116/nautilus/bookkeeper-operator
-  tag: 0.1.6-76-2908ab4
+  repository: pravega/bookkeeper-operator
+  tag: 0.1.4
   pullPolicy: IfNotPresent
 
 ## Install RBAC roles and bindings.
@@ -52,7 +52,7 @@ watchNamespace: ""
 hooks:
   backoffLimit: 10
   image:
-    repository: devops-repo.isus.emc.com:8116/nautilus/k8s-kubectl
+    repository: lachlanevenson/k8s-kubectl
     tag: v1.16.10
   ## Whether to create pre-delete hook which ensures that
   ## the operator cannot be deleted till the bookkeeper cluster
