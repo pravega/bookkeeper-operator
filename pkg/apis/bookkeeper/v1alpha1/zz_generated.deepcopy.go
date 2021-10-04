@@ -141,6 +141,11 @@ func (in *BookkeeperClusterSpec) DeepCopyInto(out *BookkeeperClusterSpec) {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
 	}
+	if in.SecurityContext != nil {
+		in, out := &in.SecurityContext, &out.SecurityContext
+		*out = new(v1.PodSecurityContext)
+		(*in).DeepCopyInto(*out)
+	}
 	return
 }
 

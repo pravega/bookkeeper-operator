@@ -289,6 +289,10 @@ func makeBookiePodSpec(bk *v1alpha1.BookkeeperCluster) *corev1.PodSpec {
 		podSpec.InitContainers = bk.Spec.InitContainers
 	}
 
+	if bk.Spec.SecurityContext != nil {
+		podSpec.SecurityContext = bk.Spec.SecurityContext
+	}
+
 	return podSpec
 }
 

@@ -262,6 +262,9 @@ type BookkeeperClusterSpec struct {
 	// This is used as suffix for bookkeeper headless service name
 	// +optional
 	HeadlessSvcNameSuffix string `json:"headlessSvcNameSuffix,omitempty"`
+
+	// SecurityContext holds security configuration that will be applied to pod
+	SecurityContext *corev1.PodSecurityContext `json:"securityContext,omitempty"`
 }
 
 // BookkeeperImageSpec defines the fields needed for a BookKeeper Docker image

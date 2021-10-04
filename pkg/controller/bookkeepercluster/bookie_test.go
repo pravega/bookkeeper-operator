@@ -11,6 +11,7 @@
 package bookkeepercluster_test
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
@@ -59,6 +60,7 @@ var _ = Describe("Bookie", func() {
 					},
 				}
 				boolFalse := false
+				id := int64(100)
 				bk.Spec = v1alpha1.BookkeeperClusterSpec{
 					Version:            "0.4.0",
 					ServiceAccountName: "bk-operator",
@@ -107,6 +109,10 @@ var _ = Describe("Bookie", func() {
 							Image:   "dummy-image",
 							Command: []string{"sh", "-c", "ls;pwd"},
 						},
+					},
+					SecurityContext: &corev1.PodSecurityContext{
+						RunAsUser:  &id,
+						RunAsGroup: &id,
 					},
 				}
 				bk.WithDefaults()
@@ -224,6 +230,12 @@ var _ = Describe("Bookie", func() {
 					Ω(podTemplate.Spec.InitContainers[0].Name).To(Equal("testing"))
 					Ω(podTemplate.Spec.InitContainers[0].Image).To(Equal("dummy-image"))
 					Ω(strings.Contains(podTemplate.Spec.InitContainers[0].Command[2], "ls;pwd")).Should(BeTrue())
+				})
+
+				It("should have security context set", func() {
+					podTemplate := bookkeepercluster.MakeBookiePodTemplate(bk)
+					Ω(fmt.Sprintf("%v", *podTemplate.Spec.SecurityContext.RunAsUser)).To(Equal("100"))
+					Ω(fmt.Sprintf("%v", *podTemplate.Spec.SecurityContext.RunAsGroup)).To(Equal("100"))
 				})
 			})
 		})
