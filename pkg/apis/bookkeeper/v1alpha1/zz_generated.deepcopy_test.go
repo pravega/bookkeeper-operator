@@ -11,9 +11,11 @@
 package v1alpha1_test
 
 import (
+	"strings"
+
+	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"strings"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -56,6 +58,11 @@ var _ = Describe("DeepCopy", func() {
 					Command: []string{"sh", "-c", "ls;pwd"},
 				},
 			}
+			no := int64(0)
+			securitycontext := corev1.PodSecurityContext{
+				RunAsUser: &no,
+			}
+			bk1.Spec.SecurityContext = &securitycontext
 			bk1.Spec.InitContainers = initContainer
 			bk1.Spec.JVMOptions.MemoryOpts = []string{"1g"}
 			bk2.Spec.JVMOptions = bk1.Spec.JVMOptions.DeepCopy()
