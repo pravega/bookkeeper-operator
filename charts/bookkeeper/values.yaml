@@ -2,15 +2,18 @@
 ## This is a YAML-formatted file.
 ## Declare variables to be passed into your templates.
 
-version: 0.9.0
+#version: 0.9.0
+#version: 0.10.0-bookieIdV36
+version: 0.10.0-2958.eb4a53a5a
 
 image:
-  repository: pravega/bookkeeper
+  repository: devops-repo.isus.emc.com:8116/nautilus/bookkeeper
+  #repository: devops-repo.isus.emc.com:8116/srishtithakkar/bookkeeper 
   pullPolicy: IfNotPresent
 
 hooks:
   image:
-    repository: lachlanevenson/k8s-kubectl
+    repository: devops-repo.isus.emc.com:8116/nautilus/k8s-kubectl
     tag: v1.16.10
   backoffLimit: 10
 
@@ -19,11 +22,11 @@ maxUnavailableReplicas:
 zookeeperUri: zookeeper-client:2181
 pravegaClusterName: pravega
 autoRecovery: true
-blockOwnerDeletion: true
+blockOwnerDeletion: false
 affinity: {}
 labels: {}
 annotations: {}
-initContainers: []
+initContainers: {}
 headlessSvcNameSuffix:
 probes:
   readiness:
@@ -79,6 +82,7 @@ options:
   ## Use multiple journal and ledger directories to try exploiting more parallelism at the drive level.
   journalDirectories: "/bk/journal/j0,/bk/journal/j1,/bk/journal/j2,/bk/journal/j3"
   ledgerDirectories: "/bk/ledgers/l0,/bk/ledgers/l1,/bk/ledgers/l2,/bk/ledgers/l3"
+  indexDirectories: "/bk/index/io,/bk/index/i1,/bk/index/i2"
   ## Use journal and ledger subpath if you wish to override the default subpath name used
   # journalSubPath: ""
   # ledgerSubPath: ""

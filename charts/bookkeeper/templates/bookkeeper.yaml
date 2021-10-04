@@ -17,6 +17,7 @@ spec:
   version: {{ .Values.version }}
   zookeeperUri: {{ .Values.zookeeperUri }}
   envVars: {{ template "bookkeeper.fullname" . }}-configmap
+  serviceAccountName: bookkeeper
   autoRecovery: {{ .Values.autoRecovery }}
   {{- if .Values.affinity }}
   affinity:
