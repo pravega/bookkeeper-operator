@@ -30,6 +30,8 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/oidc"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
+	logz "sigs.k8s.io/controller-runtime/pkg/log/zap"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/runtime/signals"
 )
@@ -55,6 +57,10 @@ func printVersion() {
 
 func main() {
 	flag.Parse()
+
+	// The logger instantiated here can be changed to any logger
+	// implementing the logr.Logger interface.
+	logf.SetLogger(logz.New(logz.UseDevMode(false)))
 
 	printVersion()
 
