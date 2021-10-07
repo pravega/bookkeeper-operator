@@ -288,6 +288,14 @@ func makeBookiePodSpec(bk *v1alpha1.BookkeeperCluster) *corev1.PodSpec {
 	if bk.Spec.InitContainers != nil {
 		podSpec.InitContainers = bk.Spec.InitContainers
 	}
+	if *bk.Spec.RunAsPrivilegedUser == false {
+		id := int64(1000)
+		podSpec.SecurityContext = &corev1.PodSecurityContext{
+			RunAsUser:  &id,
+			RunAsGroup: &id,
+			FSGroup:    &id,
+		}
+	}
 
 	return podSpec
 }

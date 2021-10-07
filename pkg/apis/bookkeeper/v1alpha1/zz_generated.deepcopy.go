@@ -141,6 +141,11 @@ func (in *BookkeeperClusterSpec) DeepCopyInto(out *BookkeeperClusterSpec) {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
 	}
+	if in.RunAsPrivilegedUser != nil {
+		in, out := &in.RunAsPrivilegedUser, &out.RunAsPrivilegedUser
+		*out = new(bool)
+		**out = **in
+	}
 	return
 }
 
