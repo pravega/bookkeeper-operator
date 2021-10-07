@@ -263,7 +263,7 @@ type BookkeeperClusterSpec struct {
 	// +optional
 	HeadlessSvcNameSuffix string `json:"headlessSvcNameSuffix,omitempty"`
 
-	//This is set to run the conatiner as root user
+	//This is set to run the container as root user
 	RunAsPrivilegedUser *bool `json:"runAsPrivilegedUser,omitempty"`
 }
 
