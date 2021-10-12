@@ -11,6 +11,7 @@
 package bookkeepercluster_test
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
@@ -108,6 +109,7 @@ var _ = Describe("Bookie", func() {
 							Command: []string{"sh", "-c", "ls;pwd"},
 						},
 					},
+					RunAsPrivilegedUser: &boolFalse,
 				}
 				bk.WithDefaults()
 			})
@@ -224,6 +226,12 @@ var _ = Describe("Bookie", func() {
 					Ω(podTemplate.Spec.InitContainers[0].Name).To(Equal("testing"))
 					Ω(podTemplate.Spec.InitContainers[0].Image).To(Equal("dummy-image"))
 					Ω(strings.Contains(podTemplate.Spec.InitContainers[0].Command[2], "ls;pwd")).Should(BeTrue())
+				})
+				It("should have security context", func() {
+					podTemplate := bookkeepercluster.MakeBookiePodTemplate(bk)
+					Ω(fmt.Sprintf("%v", *podTemplate.Spec.SecurityContext.RunAsUser)).To(Equal("1000"))
+					Ω(fmt.Sprintf("%v", *podTemplate.Spec.SecurityContext.RunAsGroup)).To(Equal("1000"))
+					Ω(fmt.Sprintf("%v", *podTemplate.Spec.SecurityContext.FSGroup)).To(Equal("1000"))
 				})
 			})
 		})

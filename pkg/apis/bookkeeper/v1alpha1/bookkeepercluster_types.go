@@ -262,6 +262,9 @@ type BookkeeperClusterSpec struct {
 	// This is used as suffix for bookkeeper headless service name
 	// +optional
 	HeadlessSvcNameSuffix string `json:"headlessSvcNameSuffix,omitempty"`
+
+	//This is set to run the container as root user
+	RunAsPrivilegedUser *bool `json:"runAsPrivilegedUser,omitempty"`
 }
 
 // BookkeeperImageSpec defines the fields needed for a BookKeeper Docker image
@@ -511,6 +514,12 @@ func (s *BookkeeperClusterSpec) withDefaults(bk *BookkeeperCluster) (changed boo
 		changed = true
 		boolTrue := true
 		s.BlockOwnerDeletion = &boolTrue
+	}
+
+	if s.RunAsPrivilegedUser == nil {
+		changed = true
+		boolTrue := true
+		s.RunAsPrivilegedUser = &boolTrue
 	}
 
 	if s.Affinity == nil {

@@ -833,6 +833,9 @@ spec:
                     value. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/'
                   type: object
               type: object
+            runAsPrivilegedUser:
+              description: This is set to run the container as root user
+              type: boolean
             serviceAccountName:
               description: ServiceAccountName configures the service account used
                 on BookKeeper instances
