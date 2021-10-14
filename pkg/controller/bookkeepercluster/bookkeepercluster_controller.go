@@ -13,6 +13,7 @@ package bookkeepercluster
 import (
 	"context"
 	"fmt"
+	"github.com/pravega/bookkeeper-operator/pkg/controller/config"
 	"reflect"
 	"sort"
 	"strings"
@@ -236,7 +237,7 @@ func (r *ReconcileBookkeeperCluster) syncBookieSize(bk *bookkeeperv1alpha1.Bookk
 }
 
 func (r *ReconcileBookkeeperCluster) reconcileFinalizers(bk *bookkeeperv1alpha1.BookkeeperCluster) (err error) {
-	if bk.DeletionTimestamp.IsZero() {
+	if bk.DeletionTimestamp.IsZero() && !config.DisableFinalizer {
 		// checks whether the slice of finalizers contains a string with the given prefix
 		// NOTE: we need to ensure that no two finalizer names have the same prefix
 		if !util.ContainsStringWithPrefix(bk.ObjectMeta.Finalizers, util.ZkFinalizer) {
