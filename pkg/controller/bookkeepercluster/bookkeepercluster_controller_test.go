@@ -13,6 +13,7 @@ package bookkeepercluster
 import (
 	"context"
 	"fmt"
+	"github.com/pravega/bookkeeper-operator/pkg/controller/config"
 	"strings"
 	"testing"
 
@@ -208,6 +209,7 @@ var _ = Describe("BookkeeperCluster Controller", func() {
 			Context("reconcileFinalizers", func() {
 				BeforeEach(func() {
 					b.WithDefaults()
+					config.DisableFinalizer = false
 					b.Spec.EnvVars = "vars"
 					client.Update(context.TODO(), b)
 					_, err = r.Reconcile(req)
@@ -218,6 +220,23 @@ var _ = Describe("BookkeeperCluster Controller", func() {
 				})
 				It("should not give error", func() {
 					Ω(err).Should(BeNil())
+				})
+			})
+			Context("reconcileFinalizers", func() {
+				BeforeEach(func() {
+					b.WithDefaults()
+				})
+				It("should have 1 finalizer", func() {
+					config.DisableFinalizer = false
+					err = r.reconcileFinalizers(b)
+					Expect(b.ObjectMeta.Finalizers).To(HaveLen(1))
+					Expect(err).NotTo(HaveOccurred())
+				})
+				It("should have 0 finalizer", func() {
+					config.DisableFinalizer = true
+					err = r.reconcileFinalizers(b)
+					Expect(b.ObjectMeta.Finalizers).To(HaveLen(0))
+					Expect(err).NotTo(HaveOccurred())
 				})
 			})
 			Context("syncStatefulSetExternalServices withthout external service", func() {
@@ -316,6 +335,7 @@ var _ = Describe("BookkeeperCluster Controller", func() {
 			Context("reconcileFinalizers", func() {
 				BeforeEach(func() {
 					b.WithDefaults()
+					config.DisableFinalizer = false
 					client.Update(context.TODO(), b)
 					err = r.reconcileFinalizers(b)
 					now := metav1.Now()
