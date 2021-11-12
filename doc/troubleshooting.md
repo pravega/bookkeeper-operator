@@ -13,10 +13,11 @@
 
 While installing bookkeeper, if we get the error as  below,
 ```
-helm install bookkeeper charts/bookkeeper
+helm repo add pravega https://charts.pravega.io
+helm install [RELEASE_NAME] pravega/bookkeeper
 Error: Post https://bookkeeper-webhook-svc.default.svc:443/validate-bookkeeper-pravega-io-v1alpha1-bookkeepercluster?timeout=30s: x509: certificate signed by unknown authority
 ```
-We need to ensure that certificates are installed before installing the operator. Please refer [prerequisite](../charts/bookkeeper-operator/README.md#Prerequisites)
+We need to ensure that certificates are installed before installing the operator. Please refer to the [prerequisites](https://github.com/pravega/charts/tree/master/charts/bookkeeper-operator#prerequisites)
 
 ## Invalid Cookie Exception
 
@@ -50,9 +51,10 @@ Error: A fatal exception has occurred. Program will exit.
 This is happening because some of default JVM options added by the operator are not supported by Java version used by bookkeeper. This issue can therefore be resolved by setting an additional JVM option `IgnoreUnrecognizedVMOptions` while installing the bookkeeper cluster as shown below.
 
 ```
+helm repo add pravega https://charts.pravega.io
 helm install [RELEASE_NAME] pravega/bookkeeper --version=[VERSION] --set zookeeperUri=[ZOOKEEPER_HOST] --set 'jvmOptions.extraOpts={-XX:+IgnoreUnrecognizedVMOptions}'
 ```
 
 ## Operator pod in container creating state
 
-While installing operator, if the operator pod goes in `ContainerCreating` state for long time, make sure certificates are installed correctly. Please refer [prerequisite](../charts/bookkeeper-operator/README.md#Prerequisites)
+While installing operator, if the operator pod goes in `ContainerCreating` state for long time, make sure certificates are installed correctly. Please refer to the [prerequisites](https://github.com/pravega/charts/tree/master/charts/bookkeeper-operator#prerequisites)
