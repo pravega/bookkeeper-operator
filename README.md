@@ -14,7 +14,7 @@ The project is currently alpha. While no breaking API changes are currently plan
 
 ## Install the Operator
 
-To understand how to deploy a Bookkeeper Operator refer to [Operator Deployment](charts/bookkeeper-operator#deploying-bookkeeper-operator).
+To understand how to deploy a Bookkeeper Operator refer to [Operator Deployment](https://github.com/pravega/charts/tree/master/charts/bookkeeper-operator#deploying-bookkeeper-operator).
 
 ## Upgrade the Operator
 
@@ -22,8 +22,8 @@ For upgrading the bookkeeper operator check the document on [Operator Upgrade](d
 
 ## Features
 
-- [x] [Create and destroy a Bookkeeper cluster](charts/bookkeeper/README.md)
-- [x] [Resize cluster](charts/bookkeeper/README.md#updating-bookkeeper-cluster)
+- [x] [Create and destroy a Bookkeeper cluster](https://github.com/pravega/charts/tree/master/charts/bookkeeper#deploying-bookkeeper)
+- [x] [Resize cluster](https://github.com/pravega/charts/tree/master/charts/bookkeeper#updating-bookkeeper-cluster)
 - [x] [Rolling upgrades/Rollback](doc/upgrade-cluster.md)
 - [x] [Bookkeeper Configuration tuning](doc/configuration.md)
 - [x] Input validation

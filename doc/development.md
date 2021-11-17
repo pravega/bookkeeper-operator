@@ -122,4 +122,4 @@ $ kubectl create clusterrolebinding your-user-cluster-admin-binding --clusterrol
 ```
 
 #### Install the Operator in Test Mode
- The Operator can be run in `test mode` if we want to deploy the Bookkeeper Cluster on minikube or on a cluster with very limited resources by setting `testmode: true` in `values.yaml` file. Operator running in test mode skips the minimum replica requirement checks. Test mode provides a bare minimum setup and is not recommended to be used in production environments.
+ The Operator can be run in `test mode` if we want to deploy the Bookkeeper Cluster on minikube or on a cluster with very limited resources by setting `testmode: true` in [values.yaml](https://github.com/pravega/charts/blob/master/charts/bookkeeper-operator/values.yaml) file of the [operator charts](https://github.com/pravega/charts/tree/master/charts/bookkeeper-operator). Operator running in test mode skips the minimum replica requirement checks. Test mode provides a bare minimum setup and is not recommended to be used in production environments.
