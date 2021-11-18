@@ -13,11 +13,12 @@ package bookkeepercluster
 import (
 	"context"
 	"fmt"
-	"github.com/pravega/bookkeeper-operator/pkg/controller/config"
 	"reflect"
 	"sort"
 	"strings"
 	"time"
+
+	"github.com/pravega/bookkeeper-operator/pkg/controller/config"
 
 	bookkeeperv1alpha1 "github.com/pravega/bookkeeper-operator/pkg/apis/bookkeeper/v1alpha1"
 	"github.com/pravega/bookkeeper-operator/pkg/util"
@@ -256,6 +257,12 @@ func (r *ReconcileBookkeeperCluster) reconcileFinalizers(bk *bookkeeperv1alpha1.
 				}
 			}
 			bk.ObjectMeta.Finalizers = append(bk.ObjectMeta.Finalizers, finalizer)
+			currentBookkeeperCluster := &bookkeeperv1alpha1.BookkeeperCluster{}
+			err = r.client.Get(context.TODO(), types.NamespacedName{Name: bk.Name, Namespace: bk.Namespace}, currentBookkeeperCluster)
+			if err != nil {
+				return fmt.Errorf("failed to get bookkeeper cluster (%s): %v", bk.Name, err)
+			}
+			bk.ObjectMeta.ResourceVersion = currentBookkeeperCluster.ObjectMeta.ResourceVersion
 			if err = r.client.Update(context.TODO(), bk); err != nil {
 				return fmt.Errorf("failed to add the finalizer (%s): %v", bk.Name, err)
 			}

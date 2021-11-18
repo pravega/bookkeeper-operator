@@ -221,6 +221,12 @@ func (r *ReconcileBookkeeperCluster) syncBookkeeperVersion(bk *bookkeeperv1alpha
 
 		configMap := MakeBookieConfigMap(bk)
 		controllerutil.SetControllerReference(bk, configMap, r.scheme)
+		currentConfigMap := &corev1.ConfigMap{}
+		err = r.client.Get(context.TODO(), types.NamespacedName{Name: util.ConfigMapNameForBookie(bk.Name), Namespace: bk.Namespace}, currentConfigMap)
+		if err != nil {
+			return false, fmt.Errorf("failed to get configmap %v", err)
+		}
+		configMap.ObjectMeta.ResourceVersion = currentConfigMap.ObjectMeta.ResourceVersion
 		err = r.client.Update(context.TODO(), configMap)
 		if err != nil {
 			return false, err

@@ -13,9 +13,10 @@ package bookkeepercluster
 import (
 	"context"
 	"fmt"
-	"github.com/pravega/bookkeeper-operator/pkg/controller/config"
 	"strings"
 	"testing"
+
+	"github.com/pravega/bookkeeper-operator/pkg/controller/config"
 
 	"k8s.io/apimachinery/pkg/util/intstr"
 
@@ -63,6 +64,10 @@ var _ = Describe("BookkeeperCluster Controller", func() {
 				},
 			}
 			b = &v1alpha1.BookkeeperCluster{
+				TypeMeta: metav1.TypeMeta{
+					Kind:       "BookkeeperCluster",
+					APIVersion: "bookkeeper.pravega.io/v1alpha1",
+				},
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      Name,
 					Namespace: Namespace,
