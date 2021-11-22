@@ -238,6 +238,12 @@ func (r *ReconcileBookkeeperCluster) syncBookieSize(bk *bookkeeperv1alpha1.Bookk
 }
 
 func (r *ReconcileBookkeeperCluster) reconcileFinalizers(bk *bookkeeperv1alpha1.BookkeeperCluster) (err error) {
+	currentBookkeeperCluster := &bookkeeperv1alpha1.BookkeeperCluster{}
+	err = r.client.Get(context.TODO(), types.NamespacedName{Name: bk.Name, Namespace: bk.Namespace}, currentBookkeeperCluster)
+	if err != nil {
+		return fmt.Errorf("failed to get bookkeeper cluster (%s): %v", bk.Name, err)
+	}
+	bk.ObjectMeta.ResourceVersion = currentBookkeeperCluster.ObjectMeta.ResourceVersion
 	if bk.DeletionTimestamp.IsZero() && !config.DisableFinalizer {
 		// checks whether the slice of finalizers contains a string with the given prefix
 		// NOTE: we need to ensure that no two finalizer names have the same prefix
@@ -257,12 +263,6 @@ func (r *ReconcileBookkeeperCluster) reconcileFinalizers(bk *bookkeeperv1alpha1.
 				}
 			}
 			bk.ObjectMeta.Finalizers = append(bk.ObjectMeta.Finalizers, finalizer)
-			currentBookkeeperCluster := &bookkeeperv1alpha1.BookkeeperCluster{}
-			err = r.client.Get(context.TODO(), types.NamespacedName{Name: bk.Name, Namespace: bk.Namespace}, currentBookkeeperCluster)
-			if err != nil {
-				return fmt.Errorf("failed to get bookkeeper cluster (%s): %v", bk.Name, err)
-			}
-			bk.ObjectMeta.ResourceVersion = currentBookkeeperCluster.ObjectMeta.ResourceVersion
 			if err = r.client.Update(context.TODO(), bk); err != nil {
 				return fmt.Errorf("failed to add the finalizer (%s): %v", bk.Name, err)
 			}
