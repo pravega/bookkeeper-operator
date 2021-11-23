@@ -205,7 +205,7 @@ func (r *ReconcileBookkeeperCluster) syncBookkeeperVersion(bk *bookkeeperv1alpha
 	name := util.StatefulSetNameForBookie(bk.Name)
 	err = r.client.Get(context.TODO(), types.NamespacedName{Name: name, Namespace: bk.Namespace}, sts)
 	if err != nil {
-		return false, fmt.Errorf("failed to get statefulset (%s): %v", sts.Name, err)
+		return false, fmt.Errorf("failed to get statefulset (%s): %v", name, err)
 	}
 
 	targetImage, err := bk.BookkeeperTargetImage()
@@ -221,6 +221,13 @@ func (r *ReconcileBookkeeperCluster) syncBookkeeperVersion(bk *bookkeeperv1alpha
 
 		configMap := MakeBookieConfigMap(bk)
 		controllerutil.SetControllerReference(bk, configMap, r.scheme)
+		currentConfigMap := &corev1.ConfigMap{}
+		cmName := util.ConfigMapNameForBookie(bk.Name)
+		err = r.client.Get(context.TODO(), types.NamespacedName{Name: cmName, Namespace: bk.Namespace}, currentConfigMap)
+		if err != nil {
+			return false, fmt.Errorf("failed to get configmap (%s): %v", cmName, err)
+		}
+		configMap.ObjectMeta.ResourceVersion = currentConfigMap.ObjectMeta.ResourceVersion
 		err = r.client.Update(context.TODO(), configMap)
 		if err != nil {
 			return false, err

@@ -146,7 +146,7 @@ func DeletePods(t *testing.T, f *framework.Framework, ctx *framework.TestCtx, b 
 	listOptions := metav1.ListOptions{
 		LabelSelector: labels.SelectorFromSet(map[string]string{"bookkeeper_cluster": b.GetName()}).String(),
 	}
-	podList, err := f.KubeClient.CoreV1().Pods(b.Namespace).List(listOptions)
+	podList, err := f.KubeClient.CoreV1().Pods(b.Namespace).List(goctx.TODO(), listOptions)
 	if err != nil {
 		return err
 	}
@@ -221,7 +221,7 @@ func CheckEvents(t *testing.T, f *framework.Framework, ctx *framework.TestCtx, b
 		LabelSelector: labels.SelectorFromSet(map[string]string{"bookkeeper_cluster": b.GetName()}).String(),
 	}
 
-	events, err := f.KubeClient.CoreV1().Events(b.Namespace).List(listOptions)
+	events, err := f.KubeClient.CoreV1().Events(b.Namespace).List(goctx.TODO(), listOptions)
 	if err != nil {
 		return false, err
 	}
@@ -299,7 +299,7 @@ func WaitForBKClusterToTerminate(t *testing.T, f *framework.Framework, ctx *fram
 
 	// Wait for Pods to terminate
 	err := wait.Poll(RetryInterval, TerminateTimeout, func() (done bool, err error) {
-		podList, err := f.KubeClient.CoreV1().Pods(b.Namespace).List(listOptions)
+		podList, err := f.KubeClient.CoreV1().Pods(b.Namespace).List(goctx.TODO(), listOptions)
 		if err != nil {
 			return false, err
 		}
@@ -322,7 +322,7 @@ func WaitForBKClusterToTerminate(t *testing.T, f *framework.Framework, ctx *fram
 
 	// Wait for PVCs to terminate
 	err = wait.Poll(RetryInterval, TerminateTimeout, func() (done bool, err error) {
-		pvcList, err := f.KubeClient.CoreV1().PersistentVolumeClaims(b.Namespace).List(listOptions)
+		pvcList, err := f.KubeClient.CoreV1().PersistentVolumeClaims(b.Namespace).List(goctx.TODO(), listOptions)
 		if err != nil {
 			return false, err
 		}
@@ -383,7 +383,7 @@ func WaitForBKClusterToUpgrade(t *testing.T, f *framework.Framework, ctx *framew
 	}
 
 	// check whether PVCs have been reattached
-	pvcList, err := f.KubeClient.CoreV1().PersistentVolumeClaims(b.Namespace).List(listOptions)
+	pvcList, err := f.KubeClient.CoreV1().PersistentVolumeClaims(b.Namespace).List(goctx.TODO(), listOptions)
 	if err != nil {
 		return err
 	}
@@ -417,7 +417,7 @@ func WaitForCMBKClusterToUpgrade(t *testing.T, f *framework.Framework, ctx *fram
 	}
 
 	// Checking if all pods are getting restarted
-	podList, err := f.KubeClient.CoreV1().Pods(b.Namespace).List(listOptions)
+	podList, err := f.KubeClient.CoreV1().Pods(b.Namespace).List(goctx.TODO(), listOptions)
 	if err != nil {
 		return err
 	}
@@ -453,7 +453,7 @@ func WaitForCMBKClusterToUpgrade(t *testing.T, f *framework.Framework, ctx *fram
 	})
 
 	// check whether PVCs have been reattached
-	pvcList, err := f.KubeClient.CoreV1().PersistentVolumeClaims(b.Namespace).List(listOptions)
+	pvcList, err := f.KubeClient.CoreV1().PersistentVolumeClaims(b.Namespace).List(goctx.TODO(), listOptions)
 	if err != nil {
 		return err
 	}
@@ -514,7 +514,7 @@ func WaitForBKClusterToRollback(t *testing.T, f *framework.Framework, ctx *frame
 	}
 
 	// check whether PVCs have been reattached
-	pvcList, err := f.KubeClient.CoreV1().PersistentVolumeClaims(b.Namespace).List(listOptions)
+	pvcList, err := f.KubeClient.CoreV1().PersistentVolumeClaims(b.Namespace).List(goctx.TODO(), listOptions)
 	if err != nil {
 		return err
 	}

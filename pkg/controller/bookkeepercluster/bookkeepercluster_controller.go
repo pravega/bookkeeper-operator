@@ -13,13 +13,13 @@ package bookkeepercluster
 import (
 	"context"
 	"fmt"
-	"github.com/pravega/bookkeeper-operator/pkg/controller/config"
 	"reflect"
 	"sort"
 	"strings"
 	"time"
 
 	bookkeeperv1alpha1 "github.com/pravega/bookkeeper-operator/pkg/apis/bookkeeper/v1alpha1"
+	"github.com/pravega/bookkeeper-operator/pkg/controller/config"
 	"github.com/pravega/bookkeeper-operator/pkg/util"
 
 	appsv1 "k8s.io/api/apps/v1"
@@ -237,6 +237,12 @@ func (r *ReconcileBookkeeperCluster) syncBookieSize(bk *bookkeeperv1alpha1.Bookk
 }
 
 func (r *ReconcileBookkeeperCluster) reconcileFinalizers(bk *bookkeeperv1alpha1.BookkeeperCluster) (err error) {
+	currentBookkeeperCluster := &bookkeeperv1alpha1.BookkeeperCluster{}
+	err = r.client.Get(context.TODO(), types.NamespacedName{Name: bk.Name, Namespace: bk.Namespace}, currentBookkeeperCluster)
+	if err != nil {
+		return fmt.Errorf("failed to get bookkeeper cluster (%s): %v", bk.Name, err)
+	}
+	bk.ObjectMeta.ResourceVersion = currentBookkeeperCluster.ObjectMeta.ResourceVersion
 	if bk.DeletionTimestamp.IsZero() && !config.DisableFinalizer {
 		// checks whether the slice of finalizers contains a string with the given prefix
 		// NOTE: we need to ensure that no two finalizer names have the same prefix
