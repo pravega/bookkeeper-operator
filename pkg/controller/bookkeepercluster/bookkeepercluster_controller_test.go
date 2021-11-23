@@ -17,7 +17,6 @@ import (
 	"testing"
 
 	"github.com/pravega/bookkeeper-operator/pkg/controller/config"
-
 	"k8s.io/apimachinery/pkg/util/intstr"
 
 	. "github.com/onsi/ginkgo"

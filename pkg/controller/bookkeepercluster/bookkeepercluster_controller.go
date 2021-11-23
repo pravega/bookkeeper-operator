@@ -18,9 +18,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pravega/bookkeeper-operator/pkg/controller/config"
-
 	bookkeeperv1alpha1 "github.com/pravega/bookkeeper-operator/pkg/apis/bookkeeper/v1alpha1"
+	"github.com/pravega/bookkeeper-operator/pkg/controller/config"
 	"github.com/pravega/bookkeeper-operator/pkg/util"
 
 	appsv1 "k8s.io/api/apps/v1"
