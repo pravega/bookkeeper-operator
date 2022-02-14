@@ -18,7 +18,6 @@ import (
 	"strings"
 	"time"
 
-	k8s "github.com/operator-framework/operator-sdk/pkg/k8sutil"
 	"github.com/pravega/bookkeeper-operator/pkg/controller/config"
 	"github.com/pravega/bookkeeper-operator/pkg/util"
 	corev1 "k8s.io/api/core/v1"
@@ -121,6 +120,9 @@ const (
 	// DefaultLivenessProbeTimeoutSeconds is the default probe timeout (in seconds)
 	// for the liveness probe
 	DefaultLivenessProbeTimeoutSeconds = 5
+
+	// OperatorNameEnvVar is env variable for operator name
+	OperatorNameEnvVar = "OPERATOR_NAME"
 )
 
 func init() {
@@ -784,7 +786,7 @@ func (bk *BookkeeperCluster) validateConfigMap() error {
 
 func (bk *BookkeeperCluster) NewEvent(name string, reason string, message string, eventType string) *corev1.Event {
 	now := metav1.Now()
-	operatorName, _ := k8s.GetOperatorName()
+	operatorName, _ := GetOperatorName()
 	generateName := name + "-"
 	event := corev1.Event{
 		ObjectMeta: metav1.ObjectMeta{
@@ -813,7 +815,7 @@ func (bk *BookkeeperCluster) NewEvent(name string, reason string, message string
 
 func (bk *BookkeeperCluster) NewApplicationEvent(name string, reason string, message string, eventType string) *corev1.Event {
 	now := metav1.Now()
-	operatorName, _ := k8s.GetOperatorName()
+	operatorName, _ := GetOperatorName()
 	generateName := name + "-"
 	event := corev1.Event{
 		ObjectMeta: metav1.ObjectMeta{
@@ -836,4 +838,16 @@ func (bk *BookkeeperCluster) NewApplicationEvent(name string, reason string, mes
 		ReportingInstance:   os.Getenv("POD_NAME"),
 	}
 	return &event
+}
+
+// GetOperatorName returns the operator name
+func GetOperatorName() (string, error) {
+	operatorName, found := os.LookupEnv(OperatorNameEnvVar)
+	if !found {
+		return "", fmt.Errorf("environment variable %s is not set", OperatorNameEnvVar)
+	}
+	if len(operatorName) == 0 {
+		return "", fmt.Errorf("environment variable %s is empty", OperatorNameEnvVar)
+	}
+	return operatorName, nil
 }
