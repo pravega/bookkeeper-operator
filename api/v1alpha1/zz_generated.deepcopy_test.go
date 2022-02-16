@@ -58,6 +58,14 @@ var _ = Describe("DeepCopy", func() {
 				},
 			}
 			bk1.Spec.InitContainers = initContainer
+			bk1.Spec.Tolerations = []v1.Toleration{
+				{
+					Key:      "bookie",
+					Operator: "Equal",
+					Value:    "val1",
+					Effect:   "NoSchedule",
+				},
+			}
 			bk1.Spec.JVMOptions.MemoryOpts = []string{"1g"}
 			bk2.Spec.JVMOptions = bk1.Spec.JVMOptions.DeepCopy()
 			bk2.Spec.Storage = bk1.Spec.Storage.DeepCopy()
@@ -201,6 +209,9 @@ var _ = Describe("DeepCopy", func() {
 		It("checking for Deepcopy object", func() {
 			bk := bk2.DeepCopyObject()
 			Ω(bk.GetObjectKind().GroupVersionKind().Version).To(Equal(""))
+		})
+		It("checking pod tolerations", func() {
+			Ω(bk2.Spec.Tolerations[0].Key).To(Equal("bookie"))
 		})
 	})
 })
