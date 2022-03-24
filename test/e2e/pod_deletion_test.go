@@ -11,72 +11,80 @@
 package e2e
 
 import (
-	"testing"
 	"time"
 
+	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	framework "github.com/operator-framework/operator-sdk/pkg/test"
-	bookkeeper_e2eutil "github.com/pravega/bookkeeper-operator/pkg/test/e2e/e2eutil"
+
+	"github.com/pravega/bookkeeper-operator/pkg/apis/bookkeeper/v1alpha1"
+	"github.com/pravega/bookkeeper-operator/pkg/test/e2e/e2eutil"
 )
 
-func testDeletePods(t *testing.T) {
-	g := NewGomegaWithT(t)
+var _ = Describe("Test deleted pods are auto restarted", func() {
+	namespace := "default"
+	defaultCluster := e2eutil.NewDefaultCluster(namespace)
 
-	doCleanup := true
-	ctx := framework.NewTestCtx(t)
-	defer func() {
-		if doCleanup {
-			ctx.Cleanup()
-		}
-	}()
+	BeforeEach(func() {
+		defaultCluster = e2eutil.NewDefaultCluster(namespace)
+		defaultCluster.WithDefaults()
+	})
 
-	namespace, err := ctx.GetNamespace()
-	g.Expect(err).NotTo(HaveOccurred())
-	f := framework.Global
+	Context("Creating a bookkeeper cluster", func() {
+		var (
+			bookkeeper *v1alpha1.BookkeeperCluster
+			err        error
+		)
 
-	cluster := bookkeeper_e2eutil.NewDefaultCluster(namespace)
-	cluster.WithDefaults()
+		It("should create successfully", func() {
 
-	bookkeeper, err := bookkeeper_e2eutil.CreateBKCluster(t, f, ctx, cluster)
-	g.Expect(err).NotTo(HaveOccurred())
+			bookkeeper, err = e2eutil.CreateBKCluster(k8sClient, defaultCluster)
+			Expect(err).NotTo(HaveOccurred())
 
-	err = bookkeeper_e2eutil.WaitForBookkeeperClusterToBecomeReady(t, f, ctx, bookkeeper)
-	g.Expect(err).NotTo(HaveOccurred())
+			Eventually(e2eutil.WaitForBookkeeperClusterToBecomeReady(k8sClient, bookkeeper), timeout).Should(Succeed())
+		})
 
-	bookkeeper, err = bookkeeper_e2eutil.GetBKCluster(t, f, ctx, bookkeeper)
-	g.Expect(err).NotTo(HaveOccurred())
+		Context("When deleting pods", func() {
+			It("should delete 1 successfully", func() {
+				bookkeeper, err = e2eutil.GetBKCluster(k8sClient, bookkeeper)
+				Expect(err).NotTo(HaveOccurred())
 
-	podDeleteCount := 1
-	err = bookkeeper_e2eutil.DeletePods(t, f, ctx, bookkeeper, podDeleteCount)
-	g.Expect(err).NotTo(HaveOccurred())
+				podDeleteCount := 1
+				err = e2eutil.DeletePods(k8sClient, bookkeeper, podDeleteCount)
+				Expect(err).NotTo(HaveOccurred())
+			})
 
-	time.Sleep(10 * time.Second)
-	err = bookkeeper_e2eutil.WaitForBookkeeperClusterToBecomeReady(t, f, ctx, bookkeeper)
-	g.Expect(err).NotTo(HaveOccurred())
+			It("should bring pods back and become ready again", func() {
+				time.Sleep(10 * time.Second)
+				Eventually(e2eutil.WaitForBookkeeperClusterToBecomeReady(k8sClient, bookkeeper), timeout).Should(Succeed())
+			})
 
-	podDeleteCount = 2
-	err = bookkeeper_e2eutil.DeletePods(t, f, ctx, bookkeeper, podDeleteCount)
-	g.Expect(err).NotTo(HaveOccurred())
-	time.Sleep(10 * time.Second)
+			It("should delete 2 successfully", func() {
+				podDeleteCount := 2
+				err = e2eutil.DeletePods(k8sClient, bookkeeper, podDeleteCount)
+				Expect(err).NotTo(HaveOccurred())
+			})
 
-	err = bookkeeper_e2eutil.WaitForBookkeeperClusterToBecomeReady(t, f, ctx, bookkeeper)
-	g.Expect(err).NotTo(HaveOccurred())
+			It("should bring pods back and become ready again", func() {
+				time.Sleep(10 * time.Second)
+				Eventually(e2eutil.WaitForBookkeeperClusterToBecomeReady(k8sClient, bookkeeper), timeout).Should(Succeed())
+			})
 
-	podDeleteCount = 3
-	err = bookkeeper_e2eutil.DeletePods(t, f, ctx, bookkeeper, podDeleteCount)
-	g.Expect(err).NotTo(HaveOccurred())
-	time.Sleep(10 * time.Second)
+			It("should delete 3 successfully", func() {
+				podDeleteCount := 3
+				err = e2eutil.DeletePods(k8sClient, bookkeeper, podDeleteCount)
+				Expect(err).NotTo(HaveOccurred())
+			})
 
-	err = bookkeeper_e2eutil.WaitForBookkeeperClusterToBecomeReady(t, f, ctx, bookkeeper)
-	g.Expect(err).NotTo(HaveOccurred())
+			It("should bring pods back and become ready again", func() {
+				time.Sleep(10 * time.Second)
+				Eventually(e2eutil.WaitForBookkeeperClusterToBecomeReady(k8sClient, bookkeeper), timeout).Should(Succeed())
+			})
+		})
 
-	err = bookkeeper_e2eutil.DeleteBKCluster(t, f, ctx, bookkeeper)
-	g.Expect(err).NotTo(HaveOccurred())
-
-	// No need to do cleanup since the cluster CR has already been deleted
-	doCleanup = false
-
-	err = bookkeeper_e2eutil.WaitForBKClusterToTerminate(t, f, ctx, bookkeeper)
-	g.Expect(err).NotTo(HaveOccurred())
-
-}
+		It("should tear down the cluster successfully", func() {
+			err = e2eutil.DeleteBKCluster(k8sClient, bookkeeper)
+			Expect(err).NotTo(HaveOccurred())
+			Eventually(e2eutil.WaitForBKClusterToTerminate(k8sClient, bookkeeper), timeout).Should(Succeed())
+		})
+	})
+})

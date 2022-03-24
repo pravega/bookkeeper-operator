@@ -11,138 +11,142 @@
 package e2e
 
 import (
-	. "github.com/onsi/gomega"
-	framework "github.com/operator-framework/operator-sdk/pkg/test"
-	bookkeeper_e2eutil "github.com/pravega/bookkeeper-operator/pkg/test/e2e/e2eutil"
 	"strconv"
-	"testing"
 	"time"
+
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+	"github.com/pravega/bookkeeper-operator/pkg/apis/bookkeeper/v1alpha1"
+
+	"github.com/pravega/bookkeeper-operator/pkg/test/e2e/e2eutil"
 )
 
-func testMultiBKCluster(t *testing.T) {
-	g := NewGomegaWithT(t)
+var _ = Describe("Test multiple bookkeeper clusters", func() {
+	namespace := "default"
+	defaultCluster := e2eutil.NewDefaultCluster(namespace)
 
-	doCleanup := true
-	ctx := framework.NewTestCtx(t)
-	defer func() {
-		if doCleanup {
-			ctx.Cleanup()
-		}
-	}()
+	BeforeEach(func() {
+		defaultCluster = e2eutil.NewDefaultCluster(namespace)
+		defaultCluster.WithDefaults()
+	})
 
-	namespace, err := ctx.GetNamespace()
-	g.Expect(err).NotTo(HaveOccurred())
-	f := framework.Global
+	Context("When creating 3 Bookkeeper clusters", func() {
+		var (
+			bk1, bk2, bk3 *v1alpha1.BookkeeperCluster
+			err           error
+		)
+		cm1_name := "configmap1"
+		cm1 := e2eutil.NewConfigMap(namespace, cm1_name, "pr1")
+		cm2_name := "configmap2"
+		cm2 := e2eutil.NewConfigMap(namespace, cm2_name, "pr2")
 
-	// Create first cluster
-	cluster := bookkeeper_e2eutil.NewDefaultCluster(namespace)
-	cm_name := "configmap1"
-	cm1 := bookkeeper_e2eutil.NewConfigMap(namespace, cm_name, "pr1")
-	err = bookkeeper_e2eutil.CreateConfigMap(t, f, ctx, cm1)
-	g.Expect(err).NotTo(HaveOccurred())
-	cluster.ObjectMeta.Name = "bk1"
-	autorecovery := true
-	cluster.Spec.AutoRecovery = &(autorecovery)
-	cluster.WithDefaults()
+		Context("When creating cluster 1", func() {
+			autorecovery := true
+			It("should succeed", func() {
+				err = e2eutil.CreateConfigMap(k8sClient, cm1)
+				Expect(err).NotTo(HaveOccurred())
+				defaultCluster.ObjectMeta.Name = "bk1"
+				defaultCluster.Spec.AutoRecovery = &(autorecovery)
+				defaultCluster.WithDefaults()
 
-	bk1, err := bookkeeper_e2eutil.CreateBKClusterWithCM(t, f, ctx, cluster, cm_name)
-	g.Expect(err).NotTo(HaveOccurred())
+				bk1, err = e2eutil.CreateBKClusterWithCM(k8sClient, defaultCluster, cm1_name)
+				Expect(err).NotTo(HaveOccurred())
+				Eventually(e2eutil.WaitForBookkeeperClusterToBecomeReady(k8sClient, bk1), timeout).Should(Succeed())
+			})
+			It("should have the proper configmap", func() {
+				bk1, err = e2eutil.GetBKCluster(k8sClient, bk1)
+				Expect(err).NotTo(HaveOccurred())
+				err = e2eutil.CheckConfigMap(k8sClient, bk1, "BK_autoRecoveryDaemonEnabled", strconv.FormatBool(autorecovery))
+				Expect(err).NotTo(HaveOccurred())
+			})
+		})
 
-	err = bookkeeper_e2eutil.WaitForBookkeeperClusterToBecomeReady(t, f, ctx, bk1)
-	g.Expect(err).NotTo(HaveOccurred())
+		Context("When creating cluster 2", func() {
+			autorecovery := false
+			It("should succeed", func() {
+				defaultCluster = e2eutil.NewDefaultCluster(namespace)
+				err = e2eutil.CreateConfigMap(k8sClient, cm2)
+				Expect(err).NotTo(HaveOccurred())
+				defaultCluster.ObjectMeta.Name = "bk2"
+				defaultCluster.Spec.AutoRecovery = &(autorecovery)
+				defaultCluster.WithDefaults()
 
-	bk1, err = bookkeeper_e2eutil.GetBKCluster(t, f, ctx, bk1)
-	g.Expect(err).NotTo(HaveOccurred())
-	err = bookkeeper_e2eutil.CheckConfigMap(t, f, ctx, bk1, "BK_autoRecoveryDaemonEnabled", strconv.FormatBool(autorecovery))
-	g.Expect(err).NotTo(HaveOccurred())
+				bk2, err := e2eutil.CreateBKClusterWithCM(k8sClient, defaultCluster, cm2_name)
+				Expect(err).NotTo(HaveOccurred())
+				Eventually(e2eutil.WaitForBookkeeperClusterToBecomeReady(k8sClient, bk2), timeout).Should(Succeed())
+			})
+			It("should have the proper configmap", func() {
+				bk2, err = e2eutil.GetBKCluster(k8sClient, bk2)
+				Expect(err).NotTo(HaveOccurred())
+				err = e2eutil.CheckConfigMap(k8sClient, bk2, "BK_autoRecoveryDaemonEnabled", strconv.FormatBool(autorecovery))
+				Expect(err).NotTo(HaveOccurred())
+			})
+			Context("When creating cluster 3", func() {
+				It("should succeed", func() {
+					defaultCluster = e2eutil.NewDefaultCluster(namespace)
+					defaultCluster.WithDefaults()
 
-	// Create second cluster
-	cluster = bookkeeper_e2eutil.NewDefaultCluster(namespace)
-	cm_name = "configmap2"
-	cm2 := bookkeeper_e2eutil.NewConfigMap(namespace, cm_name, "pr2")
-	err = bookkeeper_e2eutil.CreateConfigMap(t, f, ctx, cm2)
-	g.Expect(err).NotTo(HaveOccurred())
-	cluster.ObjectMeta.Name = "bk2"
-	autorecovery = false
-	cluster.Spec.AutoRecovery = &(autorecovery)
-	cluster.WithDefaults()
+					bk3, err := e2eutil.CreateBKCluster(k8sClient, defaultCluster)
+					Expect(err).NotTo(HaveOccurred())
+					Eventually(e2eutil.WaitForBookkeeperClusterToBecomeReady(k8sClient, bk3), timeout).Should(Succeed())
+				})
 
-	bk2, err := bookkeeper_e2eutil.CreateBKClusterWithCM(t, f, ctx, cluster, cm_name)
-	g.Expect(err).NotTo(HaveOccurred())
+				It("should update & modify each cluster successfully", func() {
+					bk3, err = e2eutil.GetBKCluster(k8sClient, bk3)
+					Expect(err).NotTo(HaveOccurred())
 
-	err = bookkeeper_e2eutil.WaitForBookkeeperClusterToBecomeReady(t, f, ctx, bk2)
-	g.Expect(err).NotTo(HaveOccurred())
+					// This is to get the latest Bookkeeper cluster object
+					bk1, err = e2eutil.GetBKCluster(k8sClient, bk1)
+					Expect(err).NotTo(HaveOccurred())
 
-	bk2, err = bookkeeper_e2eutil.GetBKCluster(t, f, ctx, bk2)
-	g.Expect(err).NotTo(HaveOccurred())
-	err = bookkeeper_e2eutil.CheckConfigMap(t, f, ctx, bk2, "BK_autoRecoveryDaemonEnabled", strconv.FormatBool(autorecovery))
-	g.Expect(err).NotTo(HaveOccurred())
+					// Scale up replicas in the first Bookkeeper cluster
+					bk1.Spec.Replicas = 5
 
-	// Create third cluster
-	cluster = bookkeeper_e2eutil.NewDefaultCluster(namespace)
-	cluster.WithDefaults()
+					err = e2eutil.UpdateBKCluster(k8sClient, bk1)
+					Expect(err).NotTo(HaveOccurred())
 
-	bk3, err := bookkeeper_e2eutil.CreateBKCluster(t, f, ctx, cluster)
-	g.Expect(err).NotTo(HaveOccurred())
+					Eventually(e2eutil.WaitForBookkeeperClusterToBecomeReady(k8sClient, bk1), timeout).Should(Succeed())
 
-	err = bookkeeper_e2eutil.WaitForBookkeeperClusterToBecomeReady(t, f, ctx, bk3)
-	g.Expect(err).NotTo(HaveOccurred())
+					// This is to get the latest Bookkeeper cluster object
+					bk2, err = e2eutil.GetBKCluster(k8sClient, bk2)
+					Expect(err).NotTo(HaveOccurred())
 
-	bk3, err = bookkeeper_e2eutil.GetBKCluster(t, f, ctx, bk3)
-	g.Expect(err).NotTo(HaveOccurred())
+					// Deleting pods of the second Bookkeeper cluster
+					podDeleteCount := 3
+					err = e2eutil.DeletePods(k8sClient, bk2, podDeleteCount)
+					Expect(err).NotTo(HaveOccurred())
+					time.Sleep(10 * time.Second)
 
-	// This is to get the latest Bookkeeper cluster object
-	bk1, err = bookkeeper_e2eutil.GetBKCluster(t, f, ctx, bk1)
-	g.Expect(err).NotTo(HaveOccurred())
+					Eventually(e2eutil.WaitForBookkeeperClusterToBecomeReady(k8sClient, bk2), timeout).Should(Succeed())
+				})
 
-	// Scale up replicas in the first Bookkeeper cluster
-	bk1.Spec.Replicas = 5
+				It("should tear down all the clusters", func() {
+					// deleting all bookkeeper clusters
+					err = e2eutil.DeleteBKCluster(k8sClient, bk1)
+					Expect(err).NotTo(HaveOccurred())
 
-	err = bookkeeper_e2eutil.UpdateBKCluster(t, f, ctx, bk1)
-	g.Expect(err).NotTo(HaveOccurred())
+					err = e2eutil.WaitForBKClusterToTerminate(k8sClient, bk1)
+					Expect(err).NotTo(HaveOccurred())
 
-	err = bookkeeper_e2eutil.WaitForBookkeeperClusterToBecomeReady(t, f, ctx, bk1)
-	g.Expect(err).NotTo(HaveOccurred())
+					err = e2eutil.DeleteBKCluster(k8sClient, bk2)
+					Expect(err).NotTo(HaveOccurred())
 
-	// This is to get the latest Bookkeeper cluster object
-	bk2, err = bookkeeper_e2eutil.GetBKCluster(t, f, ctx, bk2)
-	g.Expect(err).NotTo(HaveOccurred())
+					err = e2eutil.WaitForBKClusterToTerminate(k8sClient, bk2)
+					Expect(err).NotTo(HaveOccurred())
 
-	// Deleting pods of the second Bookkeeper cluster
-	podDeleteCount := 3
-	err = bookkeeper_e2eutil.DeletePods(t, f, ctx, bk2, podDeleteCount)
-	g.Expect(err).NotTo(HaveOccurred())
-	time.Sleep(10 * time.Second)
+					err = e2eutil.DeleteBKCluster(k8sClient, bk3)
+					Expect(err).NotTo(HaveOccurred())
 
-	err = bookkeeper_e2eutil.WaitForBookkeeperClusterToBecomeReady(t, f, ctx, bk2)
-	g.Expect(err).NotTo(HaveOccurred())
+					err = e2eutil.WaitForBKClusterToTerminate(k8sClient, bk3)
+					Expect(err).NotTo(HaveOccurred())
 
-	// deleting all bookkeeper clusters
-	err = bookkeeper_e2eutil.DeleteBKCluster(t, f, ctx, bk1)
-	g.Expect(err).NotTo(HaveOccurred())
+					err = e2eutil.DeleteConfigMap(k8sClient, cm1)
+					Expect(err).NotTo(HaveOccurred())
 
-	err = bookkeeper_e2eutil.WaitForBKClusterToTerminate(t, f, ctx, bk1)
-	g.Expect(err).NotTo(HaveOccurred())
-
-	err = bookkeeper_e2eutil.DeleteBKCluster(t, f, ctx, bk2)
-	g.Expect(err).NotTo(HaveOccurred())
-
-	err = bookkeeper_e2eutil.WaitForBKClusterToTerminate(t, f, ctx, bk2)
-	g.Expect(err).NotTo(HaveOccurred())
-
-	err = bookkeeper_e2eutil.DeleteBKCluster(t, f, ctx, bk3)
-	g.Expect(err).NotTo(HaveOccurred())
-
-	err = bookkeeper_e2eutil.WaitForBKClusterToTerminate(t, f, ctx, bk3)
-	g.Expect(err).NotTo(HaveOccurred())
-
-	err = bookkeeper_e2eutil.DeleteConfigMap(t, f, ctx, cm1)
-	g.Expect(err).NotTo(HaveOccurred())
-
-	err = bookkeeper_e2eutil.DeleteConfigMap(t, f, ctx, cm2)
-	g.Expect(err).NotTo(HaveOccurred())
-
-	// No need to do cleanup since the cluster CR has already been deleted
-	doCleanup = false
-
-}
+					err = e2eutil.DeleteConfigMap(k8sClient, cm2)
+					Expect(err).NotTo(HaveOccurred())
+				})
+			})
+		})
+	})
+})

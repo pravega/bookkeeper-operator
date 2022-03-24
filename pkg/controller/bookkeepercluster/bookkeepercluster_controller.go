@@ -44,19 +44,19 @@ import (
 // ReconcileTime is the delay between reconciliations
 const ReconcileTime = 30 * time.Second
 
-// Add creates a new bookkeeperCluster Controller and adds it to the Manager. The Manager will set fields on the Controller
+// AddBookkeeperReconciler creates a new bookkeeperCluster Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
-func Add(mgr manager.Manager) error {
-	return add(mgr, newReconciler(mgr))
+func AddBookkeeperReconciler(mgr manager.Manager) error {
+	return Add(mgr, NewReconciler(mgr))
 }
 
-// newReconciler returns a new reconcile.Reconciler
-func newReconciler(mgr manager.Manager) reconcile.Reconciler {
+// NewReconciler returns a new reconcile.Reconciler
+func NewReconciler(mgr manager.Manager) reconcile.Reconciler {
 	return &ReconcileBookkeeperCluster{client: mgr.GetClient(), scheme: mgr.GetScheme()}
 }
 
-// add adds a new Controller to mgr with r as the reconcile.Reconciler
-func add(mgr manager.Manager, r reconcile.Reconciler) error {
+// Add adds a new Controller to mgr with r as the reconcile.Reconciler
+func Add(mgr manager.Manager, r reconcile.Reconciler) error {
 	// Create a new controller
 	c, err := controller.New("bookkeeper-cluster-controller", mgr, controller.Options{Reconciler: r})
 	if err != nil {
@@ -86,7 +86,7 @@ type ReconcileBookkeeperCluster struct {
 // Note:
 // The Controller will requeue the Request to be processed again if the returned error is non-nil or
 // Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
-func (r *ReconcileBookkeeperCluster) Reconcile(request reconcile.Request) (reconcile.Result, error) {
+func (r *ReconcileBookkeeperCluster) Reconcile(_ context.Context, request reconcile.Request) (reconcile.Result, error) {
 	log.Printf("Reconciling BookkeeperCluster %s/%s\n", request.Namespace, request.Name)
 
 	// Fetch the BookkeeperCluster instance
@@ -357,7 +357,7 @@ func (r *ReconcileBookkeeperCluster) reconcileConfigMap(bk *bookkeeperv1alpha1.B
 			if err != nil {
 				return err
 			}
-			//restarting sts pods
+			// restarting sts pods
 			if !r.checkVersionUpgradeTriggered(bk) {
 				err = r.restartStsPod(bk)
 				if err != nil {
@@ -560,7 +560,7 @@ func (r *ReconcileBookkeeperCluster) rollbackFailedUpgrade(bk *bookkeeperv1alpha
 		// start rollback to previous version
 		previousVersion := bk.Status.GetLastVersion()
 		log.Printf("Rolling back to last cluster version  %v", previousVersion)
-		//Rollback cluster to previous version
+		// Rollback cluster to previous version
 		return r.rollbackClusterVersion(bk, previousVersion)
 	}
 	return nil

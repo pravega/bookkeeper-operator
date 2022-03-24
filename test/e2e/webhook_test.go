@@ -10,59 +10,61 @@
 package e2e
 
 import (
-	"testing"
-
+	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	framework "github.com/operator-framework/operator-sdk/pkg/test"
-	bookkeeper_e2eutil "github.com/pravega/bookkeeper-operator/pkg/test/e2e/e2eutil"
+
+	"github.com/pravega/bookkeeper-operator/pkg/apis/bookkeeper/v1alpha1"
+	"github.com/pravega/bookkeeper-operator/pkg/test/e2e/e2eutil"
 )
 
-func testWebhook(t *testing.T) {
-	g := NewGomegaWithT(t)
+var _ = Describe("Test deleted pods are auto restarted", func() {
+	namespace := "default"
+	defaultCluster := e2eutil.NewDefaultCluster(namespace)
 
-	doCleanup := true
-	ctx := framework.NewTestCtx(t)
-	defer func() {
-		if doCleanup {
-			ctx.Cleanup()
-		}
-	}()
+	BeforeEach(func() {
+		defaultCluster = e2eutil.NewDefaultCluster(namespace)
+		defaultCluster.WithDefaults()
+	})
 
-	namespace, err := ctx.GetNamespace()
-	g.Expect(err).NotTo(HaveOccurred())
-	f := framework.Global
+	Context("Creating a bookkeeper cluster", func() {
+		var (
+			bookkeeper *v1alpha1.BookkeeperCluster
+			err        error
+		)
 
-	//Test webhook with an invalid Bookkeeper cluster version format
-	invalidVersion := bookkeeper_e2eutil.NewClusterWithVersion(namespace, "999")
-	invalidVersion.WithDefaults()
-	_, err = bookkeeper_e2eutil.CreateBKCluster(t, f, ctx, invalidVersion)
-	g.Expect(err).To(HaveOccurred(), "Should reject deployment of invalid version format")
-	g.Expect(err.Error()).To(ContainSubstring("request version is not in valid format:"))
+		It("should fail to create", func() {
+			// Test webhook with an invalid Bookkeeper cluster version format
+			invalidVersion := e2eutil.NewClusterWithVersion(namespace, "999")
+			invalidVersion.WithDefaults()
+			_, err = e2eutil.CreateBKCluster(k8sClient, invalidVersion)
+			Expect(err).To(HaveOccurred(), "Should reject deployment of invalid version format")
+			Expect(err.Error()).To(ContainSubstring("request version is not in valid format:"))
+		})
 
-	// Test webhook with a valid Bookkeeper cluster version format
-	validVersion := bookkeeper_e2eutil.NewClusterWithVersion(namespace, "0.6.0")
-	validVersion.WithDefaults()
-	bookkeeper, err := bookkeeper_e2eutil.CreateBKCluster(t, f, ctx, validVersion)
-	g.Expect(err).NotTo(HaveOccurred())
+		It("should succeed with correct version", func() {
+			// Test webhook with a valid Bookkeeper cluster version format
+			validVersion := e2eutil.NewClusterWithVersion(namespace, "0.6.0")
+			validVersion.WithDefaults()
+			bookkeeper, err := e2eutil.CreateBKCluster(k8sClient, validVersion)
+			Expect(err).NotTo(HaveOccurred())
 
-	err = bookkeeper_e2eutil.WaitForBookkeeperClusterToBecomeReady(t, f, ctx, bookkeeper)
-	g.Expect(err).NotTo(HaveOccurred())
+			Eventually(e2eutil.WaitForBookkeeperClusterToBecomeReady(k8sClient, bookkeeper), timeout).Should(Succeed())
+		})
 
-	// Try to downgrade the cluster
-	bookkeeper, err = bookkeeper_e2eutil.GetBKCluster(t, f, ctx, bookkeeper)
-	g.Expect(err).NotTo(HaveOccurred())
-	bookkeeper.Spec.Version = "0.5.0"
-	err = bookkeeper_e2eutil.UpdateBKCluster(t, f, ctx, bookkeeper)
-	g.Expect(err).To(HaveOccurred(), "Should not allow downgrade")
-	g.Expect(err.Error()).To(ContainSubstring("downgrading the cluster from version 0.6.0 to 0.5.0 is not supported"))
+		It("should not allow downgrading", func() {
+			// Try to downgrade the cluster
+			bookkeeper, err = e2eutil.GetBKCluster(k8sClient, bookkeeper)
+			Expect(err).NotTo(HaveOccurred())
+			bookkeeper.Spec.Version = "0.5.0"
+			err = e2eutil.UpdateBKCluster(k8sClient, bookkeeper)
+			Expect(err).To(HaveOccurred(), "Should not allow downgrade")
+			Expect(err.Error()).To(ContainSubstring("downgrading the cluster from version 0.6.0 to 0.5.0 is not supported"))
+		})
 
-	// Delete cluster
-	err = bookkeeper_e2eutil.DeleteBKCluster(t, f, ctx, bookkeeper)
-	g.Expect(err).NotTo(HaveOccurred())
-
-	// No need to do cleanup since the cluster CR has already been deleted
-	doCleanup = false
-
-	err = bookkeeper_e2eutil.WaitForBKClusterToTerminate(t, f, ctx, bookkeeper)
-	g.Expect(err).NotTo(HaveOccurred())
-}
+		It("should tear down the cluster successfully", func() {
+			err = e2eutil.DeleteBKCluster(k8sClient, bookkeeper)
+			Expect(err).NotTo(HaveOccurred())
+			Eventually(e2eutil.WaitForBKClusterToTerminate(k8sClient, bookkeeper), timeout).Should(Succeed())
+		})
+	})
+})
