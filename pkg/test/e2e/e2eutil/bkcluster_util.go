@@ -17,13 +17,14 @@ import (
 	"testing"
 	"time"
 
-	framework "github.com/operator-framework/operator-sdk/pkg/test"
-	bkapi "github.com/pravega/bookkeeper-operator/pkg/apis/bookkeeper/v1alpha1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	//framework "github.com/operator-framework/operator-sdk/pkg/test"
+	bkapi "github.com/pravega/bookkeeper-operator/api/v1alpha1"
 	"github.com/pravega/bookkeeper-operator/pkg/util"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
@@ -41,7 +42,7 @@ var (
 )
 
 // CreateBKCluster creates a BookkeeperCluster CR with the desired spec
-func CreateBKCluster(t *testing.T, f *framework.Framework, ctx *framework.TestCtx, b *bkapi.BookkeeperCluster) (*bkapi.BookkeeperCluster, error) {
+func CreateBKCluster(t *testing.T, k8client client.Client, b *bkapi.BookkeeperCluster) (*bkapi.BookkeeperCluster, error) {
 	t.Logf("creating bookkeeper cluster: %s", b.Name)
 	b.Spec.EnvVars = "bookkeeper-configmap"
 	b.Spec.ZookeeperUri = "zookeeper-client:2181"
@@ -72,13 +73,14 @@ func CreateBKCluster(t *testing.T, f *framework.Framework, ctx *framework.TestCt
 			},
 		},
 	}
-	err := f.Client.Create(goctx.TODO(), b, &framework.CleanupOptions{TestContext: ctx, Timeout: CleanupTimeout, RetryInterval: CleanupRetryInterval})
+	//	err := k8client.Create(goctx.TODO(), b, &framework.CleanupOptions{TestContext: ctx, Timeout: CleanupTimeout, RetryInterval: CleanupRetryInterval})
+	err := k8client.Create(goctx.TODO(), b)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create CR: %v", err)
 	}
 
 	bookkeeper := &bkapi.BookkeeperCluster{}
-	err = f.Client.Get(goctx.TODO(), types.NamespacedName{Namespace: b.Namespace, Name: b.Name}, bookkeeper)
+	err = k8client.Get(goctx.TODO(), types.NamespacedName{Namespace: b.Namespace, Name: b.Name}, bookkeeper)
 	if err != nil {
 		return nil, fmt.Errorf("failed to obtain created CR: %v", err)
 	}
@@ -87,7 +89,7 @@ func CreateBKCluster(t *testing.T, f *framework.Framework, ctx *framework.TestCt
 }
 
 // CreateBKCluster creates a BookkeeperCluster CR with the desired spec
-func CreateBKClusterWithCM(t *testing.T, f *framework.Framework, ctx *framework.TestCtx, b *bkapi.BookkeeperCluster, cm string) (*bkapi.BookkeeperCluster, error) {
+func CreateBKClusterWithCM(t *testing.T, k8client client.Client, b *bkapi.BookkeeperCluster, cm string) (*bkapi.BookkeeperCluster, error) {
 	t.Logf("creating bookkeeper cluster: %s", b.Name)
 	b.Spec.EnvVars = cm
 	b.Spec.ZookeeperUri = "zookeeper-client:2181"
@@ -118,13 +120,14 @@ func CreateBKClusterWithCM(t *testing.T, f *framework.Framework, ctx *framework.
 			},
 		},
 	}
-	err := f.Client.Create(goctx.TODO(), b, &framework.CleanupOptions{TestContext: ctx, Timeout: CleanupTimeout, RetryInterval: CleanupRetryInterval})
+	//err := k8client.Create(goctx.TODO(), b, &framework.CleanupOptions{TestContext: ctx, Timeout: CleanupTimeout, RetryInterval: CleanupRetryInterval})
+	err := k8client.Create(goctx.TODO(), b)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create CR: %v", err)
 	}
 
 	bookkeeper := &bkapi.BookkeeperCluster{}
-	err = f.Client.Get(goctx.TODO(), types.NamespacedName{Namespace: b.Namespace, Name: b.Name}, bookkeeper)
+	err = k8client.Get(goctx.TODO(), types.NamespacedName{Namespace: b.Namespace, Name: b.Name}, bookkeeper)
 	if err != nil {
 		return nil, fmt.Errorf("failed to obtain created CR: %v", err)
 	}
@@ -133,8 +136,9 @@ func CreateBKClusterWithCM(t *testing.T, f *framework.Framework, ctx *framework.
 }
 
 // CreateConfigMap creates the configmap specified
-func CreateConfigMap(t *testing.T, f *framework.Framework, ctx *framework.TestCtx, cm *corev1.ConfigMap) error {
-	err := f.Client.Create(goctx.TODO(), cm, &framework.CleanupOptions{TestContext: ctx, Timeout: CleanupTimeout, RetryInterval: CleanupRetryInterval})
+func CreateConfigMap(t *testing.T, k8client client.Client, cm *corev1.ConfigMap) error {
+	err := k8client.Create(goctx.TODO(), cm)
+	//err := k8client.Create(goctx.TODO(), cm, &framework.CleanupOptions{TestContext: ctx, Timeout: CleanupTimeout, RetryInterval: CleanupRetryInterval})
 	if err != nil {
 		return fmt.Errorf("failed to create Configmap: %v", err)
 	}
@@ -142,11 +146,14 @@ func CreateConfigMap(t *testing.T, f *framework.Framework, ctx *framework.TestCt
 	return nil
 }
 
-func DeletePods(t *testing.T, f *framework.Framework, ctx *framework.TestCtx, b *bkapi.BookkeeperCluster, size int) error {
-	listOptions := metav1.ListOptions{
-		LabelSelector: labels.SelectorFromSet(map[string]string{"bookkeeper_cluster": b.GetName()}).String(),
+func DeletePods(t *testing.T, k8client client.Client, b *bkapi.BookkeeperCluster, size int) error {
+
+	podList := corev1.PodList{}
+	listOptions := []client.ListOption{
+		client.InNamespace(b.GetNamespace()),
+		client.MatchingLabelsSelector{Selector: labels.SelectorFromSet(map[string]string{"app": b.GetName()})},
 	}
-	podList, err := f.KubeClient.CoreV1().Pods(b.Namespace).List(goctx.TODO(), listOptions)
+	err := k8client.List(goctx.TODO(), &podList, listOptions...)
 	if err != nil {
 		return err
 	}
@@ -155,7 +162,7 @@ func DeletePods(t *testing.T, f *framework.Framework, ctx *framework.TestCtx, b 
 	for i := 0; i < size; i++ {
 		pod = &podList.Items[i]
 		t.Logf("pod name is %v", pod.Name)
-		err := f.Client.Delete(goctx.TODO(), pod)
+		err := k8client.Delete(goctx.TODO(), pod)
 		if err != nil {
 			return fmt.Errorf("failed to delete pod: %v", err)
 		}
@@ -165,9 +172,9 @@ func DeletePods(t *testing.T, f *framework.Framework, ctx *framework.TestCtx, b 
 }
 
 // DeleteBKCluster deletes the BookkeeperCluster CR specified by cluster spec
-func DeleteBKCluster(t *testing.T, f *framework.Framework, ctx *framework.TestCtx, b *bkapi.BookkeeperCluster) error {
+func DeleteBKCluster(t *testing.T, k8client client.Client, b *bkapi.BookkeeperCluster) error {
 	t.Logf("deleting bookkeeper cluster: %s", b.Name)
-	err := f.Client.Delete(goctx.TODO(), b)
+	err := k8client.Delete(goctx.TODO(), b)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
 			return nil
@@ -180,9 +187,9 @@ func DeleteBKCluster(t *testing.T, f *framework.Framework, ctx *framework.TestCt
 }
 
 // DeleteConfigMap deletes the configmap specified
-func DeleteConfigMap(t *testing.T, f *framework.Framework, ctx *framework.TestCtx, cm *corev1.ConfigMap) error {
+func DeleteConfigMap(t *testing.T, k8client client.Client, cm *corev1.ConfigMap) error {
 	t.Logf("deleting configmap: %s", cm.ObjectMeta.Name)
-	err := f.Client.Delete(goctx.TODO(), cm)
+	err := k8client.Delete(goctx.TODO(), cm)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
 			return nil
@@ -195,9 +202,9 @@ func DeleteConfigMap(t *testing.T, f *framework.Framework, ctx *framework.TestCt
 }
 
 // UpdateBkCluster updates the BookkeeperCluster CR
-func UpdateBKCluster(t *testing.T, f *framework.Framework, ctx *framework.TestCtx, b *bkapi.BookkeeperCluster) error {
+func UpdateBKCluster(t *testing.T, k8client client.Client, b *bkapi.BookkeeperCluster) error {
 	t.Logf("updating bookkeeper cluster: %s", b.Name)
-	err := f.Client.Update(goctx.TODO(), b)
+	err := k8client.Update(goctx.TODO(), b)
 	if err != nil {
 		return fmt.Errorf("failed to update CR: %v", err)
 	}
@@ -207,21 +214,24 @@ func UpdateBKCluster(t *testing.T, f *framework.Framework, ctx *framework.TestCt
 }
 
 // GetBKCluster returns the latest BookkeeperCluster CR
-func GetBKCluster(t *testing.T, f *framework.Framework, ctx *framework.TestCtx, b *bkapi.BookkeeperCluster) (*bkapi.BookkeeperCluster, error) {
+func GetBKCluster(t *testing.T, k8client client.Client, b *bkapi.BookkeeperCluster) (*bkapi.BookkeeperCluster, error) {
 	bookkeeper := &bkapi.BookkeeperCluster{}
-	err := f.Client.Get(goctx.TODO(), types.NamespacedName{Namespace: b.Namespace, Name: b.Name}, bookkeeper)
+	err := k8client.Get(goctx.TODO(), types.NamespacedName{Namespace: b.Namespace, Name: b.Name}, bookkeeper)
 	if err != nil {
 		return nil, fmt.Errorf("failed to obtain created CR: %v", err)
 	}
 	return bookkeeper, nil
 }
 
-func CheckEvents(t *testing.T, f *framework.Framework, ctx *framework.TestCtx, b *bkapi.BookkeeperCluster, event string) (bool, error) {
-	listOptions := metav1.ListOptions{
-		LabelSelector: labels.SelectorFromSet(map[string]string{"bookkeeper_cluster": b.GetName()}).String(),
+/*func CheckEvents(t *testing.T, k8client client.Client, b *bkapi.BookkeeperCluster, event string) (bool, error) {
+	listOptions := []client.ListOption{
+		client.InNamespace(b.GetNamespace()),
+		client.MatchingLabelsSelector{Selector: labels.SelectorFromSet(map[string]string{"app": b.GetName()})},
 	}
 
-	events, err := f.KubeClient.CoreV1().Events(b.Namespace).List(goctx.TODO(), listOptions)
+	events := corev1.EventList{}
+	err := k8client.List(goctx.TODO(), &events, listOptions...)
+	//	events, err := f.KubeClient.CoreV1().Events(b.Namespace).List(goctx.TODO(), listOptions)
 	if err != nil {
 		return false, err
 	}
@@ -235,12 +245,12 @@ func CheckEvents(t *testing.T, f *framework.Framework, ctx *framework.TestCtx, b
 	}
 
 	return false, nil
-}
+}*/
 
-func CheckConfigMap(t *testing.T, f *framework.Framework, ctx *framework.TestCtx, b *bkapi.BookkeeperCluster, key string, value string) error {
+func CheckConfigMap(t *testing.T, k8client client.Client, b *bkapi.BookkeeperCluster, key string, value string) error {
 	cm := &corev1.ConfigMap{}
 	name := util.ConfigMapNameForBookie(b.Name)
-	err := f.Client.Get(goctx.TODO(), types.NamespacedName{Namespace: b.Namespace, Name: name}, cm)
+	err := k8client.Get(goctx.TODO(), types.NamespacedName{Namespace: b.Namespace, Name: name}, cm)
 	if err != nil {
 		return fmt.Errorf("failed to obtain configmap: %v", err)
 	}
@@ -252,9 +262,9 @@ func CheckConfigMap(t *testing.T, f *framework.Framework, ctx *framework.TestCtx
 	return fmt.Errorf("Configmap does not contain the expected value")
 }
 
-func CheckServiceExists(t *testing.T, f *framework.Framework, ctx *framework.TestCtx, b *bkapi.BookkeeperCluster, svcName string) error {
+func CheckServiceExists(t *testing.T, k8client client.Client, b *bkapi.BookkeeperCluster, svcName string) error {
 	svc := &corev1.Service{}
-	err := f.Client.Get(goctx.TODO(), types.NamespacedName{Namespace: b.Namespace, Name: svcName}, svc)
+	err := k8client.Get(goctx.TODO(), types.NamespacedName{Namespace: b.Namespace, Name: svcName}, svc)
 	if err != nil {
 		return fmt.Errorf("service doesnt exist: %v", err)
 	}
@@ -262,11 +272,11 @@ func CheckServiceExists(t *testing.T, f *framework.Framework, ctx *framework.Tes
 }
 
 // WaitForBookkeeperClusterToBecomeReady will wait until all Bookkeeper cluster pods are ready
-func WaitForBookkeeperClusterToBecomeReady(t *testing.T, f *framework.Framework, ctx *framework.TestCtx, b *bkapi.BookkeeperCluster) error {
+func WaitForBookkeeperClusterToBecomeReady(t *testing.T, k8client client.Client, b *bkapi.BookkeeperCluster) error {
 	t.Logf("waiting for cluster pods to become ready: %s", b.Name)
 
 	err := wait.Poll(RetryInterval, ReadyTimeout, func() (done bool, err error) {
-		cluster, err := GetBKCluster(t, f, ctx, b)
+		cluster, err := GetBKCluster(t, k8client, b)
 
 		if err != nil {
 			return false, err
@@ -290,20 +300,21 @@ func WaitForBookkeeperClusterToBecomeReady(t *testing.T, f *framework.Framework,
 }
 
 // WaitForBKClusterToTerminate will wait until all Bookkeeper cluster pods are terminated
-func WaitForBKClusterToTerminate(t *testing.T, f *framework.Framework, ctx *framework.TestCtx, b *bkapi.BookkeeperCluster) error {
+func WaitForBKClusterToTerminate(t *testing.T, k8client client.Client, b *bkapi.BookkeeperCluster) error {
 	t.Logf("waiting for Bookkeeper cluster to terminate: %s", b.Name)
 
-	listOptions := metav1.ListOptions{
-		LabelSelector: labels.SelectorFromSet(map[string]string{"bookkeeper_cluster": b.GetName()}).String(),
+	listOptions := []client.ListOption{
+		client.InNamespace(b.GetNamespace()),
+		client.MatchingLabelsSelector{Selector: labels.SelectorFromSet(map[string]string{"app": b.GetName()})},
 	}
 
 	// Wait for Pods to terminate
 	err := wait.Poll(RetryInterval, TerminateTimeout, func() (done bool, err error) {
-		podList, err := f.KubeClient.CoreV1().Pods(b.Namespace).List(goctx.TODO(), listOptions)
+		podList := corev1.PodList{}
+		err = k8client.List(goctx.TODO(), &podList, listOptions...)
 		if err != nil {
 			return false, err
 		}
-
 		var names []string
 		for i := range podList.Items {
 			pod := &podList.Items[i]
@@ -322,11 +333,11 @@ func WaitForBKClusterToTerminate(t *testing.T, f *framework.Framework, ctx *fram
 
 	// Wait for PVCs to terminate
 	err = wait.Poll(RetryInterval, TerminateTimeout, func() (done bool, err error) {
-		pvcList, err := f.KubeClient.CoreV1().PersistentVolumeClaims(b.Namespace).List(goctx.TODO(), listOptions)
+		pvcList := corev1.PersistentVolumeClaimList{}
+		err = k8client.List(goctx.TODO(), &pvcList, listOptions...)
 		if err != nil {
 			return false, err
 		}
-
 		var names []string
 		for i := range pvcList.Items {
 			pvc := &pvcList.Items[i]
@@ -349,15 +360,16 @@ func WaitForBKClusterToTerminate(t *testing.T, f *framework.Framework, ctx *fram
 }
 
 // WaitForBookkeeperClusterToUpgrade will wait until all pods are upgraded
-func WaitForBKClusterToUpgrade(t *testing.T, f *framework.Framework, ctx *framework.TestCtx, b *bkapi.BookkeeperCluster, targetVersion string) error {
+func WaitForBKClusterToUpgrade(t *testing.T, k8client client.Client, b *bkapi.BookkeeperCluster, targetVersion string) error {
 	t.Logf("waiting for cluster to upgrade: %s", b.Name)
 
-	listOptions := metav1.ListOptions{
-		LabelSelector: labels.SelectorFromSet(map[string]string{"bookkeeper_cluster": b.GetName()}).String(),
+	listOptions := []client.ListOption{
+		client.InNamespace(b.GetNamespace()),
+		client.MatchingLabelsSelector{Selector: labels.SelectorFromSet(map[string]string{"app": b.GetName()})},
 	}
 
 	err := wait.Poll(RetryInterval, UpgradeTimeout, func() (done bool, err error) {
-		cluster, err := GetBKCluster(t, f, ctx, b)
+		cluster, err := GetBKCluster(t, k8client, b)
 		if err != nil {
 			return false, err
 		}
@@ -383,7 +395,8 @@ func WaitForBKClusterToUpgrade(t *testing.T, f *framework.Framework, ctx *framew
 	}
 
 	// check whether PVCs have been reattached
-	pvcList, err := f.KubeClient.CoreV1().PersistentVolumeClaims(b.Namespace).List(goctx.TODO(), listOptions)
+	pvcList := corev1.PersistentVolumeClaimList{}
+	err = k8client.List(goctx.TODO(), &pvcList, listOptions...)
 	if err != nil {
 		return err
 	}
@@ -409,35 +422,36 @@ func WaitForBKClusterToUpgrade(t *testing.T, f *framework.Framework, ctx *framew
 	return nil
 }
 
-func WaitForCMBKClusterToUpgrade(t *testing.T, f *framework.Framework, ctx *framework.TestCtx, b *bkapi.BookkeeperCluster) error {
+func WaitForCMBKClusterToUpgrade(t *testing.T, k8client client.Client, b *bkapi.BookkeeperCluster) error {
 	t.Logf("waiting for cluster to upgrade post cm changes: %s", b.Name)
 
-	listOptions := metav1.ListOptions{
-		LabelSelector: labels.SelectorFromSet(map[string]string{"bookkeeper_cluster": b.GetName()}).String(),
+	listOptions := []client.ListOption{
+		client.InNamespace(b.GetNamespace()),
+		client.MatchingLabelsSelector{Selector: labels.SelectorFromSet(map[string]string{"app": b.GetName()})},
 	}
 
 	// Checking if all pods are getting restarted
-	podList, err := f.KubeClient.CoreV1().Pods(b.Namespace).List(goctx.TODO(), listOptions)
+	podList := corev1.PodList{}
+	err := k8client.List(goctx.TODO(), &podList, listOptions...)
 	if err != nil {
 		return err
 	}
-
 	for i := range podList.Items {
 		pod := &podList.Items[i]
 		name := pod.Name
 		t.Logf("waiting for pods to terminate, running pods (%v)", pod.Name)
-		err = f.Client.Get(goctx.TODO(), types.NamespacedName{Namespace: b.Namespace, Name: name}, pod)
+		err = k8client.Get(goctx.TODO(), types.NamespacedName{Namespace: b.Namespace, Name: name}, pod)
 		start := time.Now()
 		for util.IsPodReady(pod) {
 			if time.Since(start) > 5*time.Minute {
 				return fmt.Errorf("failed to delete Bookkeeper pod (%s) for 5 mins ", name)
 			}
-			err = f.Client.Get(goctx.TODO(), types.NamespacedName{Namespace: b.Namespace, Name: name}, pod)
+			err = k8client.Get(goctx.TODO(), types.NamespacedName{Namespace: b.Namespace, Name: name}, pod)
 		}
 	}
 
 	err = wait.Poll(RetryInterval, ReadyTimeout, func() (done bool, err error) {
-		cluster, err := GetBKCluster(t, f, ctx, b)
+		cluster, err := GetBKCluster(t, k8client, b)
 
 		if err != nil {
 			return false, err
@@ -453,7 +467,8 @@ func WaitForCMBKClusterToUpgrade(t *testing.T, f *framework.Framework, ctx *fram
 	})
 
 	// check whether PVCs have been reattached
-	pvcList, err := f.KubeClient.CoreV1().PersistentVolumeClaims(b.Namespace).List(goctx.TODO(), listOptions)
+	pvcList := corev1.PersistentVolumeClaimList{}
+	err = k8client.List(goctx.TODO(), &pvcList, listOptions...)
 	if err != nil {
 		return err
 	}
@@ -480,15 +495,16 @@ func WaitForCMBKClusterToUpgrade(t *testing.T, f *framework.Framework, ctx *fram
 }
 
 // WaitForBookkeeperClusterToRollback will wait until all pods are rolled back
-func WaitForBKClusterToRollback(t *testing.T, f *framework.Framework, ctx *framework.TestCtx, b *bkapi.BookkeeperCluster, targetVersion string) error {
+func WaitForBKClusterToRollback(t *testing.T, k8client client.Client, b *bkapi.BookkeeperCluster, targetVersion string) error {
 	t.Logf("waiting for cluster to rollback: %s", b.Name)
 
-	listOptions := metav1.ListOptions{
-		LabelSelector: labels.SelectorFromSet(map[string]string{"bookkeeper_cluster": b.GetName()}).String(),
+	listOptions := []client.ListOption{
+		client.InNamespace(b.GetNamespace()),
+		client.MatchingLabelsSelector{Selector: labels.SelectorFromSet(map[string]string{"app": b.GetName()})},
 	}
 
 	err := wait.Poll(RetryInterval, UpgradeTimeout, func() (done bool, err error) {
-		cluster, err := GetBKCluster(t, f, ctx, b)
+		cluster, err := GetBKCluster(t, k8client, b)
 		if err != nil {
 			return false, err
 		}
@@ -514,7 +530,8 @@ func WaitForBKClusterToRollback(t *testing.T, f *framework.Framework, ctx *frame
 	}
 
 	// check whether PVCs have been reattached
-	pvcList, err := f.KubeClient.CoreV1().PersistentVolumeClaims(b.Namespace).List(goctx.TODO(), listOptions)
+	pvcList := corev1.PersistentVolumeClaimList{}
+	err = k8client.List(goctx.TODO(), &pvcList, listOptions...)
 	if err != nil {
 		return err
 	}

@@ -11,88 +11,78 @@
 package e2e
 
 import (
-	"testing"
 	"time"
 
+	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	framework "github.com/operator-framework/operator-sdk/pkg/test"
+
 	bookkeeper_e2eutil "github.com/pravega/bookkeeper-operator/pkg/test/e2e/e2eutil"
 )
 
-func testUpgradeCluster(t *testing.T) {
-	g := NewGomegaWithT(t)
+var _ = Describe("Upgrade  test controller", func() {
+	Context("upgrade  operations", func() {
+		It("upgrade pods  shoould be successful", func() {
+			//By("create Zookeeper cluster")
 
-	doCleanup := true
-	ctx := framework.NewTestCtx(t)
-	defer func() {
-		if doCleanup {
-			ctx.Cleanup()
-		}
-	}()
+			cluster := bookkeeper_e2eutil.NewDefaultCluster(testNamespace)
+			cluster.WithDefaults()
 
-	namespace, err := ctx.GetNamespace()
-	g.Expect(err).NotTo(HaveOccurred())
-	f := framework.Global
+			cluster.WithDefaults()
+			initialVersion := "0.6.0"
+			firstUpgradeVersion := "0.7.0"
+			secondUpgradeVersion := "0.7.1"
+			cluster.Spec.Version = initialVersion
 
-	cluster := bookkeeper_e2eutil.NewDefaultCluster(namespace)
+			bookkeeper, err := bookkeeper_e2eutil.CreateBKCluster(&t, k8sClient, cluster)
+			Expect(err).NotTo(HaveOccurred())
 
-	cluster.WithDefaults()
-	initialVersion := "0.6.0"
-	firstUpgradeVersion := "0.7.0"
-	secondUpgradeVersion := "0.7.1"
-	cluster.Spec.Version = initialVersion
+			err = bookkeeper_e2eutil.WaitForBookkeeperClusterToBecomeReady(&t, k8sClient, bookkeeper)
+			Expect(err).NotTo(HaveOccurred())
 
-	bookkeeper, err := bookkeeper_e2eutil.CreateBKCluster(t, f, ctx, cluster)
-	g.Expect(err).NotTo(HaveOccurred())
+			// This is to get the latest Bookkeeper cluster object
+			bookkeeper, err = bookkeeper_e2eutil.GetBKCluster(&t, k8sClient, bookkeeper)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(bookkeeper.Status.CurrentVersion).To(Equal(initialVersion))
 
-	err = bookkeeper_e2eutil.WaitForBookkeeperClusterToBecomeReady(t, f, ctx, bookkeeper)
-	g.Expect(err).NotTo(HaveOccurred())
+			// This is to get the latest Bookkeeper cluster object
+			bookkeeper, err = bookkeeper_e2eutil.GetBKCluster(&t, k8sClient, bookkeeper)
+			Expect(err).NotTo(HaveOccurred())
 
-	// This is to get the latest Bookkeeper cluster object
-	bookkeeper, err = bookkeeper_e2eutil.GetBKCluster(t, f, ctx, bookkeeper)
-	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(bookkeeper.Status.CurrentVersion).To(Equal(initialVersion))
+			bookkeeper.Spec.Version = firstUpgradeVersion
+			err = bookkeeper_e2eutil.UpdateBKCluster(&t, k8sClient, bookkeeper)
+			Expect(err).NotTo(HaveOccurred())
+			time.Sleep(2 * time.Second)
 
-	// This is to get the latest Bookkeeper cluster object
-	bookkeeper, err = bookkeeper_e2eutil.GetBKCluster(t, f, ctx, bookkeeper)
-	g.Expect(err).NotTo(HaveOccurred())
+			// trigger another upgrade while this upgrade is happening- it should fail
+			bookkeeper, err = bookkeeper_e2eutil.GetBKCluster(&t, k8sClient, bookkeeper)
+			Expect(err).NotTo(HaveOccurred())
+			bookkeeper.Spec.Version = secondUpgradeVersion
+			err = bookkeeper_e2eutil.UpdateBKCluster(&t, k8sClient, bookkeeper)
+			Expect(err).To(HaveOccurred(), "Should reject upgrade request while upgrade is in progress")
+			Expect(err.Error()).To(ContainSubstring("failed to process the request, cluster is upgrading"))
 
-	bookkeeper.Spec.Version = firstUpgradeVersion
-	err = bookkeeper_e2eutil.UpdateBKCluster(t, f, ctx, bookkeeper)
-	g.Expect(err).NotTo(HaveOccurred())
-	time.Sleep(2 * time.Second)
+			err = bookkeeper_e2eutil.WaitForBKClusterToUpgrade(&t, k8sClient, bookkeeper, firstUpgradeVersion)
+			Expect(err).NotTo(HaveOccurred())
 
-	// trigger another upgrade while this upgrade is happening- it should fail
-	bookkeeper, err = bookkeeper_e2eutil.GetBKCluster(t, f, ctx, bookkeeper)
-	g.Expect(err).NotTo(HaveOccurred())
-	bookkeeper.Spec.Version = secondUpgradeVersion
-	err = bookkeeper_e2eutil.UpdateBKCluster(t, f, ctx, bookkeeper)
-	g.Expect(err).To(HaveOccurred(), "Should reject upgrade request while upgrade is in progress")
-	g.Expect(err.Error()).To(ContainSubstring("failed to process the request, cluster is upgrading"))
+			// This is to get the latest Bookkeeper cluster object
+			bookkeeper, err = bookkeeper_e2eutil.GetBKCluster(&t, k8sClient, bookkeeper)
+			Expect(err).NotTo(HaveOccurred())
 
-	err = bookkeeper_e2eutil.WaitForBKClusterToUpgrade(t, f, ctx, bookkeeper, firstUpgradeVersion)
-	g.Expect(err).NotTo(HaveOccurred())
+			Expect(bookkeeper.Spec.Version).To(Equal(firstUpgradeVersion))
+			Expect(bookkeeper.Status.CurrentVersion).To(Equal(firstUpgradeVersion))
+			Expect(bookkeeper.Status.TargetVersion).To(Equal(""))
 
-	// This is to get the latest Bookkeeper cluster object
-	bookkeeper, err = bookkeeper_e2eutil.GetBKCluster(t, f, ctx, bookkeeper)
-	g.Expect(err).NotTo(HaveOccurred())
+			// check version history
+			Expect(bookkeeper.Status.VersionHistory[0]).To(Equal("0.6.0"))
+			Expect(bookkeeper.Status.VersionHistory[1]).To(Equal("0.7.0"))
 
-	g.Expect(bookkeeper.Spec.Version).To(Equal(firstUpgradeVersion))
-	g.Expect(bookkeeper.Status.CurrentVersion).To(Equal(firstUpgradeVersion))
-	g.Expect(bookkeeper.Status.TargetVersion).To(Equal(""))
+			// Delete cluster
+			err = bookkeeper_e2eutil.DeleteBKCluster(&t, k8sClient, bookkeeper)
+			Expect(err).NotTo(HaveOccurred())
 
-	// check version history
-	g.Expect(bookkeeper.Status.VersionHistory[0]).To(Equal("0.6.0"))
-	g.Expect(bookkeeper.Status.VersionHistory[1]).To(Equal("0.7.0"))
+			err = bookkeeper_e2eutil.WaitForBKClusterToTerminate(&t, k8sClient, bookkeeper)
+			Expect(err).NotTo(HaveOccurred())
 
-	// Delete cluster
-	err = bookkeeper_e2eutil.DeleteBKCluster(t, f, ctx, bookkeeper)
-	g.Expect(err).NotTo(HaveOccurred())
-
-	// No need to do cleanup since the cluster CR has already been deleted
-	doCleanup = false
-
-	err = bookkeeper_e2eutil.WaitForBKClusterToTerminate(t, f, ctx, bookkeeper)
-	g.Expect(err).NotTo(HaveOccurred())
-
-}
+		})
+	})
+})

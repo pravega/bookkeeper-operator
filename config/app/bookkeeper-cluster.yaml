@@ -1,0 +1,40 @@
+apiVersion: app.k8s.io/v1
+kind: Application
+metadata:
+  name: "bookkeeper-cluster"
+  labels:
+    app.kubernetes.io/name: "bookkeeper-cluster"
+  annotations:
+    com.dellemc.kahm.subscribed: "true"
+    nautilus.dellemc.com/chart-version: "latest"
+spec:
+  assemblyPhase: "Pending"
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: "bookkeeper-cluster"
+  componentKinds:
+    - group: core
+      kind: Service
+    - group: core
+      kind: Pod
+    - group: apps
+      kind: StatefulSet
+    - group: core
+      kind: ConfigMap
+    - group: core
+      kind: Secret
+    - group: core
+      kind: PersistentVolumeClaim
+    - group: core
+      kind: ServiceAccount
+    - group: pravega.pravega.io
+      kind: BookkeeperCluster
+  descriptor:
+    type: "bookkeeper-cluster"
+    version: "latest"
+    description: >
+      Bookkeeper deployment on Kubernetes
+    keywords:
+      - "nautilus"
+      - "pravega"
+      - "bookkeeper"
