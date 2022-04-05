@@ -134,6 +134,8 @@ func main() {
 		log.Error(err, "unable to create controller", "controller", "BookkeeperCluster")
 		os.Exit(1)
 	}
+
+	bookkeeperv1alpha1.Mgr = mgr
 	if webhookFlag {
 		if err = (&bookkeeperv1alpha1.BookkeeperCluster{}).SetupWebhookWithManager(mgr); err != nil {
 			log.Error(err, "unable to create webhook", "webhook", "BookkeeperCluster")

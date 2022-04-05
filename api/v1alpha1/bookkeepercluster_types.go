@@ -25,10 +25,10 @@ import (
 
 	"k8s.io/apimachinery/pkg/util/wait"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/manager"
+	//"sigs.k8s.io/controller-runtime/pkg/manager"
 )
 
-var Mgr manager.Manager
+//var Mgr manager.Manager
 
 const (
 	// DefaultZookeeperUri is the default ZooKeeper URI in the form of "hostname:port"

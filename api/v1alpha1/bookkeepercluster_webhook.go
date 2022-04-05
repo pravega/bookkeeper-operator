@@ -28,9 +28,14 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
+
+	//"sigs.k8s.io/controller-runtime/pkg/client"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
+	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 )
+
+var Mgr manager.Manager
 
 // log is for logging in this package.
 var bookkeeperclusterlog = logf.Log.WithName("bookkeepercluster-resource")
@@ -83,6 +88,7 @@ func (bk *BookkeeperCluster) ValidateUpdate(old runtime.Object) error {
 	if err != nil {
 		return err
 	}
+	log.Printf("Anisha calling validate configmap")
 	err = bk.validateConfigMap()
 	if err != nil {
 		return err
@@ -172,9 +178,16 @@ func (bk *BookkeeperCluster) ValidateAbsolutePath(dirs []string) error {
 }
 
 func (bk *BookkeeperCluster) validateConfigMap() error {
+	/*	cl, err := client.New(config.GetConfigOrDie(), client.Options{})
+		if err != nil {
+			log.Printf("error is %v", err)
+		}*/
 	configmap := &corev1.ConfigMap{}
+	log.Printf("Anisha in validate configmap")
+	log.Printf("reached herenow ")
 	err := Mgr.GetClient().Get(context.TODO(),
 		types.NamespacedName{Name: util.ConfigMapNameForBookie(bk.Name), Namespace: bk.Namespace}, configmap)
+	log.Printf("anisha error is %v %v", err, configmap.Name)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			return nil
