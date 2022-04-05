@@ -88,9 +88,7 @@ manifests: controller-gen
 
 # Deploy controller in the configured Kubernetes cluster in ~/.kube/config
 deploy: manifests kustomize
-        echo "cd config/manager && $(KUSTOMIZE) edit set image pravega/bookkeeper-operator=$(TEST_IMAGE)"
 	cd config/manager && $(KUSTOMIZE) edit set image pravega/bookkeeper-operator=$(TEST_IMAGE)
-	echo "$(KUSTOMIZE) build config/default | kubectl apply -f -"
 	$(KUSTOMIZE) build config/default | kubectl apply -f -
 
 
