@@ -151,7 +151,7 @@ func DeletePods(t *testing.T, k8client client.Client, b *bkapi.BookkeeperCluster
 	podList := corev1.PodList{}
 	listOptions := []client.ListOption{
 		client.InNamespace(b.GetNamespace()),
-		client.MatchingLabelsSelector{Selector: labels.SelectorFromSet(map[string]string{"app": b.GetName()})},
+		client.MatchingLabelsSelector{Selector: labels.SelectorFromSet(map[string]string{"bookkeeper_cluster": b.GetName()})},
 	}
 	err := k8client.List(goctx.TODO(), &podList, listOptions...)
 	if err != nil {
@@ -226,7 +226,7 @@ func GetBKCluster(t *testing.T, k8client client.Client, b *bkapi.BookkeeperClust
 /*func CheckEvents(t *testing.T, k8client client.Client, b *bkapi.BookkeeperCluster, event string) (bool, error) {
 	listOptions := []client.ListOption{
 		client.InNamespace(b.GetNamespace()),
-		client.MatchingLabelsSelector{Selector: labels.SelectorFromSet(map[string]string{"app": b.GetName()})},
+		client.MatchingLabelsSelector{Selector: labels.SelectorFromSet(map[string]string{"bookkeeper_cluster": b.GetName()})},
 	}
 
 	events := corev1.EventList{}
@@ -305,7 +305,7 @@ func WaitForBKClusterToTerminate(t *testing.T, k8client client.Client, b *bkapi.
 
 	listOptions := []client.ListOption{
 		client.InNamespace(b.GetNamespace()),
-		client.MatchingLabelsSelector{Selector: labels.SelectorFromSet(map[string]string{"app": b.GetName()})},
+		client.MatchingLabelsSelector{Selector: labels.SelectorFromSet(map[string]string{"bookkeeper_cluster": b.GetName()})},
 	}
 
 	// Wait for Pods to terminate
@@ -365,7 +365,7 @@ func WaitForBKClusterToUpgrade(t *testing.T, k8client client.Client, b *bkapi.Bo
 
 	listOptions := []client.ListOption{
 		client.InNamespace(b.GetNamespace()),
-		client.MatchingLabelsSelector{Selector: labels.SelectorFromSet(map[string]string{"app": b.GetName()})},
+		client.MatchingLabelsSelector{Selector: labels.SelectorFromSet(map[string]string{"bookkeeper_cluster": b.GetName()})},
 	}
 
 	err := wait.Poll(RetryInterval, UpgradeTimeout, func() (done bool, err error) {
@@ -427,7 +427,7 @@ func WaitForCMBKClusterToUpgrade(t *testing.T, k8client client.Client, b *bkapi.
 
 	listOptions := []client.ListOption{
 		client.InNamespace(b.GetNamespace()),
-		client.MatchingLabelsSelector{Selector: labels.SelectorFromSet(map[string]string{"app": b.GetName()})},
+		client.MatchingLabelsSelector{Selector: labels.SelectorFromSet(map[string]string{"bookkeeper_cluster": b.GetName()})},
 	}
 
 	// Checking if all pods are getting restarted
@@ -500,7 +500,7 @@ func WaitForBKClusterToRollback(t *testing.T, k8client client.Client, b *bkapi.B
 
 	listOptions := []client.ListOption{
 		client.InNamespace(b.GetNamespace()),
-		client.MatchingLabelsSelector{Selector: labels.SelectorFromSet(map[string]string{"app": b.GetName()})},
+		client.MatchingLabelsSelector{Selector: labels.SelectorFromSet(map[string]string{"bookkeeper_cluster": b.GetName()})},
 	}
 
 	err := wait.Poll(RetryInterval, UpgradeTimeout, func() (done bool, err error) {
