@@ -22,13 +22,13 @@ import (
 	//framework "github.com/operator-framework/operator-sdk/pkg/test"
 	bkapi "github.com/pravega/bookkeeper-operator/api/v1alpha1"
 	"github.com/pravega/bookkeeper-operator/pkg/util"
+	log "github.com/sirupsen/logrus"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
-	log "github.com/sirupsen/logrus"
 )
 
 var (
@@ -232,18 +232,16 @@ func CheckEvents(t *testing.T, k8client client.Client, b *bkapi.BookkeeperCluste
 
 	events := corev1.EventList{}
 	err := k8client.List(goctx.TODO(), &events, listOptions...)
-	//	events, err := f.KubeClient.CoreV1().Events(b.Namespace).List(goctx.TODO(), listOptions)
+
 	if err != nil {
 		return false, err
 	}
 
-	//if events != nil {
-		for _, e := range events.Items {
-			if strings.HasPrefix(e.Name, event) {
-				return true, nil
-			}
+	for _, e := range events.Items {
+		if strings.HasPrefix(e.Name, event) {
+			return true, nil
 		}
-	//}
+	}
 
 	return false, nil
 }
@@ -284,7 +282,7 @@ func WaitForBookkeeperClusterToBecomeReady(t *testing.T, k8client client.Client,
 			return false, err
 		}
 
-                log.Printf("\twaiting for pods to become ready (%d/%d), pods (%v)", cluster.Status.ReadyReplicas, cluster.Spec.Replicas, cluster.Status.Members.Ready) 
+		log.Printf("\twaiting for pods to become ready (%d/%d), pods (%v)", cluster.Status.ReadyReplicas, cluster.Spec.Replicas, cluster.Status.Members.Ready)
 		t.Logf("\twaiting for pods to become ready (%d/%d), pods (%v)", cluster.Status.ReadyReplicas, cluster.Spec.Replicas, cluster.Status.Members.Ready)
 
 		_, condition := cluster.Status.GetClusterCondition(bkapi.ClusterConditionPodsReady)
@@ -307,9 +305,6 @@ func WaitForBookkeeperClusterToBecomeReady(t *testing.T, k8client client.Client,
 func WaitForBKClusterToTerminate(t *testing.T, k8client client.Client, b *bkapi.BookkeeperCluster) error {
 	t.Logf("waiting for Bookkeeper cluster to terminate: %s", b.Name)
 	log.Printf("waiting for Bookkeeper cluster to terminate: %s", b.Name)
-	log.Printf("k8client in util is %v", k8client)
-         log.Printf("name is %s", b.GetName())
-	 log.Printf("namespace is %v", b.GetNamespace())
 
 	listOptions := []client.ListOption{
 		client.InNamespace(b.GetNamespace()),
