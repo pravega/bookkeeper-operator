@@ -63,9 +63,9 @@ var _ = Describe("Rollback controller", func() {
 			Expect(errorCondition.Message).To(ContainSubstring("pod bookkeeper-bookie-0 update failed because of ImagePullBackOff"))
 
 			// checking whether upgrade error event is sent out to the kubernetes event queue
-			/*	event, err := bookkeeper_e2eutil.CheckEvents(&t, k8sClient, bookkeeper, "UPGRADE_ERROR")
-				Expect(err).NotTo(HaveOccurred())
-				Expect(event).To(BeTrue())*/
+			event, err := bookkeeper_e2eutil.CheckEvents(&t, k8sClient, bookkeeper, "UPGRADE_ERROR")
+			Expect(err).NotTo(HaveOccurred())
+			Expect(event).To(BeTrue())
 
 			// trigger rollback to version other than last stable version
 			bookkeeper.Spec.Version = secondUpgradeVersion
