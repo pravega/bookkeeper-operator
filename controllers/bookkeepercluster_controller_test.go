@@ -121,7 +121,7 @@ var _ = Describe("BookkeeperCluster Controller", func() {
 			})
 			Context("Checking Cluster deployment", func() {
 				BeforeEach(func() {
-
+					res, err = r.Reconcile(ctx, req)
 					foundBookkeeper = &v1alpha1.BookkeeperCluster{}
 					err = client.Get(context.TODO(), req.NamespacedName, foundBookkeeper)
 				})

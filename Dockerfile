@@ -8,10 +8,8 @@
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
 ARG DOCKER_REGISTRY
-
 ARG GO_VERSION=1.17
 ARG ALPINE_VERSION=3.15
-
 
 FROM ${DOCKER_REGISTRY:+$DOCKER_REGISTRY/}golang:${GO_VERSION}-alpine${ALPINE_VERSION} as go-builder
 
@@ -25,7 +23,6 @@ ARG GIT_SHA=0000000
 WORKDIR /src
 
 COPY pkg ./pkg
-
 COPY go.mod ./
 COPY go.sum ./
 

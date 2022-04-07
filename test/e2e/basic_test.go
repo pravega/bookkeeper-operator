@@ -39,7 +39,7 @@ var _ = Describe("Test create and recreate Bookkeeper cluster with the same name
 			svcName := fmt.Sprintf("%s-headlesssvc", bookkeeper.Name)
 			err = bookkeeper_e2eutil.CheckServiceExists(&t, k8sClient, bookkeeper, svcName)
 			Expect(err).NotTo(HaveOccurred())
-      By("delete created Bookkeeper cluster")
+			By("delete created Bookkeeper cluster")
 			Expect(k8sClient.Delete(ctx, bookkeeper)).Should(Succeed())
 			Expect(bookkeeper_e2eutil.WaitForBKClusterToTerminate(&t, k8sClient, bookkeeper)).NotTo(HaveOccurred())
 
