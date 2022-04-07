@@ -19,7 +19,6 @@ import (
 
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	//framework "github.com/operator-framework/operator-sdk/pkg/test"
 	bkapi "github.com/pravega/bookkeeper-operator/api/v1alpha1"
 	"github.com/pravega/bookkeeper-operator/pkg/util"
 	log "github.com/sirupsen/logrus"
@@ -44,7 +43,7 @@ var (
 
 // CreateBKCluster creates a BookkeeperCluster CR with the desired spec
 func CreateBKCluster(t *testing.T, k8client client.Client, b *bkapi.BookkeeperCluster) (*bkapi.BookkeeperCluster, error) {
-	t.Logf("creating bookkeeper cluster: %s", b.Name)
+	log.Printf("creating bookkeeper cluster: %s", b.Name)
 	b.Spec.EnvVars = "bookkeeper-configmap"
 	b.Spec.ZookeeperUri = "zookeeper-client:2181"
 	b.Spec.Image.ImageSpec.PullPolicy = "IfNotPresent"
@@ -85,13 +84,13 @@ func CreateBKCluster(t *testing.T, k8client client.Client, b *bkapi.BookkeeperCl
 	if err != nil {
 		return nil, fmt.Errorf("failed to obtain created CR: %v", err)
 	}
-	t.Logf("created bookkeeper cluster: %s", b.Name)
+	log.Printf("created bookkeeper cluster: %s", b.Name)
 	return bookkeeper, nil
 }
 
 // CreateBKCluster creates a BookkeeperCluster CR with the desired spec
 func CreateBKClusterWithCM(t *testing.T, k8client client.Client, b *bkapi.BookkeeperCluster, cm string) (*bkapi.BookkeeperCluster, error) {
-	t.Logf("creating bookkeeper cluster: %s", b.Name)
+	log.Printf("creating bookkeeper cluster: %s", b.Name)
 	b.Spec.EnvVars = cm
 	b.Spec.ZookeeperUri = "zookeeper-client:2181"
 	b.Spec.Image.ImageSpec.PullPolicy = "IfNotPresent"
@@ -132,7 +131,7 @@ func CreateBKClusterWithCM(t *testing.T, k8client client.Client, b *bkapi.Bookke
 	if err != nil {
 		return nil, fmt.Errorf("failed to obtain created CR: %v", err)
 	}
-	t.Logf("created bookkeeper cluster: %s", b.Name)
+	log.Printf("created bookkeeper cluster: %s", b.Name)
 	return bookkeeper, nil
 }
 
@@ -143,7 +142,7 @@ func CreateConfigMap(t *testing.T, k8client client.Client, cm *corev1.ConfigMap)
 	if err != nil {
 		return fmt.Errorf("failed to create Configmap: %v", err)
 	}
-	t.Logf("created configmap: %s", cm.ObjectMeta.Name)
+	log.Printf("created configmap: %s", cm.ObjectMeta.Name)
 	return nil
 }
 
@@ -162,19 +161,19 @@ func DeletePods(t *testing.T, k8client client.Client, b *bkapi.BookkeeperCluster
 
 	for i := 0; i < size; i++ {
 		pod = &podList.Items[i]
-		t.Logf("pod name is %v", pod.Name)
+		log.Printf("pod name is %v", pod.Name)
 		err := k8client.Delete(goctx.TODO(), pod)
 		if err != nil {
 			return fmt.Errorf("failed to delete pod: %v", err)
 		}
-		t.Logf("deleted bookkeeper pod: %s", pod.Name)
+		log.Printf("deleted bookkeeper pod: %s", pod.Name)
 	}
 	return nil
 }
 
 // DeleteBKCluster deletes the BookkeeperCluster CR specified by cluster spec
 func DeleteBKCluster(t *testing.T, k8client client.Client, b *bkapi.BookkeeperCluster) error {
-	t.Logf("deleting bookkeeper cluster: %s", b.Name)
+	log.Printf("deleting bookkeeper cluster: %s", b.Name)
 	err := k8client.Delete(goctx.TODO(), b)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
@@ -183,13 +182,13 @@ func DeleteBKCluster(t *testing.T, k8client client.Client, b *bkapi.BookkeeperCl
 		return fmt.Errorf("failed to delete CR: %v", err)
 	}
 
-	t.Logf("deleted bookkeeper cluster: %s", b.Name)
+	log.Printf("deleted bookkeeper cluster: %s", b.Name)
 	return nil
 }
 
 // DeleteConfigMap deletes the configmap specified
 func DeleteConfigMap(t *testing.T, k8client client.Client, cm *corev1.ConfigMap) error {
-	t.Logf("deleting configmap: %s", cm.ObjectMeta.Name)
+	log.Printf("deleting configmap: %s", cm.ObjectMeta.Name)
 	err := k8client.Delete(goctx.TODO(), cm)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
@@ -198,19 +197,19 @@ func DeleteConfigMap(t *testing.T, k8client client.Client, cm *corev1.ConfigMap)
 		return fmt.Errorf("failed to delete CM: %v", err)
 	}
 
-	t.Logf("deleted configmap: %s", cm.ObjectMeta.Name)
+	log.Printf("deleted configmap: %s", cm.ObjectMeta.Name)
 	return nil
 }
 
 // UpdateBkCluster updates the BookkeeperCluster CR
 func UpdateBKCluster(t *testing.T, k8client client.Client, b *bkapi.BookkeeperCluster) error {
-	t.Logf("updating bookkeeper cluster: %s", b.Name)
+	log.Printf("updating bookkeeper cluster: %s", b.Name)
 	err := k8client.Update(goctx.TODO(), b)
 	if err != nil {
 		return fmt.Errorf("failed to update CR: %v", err)
 	}
 
-	t.Logf("updated bookkeeper cluster: %s", b.Name)
+	log.Printf("updated bookkeeper cluster: %s", b.Name)
 	return nil
 }
 
@@ -272,7 +271,7 @@ func CheckServiceExists(t *testing.T, k8client client.Client, b *bkapi.Bookkeepe
 
 // WaitForBookkeeperClusterToBecomeReady will wait until all Bookkeeper cluster pods are ready
 func WaitForBookkeeperClusterToBecomeReady(t *testing.T, k8client client.Client, b *bkapi.BookkeeperCluster) error {
-	t.Logf("waiting for cluster pods to become ready: %s", b.Name)
+	log.Printf("waiting for cluster pods to become ready: %s", b.Name)
 	log.Printf("waiting for cluster pods to become ready: %s", b.Name)
 
 	err := wait.Poll(RetryInterval, ReadyTimeout, func() (done bool, err error) {
@@ -282,8 +281,7 @@ func WaitForBookkeeperClusterToBecomeReady(t *testing.T, k8client client.Client,
 			return false, err
 		}
 
-		log.Printf("\twaiting for pods to become ready (%d/%d), pods (%v)", cluster.Status.ReadyReplicas, cluster.Spec.Replicas, cluster.Status.Members.Ready)
-		t.Logf("\twaiting for pods to become ready (%d/%d), pods (%v)", cluster.Status.ReadyReplicas, cluster.Spec.Replicas, cluster.Status.Members.Ready)
+		log.Printf("waiting for pods to become ready (%d/%d), pods (%v)", cluster.Status.ReadyReplicas, cluster.Spec.Replicas, cluster.Status.Members.Ready)
 
 		_, condition := cluster.Status.GetClusterCondition(bkapi.ClusterConditionPodsReady)
 		if condition != nil && condition.Status == corev1.ConditionTrue && cluster.Status.ReadyReplicas == cluster.Spec.Replicas {
@@ -296,14 +294,14 @@ func WaitForBookkeeperClusterToBecomeReady(t *testing.T, k8client client.Client,
 		return err
 	}
 
-	t.Logf("bookkeeper cluster ready: %s", b.Name)
+	log.Printf("bookkeeper cluster ready: %s", b.Name)
 	log.Printf("waiting for cluster pods to become ready: %s", b.Name)
 	return nil
 }
 
 // WaitForBKClusterToTerminate will wait until all Bookkeeper cluster pods are terminated
 func WaitForBKClusterToTerminate(t *testing.T, k8client client.Client, b *bkapi.BookkeeperCluster) error {
-	t.Logf("waiting for Bookkeeper cluster to terminate: %s", b.Name)
+	log.Printf("waiting for Bookkeeper cluster to terminate: %s", b.Name)
 	log.Printf("waiting for Bookkeeper cluster to terminate: %s", b.Name)
 
 	listOptions := []client.ListOption{
@@ -325,7 +323,7 @@ func WaitForBKClusterToTerminate(t *testing.T, k8client client.Client, b *bkapi.
 			names = append(names, pod.Name)
 		}
 		log.Printf("waiting for pods to terminate, running pods (%v)", names)
-		t.Logf("waiting for pods to terminate, running pods (%v)", names)
+		log.Printf("waiting for pods to terminate, running pods (%v)", names)
 		if len(names) != 0 {
 			return false, nil
 		}
@@ -348,7 +346,7 @@ func WaitForBKClusterToTerminate(t *testing.T, k8client client.Client, b *bkapi.
 			pvc := &pvcList.Items[i]
 			names = append(names, pvc.Name)
 		}
-		t.Logf("waiting for pvc to terminate (%v)", names)
+		log.Printf("waiting for pvc to terminate (%v)", names)
 		log.Printf("waiting for pvc to terminate (%v)", names)
 		if len(names) != 0 {
 			return false, nil
@@ -361,14 +359,14 @@ func WaitForBKClusterToTerminate(t *testing.T, k8client client.Client, b *bkapi.
 		return err
 	}
 
-	//t.Logf("bookkeeper cluster terminated: %s", b.Name)
+	//log.Printf("bookkeeper cluster terminated: %s", b.Name)
 	log.Printf("bookkeeper cluster terminated: %s", b.Name)
 	return nil
 }
 
 // WaitForBookkeeperClusterToUpgrade will wait until all pods are upgraded
 func WaitForBKClusterToUpgrade(t *testing.T, k8client client.Client, b *bkapi.BookkeeperCluster, targetVersion string) error {
-	t.Logf("waiting for cluster to upgrade: %s", b.Name)
+	log.Printf("waiting for cluster to upgrade: %s", b.Name)
 
 	listOptions := []client.ListOption{
 		client.InNamespace(b.GetNamespace()),
@@ -384,7 +382,7 @@ func WaitForBKClusterToUpgrade(t *testing.T, k8client client.Client, b *bkapi.Bo
 		_, upgradeCondition := cluster.Status.GetClusterCondition(bkapi.ClusterConditionUpgrading)
 		_, errorCondition := cluster.Status.GetClusterCondition(bkapi.ClusterConditionError)
 
-		t.Logf("\twaiting for cluster to upgrade (upgrading: %s; error: %s)", upgradeCondition.Status, errorCondition.Status)
+		log.Printf("waiting for cluster to upgrade (upgrading: %s; error: %s)", upgradeCondition.Status, errorCondition.Status)
 
 		if errorCondition.Status == corev1.ConditionTrue && errorCondition.Reason == "UpgradeFailed" {
 			return false, fmt.Errorf("failed upgrading cluster: [%s] %s", errorCondition.Reason, errorCondition.Message)
@@ -425,12 +423,12 @@ func WaitForBKClusterToUpgrade(t *testing.T, k8client client.Client, b *bkapi.Bo
 		return fmt.Errorf("PVC count mismatch")
 	}
 
-	t.Logf("bookkeeper cluster upgraded: %s", b.Name)
+	log.Printf("bookkeeper cluster upgraded: %s", b.Name)
 	return nil
 }
 
 func WaitForCMBKClusterToUpgrade(t *testing.T, k8client client.Client, b *bkapi.BookkeeperCluster) error {
-	t.Logf("waiting for cluster to upgrade post cm changes: %s", b.Name)
+	log.Printf("waiting for cluster to upgrade post cm changes: %s", b.Name)
 
 	listOptions := []client.ListOption{
 		client.InNamespace(b.GetNamespace()),
@@ -446,7 +444,7 @@ func WaitForCMBKClusterToUpgrade(t *testing.T, k8client client.Client, b *bkapi.
 	for i := range podList.Items {
 		pod := &podList.Items[i]
 		name := pod.Name
-		t.Logf("waiting for pods to terminate, running pods (%v)", pod.Name)
+		log.Printf("waiting for pods to terminate, running pods (%v)", pod.Name)
 		err = k8client.Get(goctx.TODO(), types.NamespacedName{Namespace: b.Namespace, Name: name}, pod)
 		start := time.Now()
 		for util.IsPodReady(pod) {
@@ -464,7 +462,7 @@ func WaitForCMBKClusterToUpgrade(t *testing.T, k8client client.Client, b *bkapi.
 			return false, err
 		}
 
-		t.Logf("\twaiting for pods to become ready (%d/%d), pods (%v)", cluster.Status.ReadyReplicas, cluster.Spec.Replicas, cluster.Status.Members.Ready)
+		log.Printf("waiting for pods to become ready (%d/%d), pods (%v)", cluster.Status.ReadyReplicas, cluster.Spec.Replicas, cluster.Status.Members.Ready)
 
 		_, condition := cluster.Status.GetClusterCondition(bkapi.ClusterConditionPodsReady)
 		if condition != nil && condition.Status == corev1.ConditionTrue && cluster.Status.ReadyReplicas == cluster.Spec.Replicas {
@@ -497,13 +495,13 @@ func WaitForCMBKClusterToUpgrade(t *testing.T, k8client client.Client, b *bkapi.
 		return fmt.Errorf("PVC count mismatch")
 	}
 
-	t.Logf("bookkeeper cluster updated: %s", b.Name)
+	log.Printf("bookkeeper cluster updated: %s", b.Name)
 	return nil
 }
 
 // WaitForBookkeeperClusterToRollback will wait until all pods are rolled back
 func WaitForBKClusterToRollback(t *testing.T, k8client client.Client, b *bkapi.BookkeeperCluster, targetVersion string) error {
-	t.Logf("waiting for cluster to rollback: %s", b.Name)
+	log.Printf("waiting for cluster to rollback: %s", b.Name)
 
 	listOptions := []client.ListOption{
 		client.InNamespace(b.GetNamespace()),
@@ -519,7 +517,7 @@ func WaitForBKClusterToRollback(t *testing.T, k8client client.Client, b *bkapi.B
 		_, rollbackCondition := cluster.Status.GetClusterCondition(bkapi.ClusterConditionRollback)
 		_, errorCondition := cluster.Status.GetClusterCondition(bkapi.ClusterConditionError)
 
-		t.Logf("\twaiting for cluster to rollback (rollback in progress: %s)", rollbackCondition.Status)
+		log.Printf("waiting for cluster to rollback (rollback in progress: %s)", rollbackCondition.Status)
 
 		if errorCondition.Status == corev1.ConditionTrue && errorCondition.Reason == "RollbackFailed" {
 			return false, fmt.Errorf("failed rolling back cluster: [%s] %s", errorCondition.Reason, errorCondition.Message)
@@ -560,6 +558,6 @@ func WaitForBKClusterToRollback(t *testing.T, k8client client.Client, b *bkapi.B
 		return fmt.Errorf("PVC count mismatch")
 	}
 
-	t.Logf("bookkeeper cluster rolled back: %s", b.Name)
+	log.Printf("bookkeeper cluster rolled back: %s", b.Name)
 	return nil
 }

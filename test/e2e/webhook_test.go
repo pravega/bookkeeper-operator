@@ -15,10 +15,9 @@ import (
 	bookkeeper_e2eutil "github.com/pravega/bookkeeper-operator/pkg/test/e2e/e2eutil"
 )
 
-var _ = Describe("webhook  test controller", func() {
-	Context("webhook validation operations", func() {
+var _ = Describe("Webhook test", func() {
+	Context("Webhook validation operations", func() {
 		It("should throw proper error message with invalid config", func() {
-			By("create Zookeeper cluster")
 			cluster := bookkeeper_e2eutil.NewDefaultCluster(testNamespace)
 			cluster.WithDefaults()
 

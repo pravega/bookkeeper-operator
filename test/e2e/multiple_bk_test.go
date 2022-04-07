@@ -21,9 +21,9 @@ import (
 	"time"
 )
 
-var _ = Describe("Basic multiple BK controller", func() {
+var _ = Describe("Multiple BK Clusters", func() {
 	Context("Check multiple BK cluster operations", func() {
-		It("should create multiple clusters", func() {
+		It("Scale, Delete and Update operations are successful", func() {
 
 			// Create first cluster
 			cluster := bookkeeper_e2eutil.NewDefaultCluster(testNamespace)

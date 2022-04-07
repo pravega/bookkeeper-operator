@@ -78,7 +78,9 @@ var _ = Describe("BookkeeperCluster Controller", func() {
 			)
 
 			BeforeEach(func() {
-				client = fake.NewFakeClient(b)
+				client = fake.NewClientBuilder().WithScheme(scheme.Scheme).WithRuntimeObjects(b).Build()
+				//client = fake.NewFakeClient(b)
+
 				r = &BookkeeperClusterReconciler{Client: client, Scheme: s}
 				//1st reconcile
 				res, err = r.Reconcile(ctx, req)
@@ -119,7 +121,7 @@ var _ = Describe("BookkeeperCluster Controller", func() {
 			})
 			Context("Checking Cluster deployment", func() {
 				BeforeEach(func() {
-					res, err = r.Reconcile(ctx, req)
+
 					foundBookkeeper = &v1alpha1.BookkeeperCluster{}
 					err = client.Get(context.TODO(), req.NamespacedName, foundBookkeeper)
 				})
@@ -294,32 +296,38 @@ var _ = Describe("BookkeeperCluster Controller", func() {
 				})
 			})
 
-			/*	Context("rollbackFailedUpgrade", func() {
-					BeforeEach(func() {
-						_ = client.Get(context.TODO(), req.NamespacedName, foundBookkeeper)
-						foundBookkeeper.Status.AddToVersionHistory("0.6.0")
-						foundBookkeeper.Spec.Version = foundBookkeeper.Status.GetLastVersion()
-						foundBookkeeper.Status.SetErrorConditionTrue("UpgradeFailed", " ")
-						r.Client.Update(context.TODO(), foundBookkeeper)
-						err = r.rollbackFailedUpgrade(foundBookkeeper)
-					})
-					It("should not give error", func() {
-						Ω(err).Should(BeNil())
-					})
+			Context("rollbackFailedUpgrade", func() {
+				BeforeEach(func() {
+					_ = client.Get(context.TODO(), req.NamespacedName, foundBookkeeper)
+					foundBookkeeper.Status.CurrentVersion = "0.9.0"
+					foundBookkeeper.Status.Init()
+					foundBookkeeper.Status.AddToVersionHistory("0.6.0")
+					foundBookkeeper.Spec.Version = foundBookkeeper.Status.GetLastVersion()
+					foundBookkeeper.Status.SetErrorConditionTrue("UpgradeFailed", " ")
+					r.Client.Update(context.TODO(), foundBookkeeper)
+					err = r.rollbackFailedUpgrade(foundBookkeeper)
 				})
-				Context("getFinalizerAndClusterName", func() {
-					var str1, str2 string
-					BeforeEach(func() {
-						_ = client.Get(context.TODO(), req.NamespacedName, foundBookkeeper)
-						str1, str2 = getFinalizerAndClusterName(foundBookkeeper.Finalizers)
-					})
-					It("should have str1 as cleanUpZookeeper ", func() {
-						Ω(str1).Should(Equal("cleanUpZookeeper"))
-					})
-					It("should have str2 as pravega-cluster ", func() {
-						Ω(str2).Should(Equal("pravega-cluster"))
-					})
-				})*/
+				It("should not give error", func() {
+					Ω(err).Should(BeNil())
+				})
+			})
+			Context("getFinalizerAndClusterName", func() {
+				var str1, str2 string
+				BeforeEach(func() {
+					b.WithDefaults()
+					config.DisableFinalizer = false
+					client.Update(context.TODO(), b)
+					r.reconcileFinalizers(b)
+					_ = client.Get(context.TODO(), req.NamespacedName, foundBookkeeper)
+					str1, str2 = getFinalizerAndClusterName(foundBookkeeper.Finalizers)
+				})
+				It("should have str1 as cleanUpZookeeper ", func() {
+					Ω(str1).Should(Equal("cleanUpZookeeper"))
+				})
+				It("should have str2 as pravega-cluster ", func() {
+					Ω(str2).Should(Equal("pravega-cluster"))
+				})
+			})
 			Context("Should have Reconcile Result false when request namespace does not contain bk cluster", func() {
 				BeforeEach(func() {
 					client = fake.NewFakeClient(b)

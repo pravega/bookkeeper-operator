@@ -28,8 +28,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
-
-	//"sigs.k8s.io/controller-runtime/pkg/client"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
@@ -45,8 +43,6 @@ func (r *BookkeeperCluster) SetupWebhookWithManager(mgr ctrl.Manager) error {
 		For(r).
 		Complete()
 }
-
-// TODO(user): EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 
 //+kubebuilder:webhook:path=/mutate-bookkeeper-pravega-io-v1alpha1-bookkeepercluster,mutating=true,failurePolicy=fail,sideEffects=None,groups=bookkeeper.pravega.io,resources=bookkeeperclusters,verbs=create;update,versions=v1alpha1,name=mbookkeepercluster.kb.io,admissionReviewVersions=v1
 
@@ -76,7 +72,6 @@ func (bk *BookkeeperCluster) ValidateCreate() error {
 	if err != nil {
 		return err
 	}
-	// TODO(user): fill in your validation logic upon object creation.
 	return nil
 }
 
@@ -88,7 +83,6 @@ func (bk *BookkeeperCluster) ValidateUpdate(old runtime.Object) error {
 	if err != nil {
 		return err
 	}
-	log.Printf("Anisha calling validate configmap")
 	err = bk.validateConfigMap()
 	if err != nil {
 		return err
@@ -178,16 +172,9 @@ func (bk *BookkeeperCluster) ValidateAbsolutePath(dirs []string) error {
 }
 
 func (bk *BookkeeperCluster) validateConfigMap() error {
-	/*	cl, err := client.New(config.GetConfigOrDie(), client.Options{})
-		if err != nil {
-			log.Printf("error is %v", err)
-		}*/
 	configmap := &corev1.ConfigMap{}
-	log.Printf("Anisha in validate configmap")
-	log.Printf("reached herenow ")
 	err := Mgr.GetClient().Get(context.TODO(),
 		types.NamespacedName{Name: util.ConfigMapNameForBookie(bk.Name), Namespace: bk.Namespace}, configmap)
-	log.Printf("anisha error is %v %v", err, configmap.Name)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			return nil

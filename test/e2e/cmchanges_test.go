@@ -18,10 +18,9 @@ import (
 	bookkeeper_e2eutil "github.com/pravega/bookkeeper-operator/pkg/test/e2e/e2eutil"
 )
 
-var _ = Describe("Conigmap  test controller", func() {
+var _ = Describe("Conigmap upadate tets", func() {
 	Context("Check configmap update operations", func() {
-		It("should create and recreate a Zookeeper cluster with the same name", func() {
-			By("create Zookeeper cluster")
+		It("Verify configmap updations are valid", func() {
 			cluster := bookkeeper_e2eutil.NewDefaultCluster(testNamespace)
 			cluster.WithDefaults()
 			initialVersion := "0.6.0"
@@ -60,8 +59,6 @@ var _ = Describe("Conigmap  test controller", func() {
 			// checking if the upgrade of options was successful
 			err = bookkeeper_e2eutil.WaitForCMBKClusterToUpgrade(&t, k8sClient, bookkeeper)
 			Expect(err).NotTo(HaveOccurred())
-
-			// This is to get the latest bookkeeper cluster object
 
 			// This is to get the latest Bookkeeper cluster object
 			bookkeeper, err = bookkeeper_e2eutil.GetBKCluster(&t, k8sClient, bookkeeper)

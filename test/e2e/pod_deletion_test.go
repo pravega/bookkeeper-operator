@@ -18,10 +18,9 @@ import (
 	bookkeeper_e2eutil "github.com/pravega/bookkeeper-operator/pkg/test/e2e/e2eutil"
 )
 
-var _ = Describe("Delete pod  test controller", func() {
-	Context("Delete pod  operations", func() {
+var _ = Describe("Delete pod test", func() {
+	Context("Delete pod operations", func() {
 		It("should delete pods ", func() {
-			//By("create Zookeeper cluster")
 
 			cluster := bookkeeper_e2eutil.NewDefaultCluster(testNamespace)
 			cluster.WithDefaults()

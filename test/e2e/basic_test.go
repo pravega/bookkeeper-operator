@@ -12,7 +12,6 @@ package e2e
 
 import (
 	"fmt"
-	//	"testing"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -21,10 +20,10 @@ import (
 
 // Test create and recreate a Bookkeeper cluster with the same name
 
-var _ = Describe("Basic test controller", func() {
+var _ = Describe("Test create and recreate Bookkeeper cluster with the same name", func() {
 	Context("Check create/delete operations", func() {
-		It("should create and recreate a Bookkeeper cluster with the same name", func() {
-			By("create Zookeeper cluster")
+		It("should create and delete operations should be successful", func() {
+			By("create Bookkeeper cluster")
 			defaultCluster := bookkeeper_e2eutil.NewDefaultCluster(testNamespace)
 			defaultCluster.WithDefaults()
 			defaultCluster.Spec.HeadlessSvcNameSuffix = "headlesssvc"
@@ -40,7 +39,7 @@ var _ = Describe("Basic test controller", func() {
 			svcName := fmt.Sprintf("%s-headlesssvc", bookkeeper.Name)
 			err = bookkeeper_e2eutil.CheckServiceExists(&t, k8sClient, bookkeeper, svcName)
 			Expect(err).NotTo(HaveOccurred())
-
+      By("delete created Bookkeeper cluster")
 			Expect(k8sClient.Delete(ctx, bookkeeper)).Should(Succeed())
 			Expect(bookkeeper_e2eutil.WaitForBKClusterToTerminate(&t, k8sClient, bookkeeper)).NotTo(HaveOccurred())
 

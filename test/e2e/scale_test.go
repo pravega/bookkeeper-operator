@@ -17,9 +17,9 @@ import (
 	bookkeeper_e2eutil "github.com/pravega/bookkeeper-operator/pkg/test/e2e/e2eutil"
 )
 
-var _ = Describe("Rollback controller", func() {
-	Context("Check rollback operations", func() {
-		It("should rollback without error", func() {
+var _ = Describe("Scaling Cluster", func() {
+	Context("Check Scale operations", func() {
+		It("should scale without error", func() {
 
 			cluster := bookkeeper_e2eutil.NewDefaultCluster(testNamespace)
 			cluster.WithDefaults()

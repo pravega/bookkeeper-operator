@@ -19,14 +19,10 @@ import (
 	bookkeeper_e2eutil "github.com/pravega/bookkeeper-operator/pkg/test/e2e/e2eutil"
 )
 
-var _ = Describe("Upgrade  test controller", func() {
+var _ = Describe("Upgrade Cluster", func() {
 	Context("upgrade  operations", func() {
 		It("upgrade pods  shoould be successful", func() {
-			//By("create Zookeeper cluster")
-
 			cluster := bookkeeper_e2eutil.NewDefaultCluster(testNamespace)
-			cluster.WithDefaults()
-
 			cluster.WithDefaults()
 			initialVersion := "0.6.0"
 			firstUpgradeVersion := "0.7.0"

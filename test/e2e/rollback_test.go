@@ -22,7 +22,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
-var _ = Describe("Rollback controller", func() {
+var _ = Describe("Rollback", func() {
 	Context("Check rollback operations", func() {
 		It("should rollback without error", func() {
 
