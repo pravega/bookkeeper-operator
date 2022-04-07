@@ -27,7 +27,7 @@ COPY go.mod ./
 COPY go.sum ./
 
 # Download all dependencies.
-RUN go mod download -x
+RUN go mod download
 
 # Copy the go source
 COPY main.go main.go
