@@ -1,0 +1,23 @@
+domain: pravega.io
+layout:
+- go.kubebuilder.io/v3
+plugins:
+  manifests.sdk.operatorframework.io/v2: {}
+  scorecard.sdk.operatorframework.io/v2: {}
+projectName: bookkeeper-operator
+repo: github.com/pravega/bookkeeper-operator
+resources:
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: pravega.io
+  group: bookkeeper
+  kind: BookkeeperCluster
+  path: github.com/pravega/bookkeeper-operator/api/v1alpha1
+  version: v1alpha1
+  webhooks:
+    defaulting: true
+    validation: true
+    webhookVersion: v1
+version: "3"

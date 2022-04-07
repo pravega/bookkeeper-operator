@@ -1,0 +1,56 @@
+
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  creationTimestamp: null
+  name: mutating-webhook-configuration
+webhooks:
+- admissionReviewVersions:
+  - v1
+  clientConfig:
+    service:
+      name: webhook-service
+      namespace: system
+      path: /mutate-bookkeeper-pravega-io-v1alpha1-bookkeepercluster
+  failurePolicy: Fail
+  name: mbookkeepercluster.kb.io
+  rules:
+  - apiGroups:
+    - bookkeeper.pravega.io
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - bookkeeperclusters
+  sideEffects: None
+
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  creationTimestamp: null
+  name: validating-webhook-configuration
+webhooks:
+- admissionReviewVersions:
+  - v1
+  clientConfig:
+    service:
+      name: webhook-service
+      namespace: system
+      path: /validate-bookkeeper-pravega-io-v1alpha1-bookkeepercluster
+  failurePolicy: Fail
+  name: vbookkeepercluster.kb.io
+  rules:
+  - apiGroups:
+    - bookkeeper.pravega.io
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - bookkeeperclusters
+  sideEffects: None

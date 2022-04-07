@@ -12,67 +12,50 @@ package e2e
 
 import (
 	"fmt"
-	"testing"
-
+	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	framework "github.com/operator-framework/operator-sdk/pkg/test"
+
 	bookkeeper_e2eutil "github.com/pravega/bookkeeper-operator/pkg/test/e2e/e2eutil"
 )
 
 // Test create and recreate a Bookkeeper cluster with the same name
-func testCreateRecreateCluster(t *testing.T) {
-	g := NewGomegaWithT(t)
 
-	doCleanup := true
-	ctx := framework.NewTestCtx(t)
-	defer func() {
-		if doCleanup {
-			ctx.Cleanup()
-		}
-	}()
-	namespace, err := ctx.GetNamespace()
-	g.Expect(err).NotTo(HaveOccurred())
-	f := framework.Global
+var _ = Describe("Test create and recreate Bookkeeper cluster with the same name", func() {
+	Context("Check create/delete operations", func() {
+		It("should create and delete operations should be successful", func() {
+			By("create Bookkeeper cluster")
+			defaultCluster := bookkeeper_e2eutil.NewDefaultCluster(testNamespace)
+			defaultCluster.WithDefaults()
+			defaultCluster.Spec.HeadlessSvcNameSuffix = "headlesssvc"
 
-	defaultCluster := bookkeeper_e2eutil.NewDefaultCluster(namespace)
-	defaultCluster.WithDefaults()
-	defaultCluster.Spec.HeadlessSvcNameSuffix = "headlesssvc"
+			bookkeeper, err := bookkeeper_e2eutil.CreateBKCluster(&t, k8sClient, defaultCluster)
+			Expect(err).NotTo(HaveOccurred())
 
-	bookkeeper, err := bookkeeper_e2eutil.CreateBKCluster(t, f, ctx, defaultCluster)
-	g.Expect(err).NotTo(HaveOccurred())
+			Expect(bookkeeper_e2eutil.WaitForBookkeeperClusterToBecomeReady(&t, k8sClient, defaultCluster)).NotTo(HaveOccurred())
 
-	err = bookkeeper_e2eutil.WaitForBookkeeperClusterToBecomeReady(t, f, ctx, bookkeeper)
-	g.Expect(err).NotTo(HaveOccurred())
+			// This is to get the latest Bookkeeper cluster object
+			bookkeeper, err = bookkeeper_e2eutil.GetBKCluster(&t, k8sClient, bookkeeper)
+			Expect(err).NotTo(HaveOccurred())
+			svcName := fmt.Sprintf("%s-headlesssvc", bookkeeper.Name)
+			err = bookkeeper_e2eutil.CheckServiceExists(&t, k8sClient, bookkeeper, svcName)
+			Expect(err).NotTo(HaveOccurred())
+			By("delete created Bookkeeper cluster")
+			Expect(k8sClient.Delete(ctx, bookkeeper)).Should(Succeed())
+			Expect(bookkeeper_e2eutil.WaitForBKClusterToTerminate(&t, k8sClient, bookkeeper)).NotTo(HaveOccurred())
 
-	svcName := fmt.Sprintf("%s-headlesssvc", bookkeeper.Name)
-	err = bookkeeper_e2eutil.CheckServiceExists(t, f, ctx, bookkeeper, svcName)
-	g.Expect(err).NotTo(HaveOccurred())
+			By("create Bookkeeper cluster with the same name")
+			defaultCluster = bookkeeper_e2eutil.NewDefaultCluster(testNamespace)
+			defaultCluster.WithDefaults()
 
-	err = bookkeeper_e2eutil.DeleteBKCluster(t, f, ctx, bookkeeper)
-	g.Expect(err).NotTo(HaveOccurred())
-
-	err = bookkeeper_e2eutil.WaitForBKClusterToTerminate(t, f, ctx, bookkeeper)
-	g.Expect(err).NotTo(HaveOccurred())
-
-	defaultCluster = bookkeeper_e2eutil.NewDefaultCluster(namespace)
-	defaultCluster.WithDefaults()
-
-	bookkeeper, err = bookkeeper_e2eutil.CreateBKCluster(t, f, ctx, defaultCluster)
-	g.Expect(err).NotTo(HaveOccurred())
-
-	err = bookkeeper_e2eutil.WaitForBookkeeperClusterToBecomeReady(t, f, ctx, bookkeeper)
-	g.Expect(err).NotTo(HaveOccurred())
-
-	svcName = fmt.Sprintf("%s-bookie-headless", bookkeeper.Name)
-	err = bookkeeper_e2eutil.CheckServiceExists(t, f, ctx, bookkeeper, svcName)
-	g.Expect(err).NotTo(HaveOccurred())
-
-	err = bookkeeper_e2eutil.DeleteBKCluster(t, f, ctx, bookkeeper)
-	g.Expect(err).NotTo(HaveOccurred())
-
-	// No need to do cleanup since the cluster CR has already been deleted
-	doCleanup = false
-
-	err = bookkeeper_e2eutil.WaitForBKClusterToTerminate(t, f, ctx, bookkeeper)
-	g.Expect(err).NotTo(HaveOccurred())
-}
+			bookkeeper, err = bookkeeper_e2eutil.CreateBKCluster(&t, k8sClient, defaultCluster)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(bookkeeper_e2eutil.WaitForBookkeeperClusterToBecomeReady(&t, k8sClient, defaultCluster)).NotTo(HaveOccurred())
+			svcName = fmt.Sprintf("%s-bookie-headless", bookkeeper.Name)
+			err = bookkeeper_e2eutil.CheckServiceExists(&t, k8sClient, bookkeeper, svcName)
+			Expect(err).NotTo(HaveOccurred())
+			By("delete created Bookkeeper cluster")
+			Expect(k8sClient.Delete(ctx, bookkeeper)).Should(Succeed())
+			Expect(bookkeeper_e2eutil.WaitForBKClusterToTerminate(&t, k8sClient, bookkeeper)).NotTo(HaveOccurred())
+		})
+	})
+})

@@ -11,71 +11,58 @@
 package e2e
 
 import (
-	"testing"
-
+	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	framework "github.com/operator-framework/operator-sdk/pkg/test"
+
 	bookkeeper_e2eutil "github.com/pravega/bookkeeper-operator/pkg/test/e2e/e2eutil"
 )
 
-func testScaleCluster(t *testing.T) {
-	g := NewGomegaWithT(t)
+var _ = Describe("Scaling Cluster", func() {
+	Context("Check Scale operations", func() {
+		It("should scale without error", func() {
 
-	doCleanup := true
-	ctx := framework.NewTestCtx(t)
-	defer func() {
-		if doCleanup {
-			ctx.Cleanup()
-		}
-	}()
+			cluster := bookkeeper_e2eutil.NewDefaultCluster(testNamespace)
+			cluster.WithDefaults()
 
-	namespace, err := ctx.GetNamespace()
-	g.Expect(err).NotTo(HaveOccurred())
-	f := framework.Global
+			bookkeeper, err := bookkeeper_e2eutil.CreateBKCluster(&t, k8sClient, cluster)
+			Expect(err).NotTo(HaveOccurred())
 
-	defaultCluster := bookkeeper_e2eutil.NewDefaultCluster(namespace)
-	defaultCluster.WithDefaults()
+			err = bookkeeper_e2eutil.WaitForBookkeeperClusterToBecomeReady(&t, k8sClient, bookkeeper)
+			Expect(err).NotTo(HaveOccurred())
 
-	bookkeeper, err := bookkeeper_e2eutil.CreateBKCluster(t, f, ctx, defaultCluster)
-	g.Expect(err).NotTo(HaveOccurred())
+			// This is to get the latest Bookkeeper cluster object
+			bookkeeper, err = bookkeeper_e2eutil.GetBKCluster(&t, k8sClient, bookkeeper)
+			Expect(err).NotTo(HaveOccurred())
 
-	err = bookkeeper_e2eutil.WaitForBookkeeperClusterToBecomeReady(t, f, ctx, bookkeeper)
-	g.Expect(err).NotTo(HaveOccurred())
+			// Scale up Bookkeeper cluster
+			bookkeeper.Spec.Replicas = 5
 
-	// This is to get the latest Bookkeeper cluster object
-	bookkeeper, err = bookkeeper_e2eutil.GetBKCluster(t, f, ctx, bookkeeper)
-	g.Expect(err).NotTo(HaveOccurred())
+			err = bookkeeper_e2eutil.UpdateBKCluster(&t, k8sClient, bookkeeper)
+			Expect(err).NotTo(HaveOccurred())
 
-	// Scale up Bookkeeper cluster
-	bookkeeper.Spec.Replicas = 5
+			err = bookkeeper_e2eutil.WaitForBookkeeperClusterToBecomeReady(&t, k8sClient, bookkeeper)
+			Expect(err).NotTo(HaveOccurred())
 
-	err = bookkeeper_e2eutil.UpdateBKCluster(t, f, ctx, bookkeeper)
-	g.Expect(err).NotTo(HaveOccurred())
+			// This is to get the latest Bookkeeper cluster object
+			bookkeeper, err = bookkeeper_e2eutil.GetBKCluster(&t, k8sClient, bookkeeper)
+			Expect(err).NotTo(HaveOccurred())
 
-	err = bookkeeper_e2eutil.WaitForBookkeeperClusterToBecomeReady(t, f, ctx, bookkeeper)
-	g.Expect(err).NotTo(HaveOccurred())
+			// Scale down Bookkeeper cluster back to default
+			bookkeeper.Spec.Replicas = 3
 
-	// This is to get the latest Bookkeeper cluster object
-	bookkeeper, err = bookkeeper_e2eutil.GetBKCluster(t, f, ctx, bookkeeper)
-	g.Expect(err).NotTo(HaveOccurred())
+			err = bookkeeper_e2eutil.UpdateBKCluster(&t, k8sClient, bookkeeper)
+			Expect(err).NotTo(HaveOccurred())
 
-	// Scale down Bookkeeper cluster back to default
-	bookkeeper.Spec.Replicas = 3
+			err = bookkeeper_e2eutil.WaitForBookkeeperClusterToBecomeReady(&t, k8sClient, bookkeeper)
+			Expect(err).NotTo(HaveOccurred())
 
-	err = bookkeeper_e2eutil.UpdateBKCluster(t, f, ctx, bookkeeper)
-	g.Expect(err).NotTo(HaveOccurred())
+			// Delete cluster
+			err = bookkeeper_e2eutil.DeleteBKCluster(&t, k8sClient, bookkeeper)
+			Expect(err).NotTo(HaveOccurred())
 
-	err = bookkeeper_e2eutil.WaitForBookkeeperClusterToBecomeReady(t, f, ctx, bookkeeper)
-	g.Expect(err).NotTo(HaveOccurred())
+			err = bookkeeper_e2eutil.WaitForBKClusterToTerminate(&t, k8sClient, bookkeeper)
+			Expect(err).NotTo(HaveOccurred())
 
-	// Delete cluster
-	err = bookkeeper_e2eutil.DeleteBKCluster(t, f, ctx, bookkeeper)
-	g.Expect(err).NotTo(HaveOccurred())
-
-	// No need to do cleanup since the cluster CR has already been deleted
-	doCleanup = false
-
-	err = bookkeeper_e2eutil.WaitForBKClusterToTerminate(t, f, ctx, bookkeeper)
-	g.Expect(err).NotTo(HaveOccurred())
-
-}
+		})
+	})
+})
