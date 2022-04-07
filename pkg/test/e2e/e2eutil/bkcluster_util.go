@@ -272,7 +272,6 @@ func CheckServiceExists(t *testing.T, k8client client.Client, b *bkapi.Bookkeepe
 // WaitForBookkeeperClusterToBecomeReady will wait until all Bookkeeper cluster pods are ready
 func WaitForBookkeeperClusterToBecomeReady(t *testing.T, k8client client.Client, b *bkapi.BookkeeperCluster) error {
 	log.Printf("waiting for cluster pods to become ready: %s", b.Name)
-	log.Printf("waiting for cluster pods to become ready: %s", b.Name)
 
 	err := wait.Poll(RetryInterval, ReadyTimeout, func() (done bool, err error) {
 		cluster, err := GetBKCluster(t, k8client, b)
@@ -295,13 +294,11 @@ func WaitForBookkeeperClusterToBecomeReady(t *testing.T, k8client client.Client,
 	}
 
 	log.Printf("bookkeeper cluster ready: %s", b.Name)
-	log.Printf("waiting for cluster pods to become ready: %s", b.Name)
 	return nil
 }
 
 // WaitForBKClusterToTerminate will wait until all Bookkeeper cluster pods are terminated
 func WaitForBKClusterToTerminate(t *testing.T, k8client client.Client, b *bkapi.BookkeeperCluster) error {
-	log.Printf("waiting for Bookkeeper cluster to terminate: %s", b.Name)
 	log.Printf("waiting for Bookkeeper cluster to terminate: %s", b.Name)
 
 	listOptions := []client.ListOption{
@@ -316,13 +313,11 @@ func WaitForBKClusterToTerminate(t *testing.T, k8client client.Client, b *bkapi.
 		if err != nil {
 			return false, err
 		}
-		log.Printf("pod list is %v", podList)
 		var names []string
 		for i := range podList.Items {
 			pod := &podList.Items[i]
 			names = append(names, pod.Name)
 		}
-		log.Printf("waiting for pods to terminate, running pods (%v)", names)
 		log.Printf("waiting for pods to terminate, running pods (%v)", names)
 		if len(names) != 0 {
 			return false, nil
@@ -347,7 +342,6 @@ func WaitForBKClusterToTerminate(t *testing.T, k8client client.Client, b *bkapi.
 			names = append(names, pvc.Name)
 		}
 		log.Printf("waiting for pvc to terminate (%v)", names)
-		log.Printf("waiting for pvc to terminate (%v)", names)
 		if len(names) != 0 {
 			return false, nil
 		}
@@ -359,7 +353,6 @@ func WaitForBKClusterToTerminate(t *testing.T, k8client client.Client, b *bkapi.
 		return err
 	}
 
-	//log.Printf("bookkeeper cluster terminated: %s", b.Name)
 	log.Printf("bookkeeper cluster terminated: %s", b.Name)
 	return nil
 }

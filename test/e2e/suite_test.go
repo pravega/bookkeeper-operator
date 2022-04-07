@@ -20,7 +20,6 @@ import (
 	"os"
 	"testing"
 
-	log "github.com/sirupsen/logrus"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -65,8 +64,6 @@ var _ = BeforeSuite(func() {
 		Then, we start the envtest cluster.
 	*/
 	cfg, err := testEnv.Start()
-	log.Printf("error is %v", err)
-	log.Printf("cg is %v", cfg)
 	Expect(err).NotTo(HaveOccurred())
 	Expect(cfg).NotTo(BeNil())
 
