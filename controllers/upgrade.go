@@ -273,7 +273,8 @@ func (r *BookkeeperClusterReconciler) syncBookkeeperVersion(bk *bookkeeperv1alph
 	}
 
 	if ready {
-		pod, err := r.getOneOutdatedPod(sts, bk.Status.TargetVersion)
+		labels := bk.LabelsForBookkeeperCluster()
+		pod, err := r.getOneOutdatedPod(sts, bk.Status.TargetVersion, labels)
 		if err != nil {
 			return false, err
 		}
@@ -306,9 +307,9 @@ func (r *BookkeeperClusterReconciler) checkUpdatedPods(pods []*corev1.Pod, versi
 	return true, nil
 }
 
-func (r *BookkeeperClusterReconciler) getOneOutdatedPod(sts *appsv1.StatefulSet, version string) (*corev1.Pod, error) {
+func (r *BookkeeperClusterReconciler) getOneOutdatedPod(sts *appsv1.StatefulSet, version string, labels map[string]string) (*corev1.Pod, error) {
 	selector, err := metav1.LabelSelectorAsSelector(&metav1.LabelSelector{
-		MatchLabels: sts.Spec.Template.Labels,
+		MatchLabels: labels,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to convert label selector: %v", err)
