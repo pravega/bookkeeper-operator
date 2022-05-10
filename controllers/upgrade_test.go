@@ -237,10 +237,12 @@ var _ = Describe("Bookkeeper Cluster Version Sync", func() {
 			})
 			Context("getOneOutdatedPod", func() {
 				var sts *appsv1.StatefulSet
+				labels := make(map[string]string)
+				labels["component"] = "bookie"
 				BeforeEach(func() {
 					sts = &appsv1.StatefulSet{}
 					r.Client.Get(context.TODO(), types.NamespacedName{Name: util.StatefulSetNameForBookie(b.Name), Namespace: b.Namespace}, sts)
-					_, err = r.getOneOutdatedPod(sts, "0.6.1")
+					_, err = r.getOneOutdatedPod(sts, "0.6.1", labels)
 				})
 				It("Error should be nil", func() {
 					Ω(err).Should(BeNil())
