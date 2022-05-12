@@ -53,7 +53,7 @@ var _ = Describe("Rollback", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			// waiting for upgrade to fail
-			time.Sleep(2 * time.Minute)
+			time.Sleep(3 * time.Minute)
 
 			bookkeeper, err = bookkeeper_e2eutil.GetBKCluster(&t, k8sClient, bookkeeper)
 			Expect(err).NotTo(HaveOccurred())

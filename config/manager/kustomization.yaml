@@ -5,4 +5,4 @@ kind: Kustomization
 images:
 - name: pravega/bookkeeper-operator
   newName: testbkop/bookkeeper-operator-testimages
-  newTag: 0.1.8-92-58d5e3e
+  newTag: 0.1.8-94-671d745
