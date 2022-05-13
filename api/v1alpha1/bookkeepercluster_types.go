@@ -256,6 +256,9 @@ type BookkeeperClusterSpec struct {
 
 	//This is set to run the container as root user
 	RunAsPrivilegedUser *bool `json:"runAsPrivilegedUser,omitempty"`
+
+	// Tolerations for the bookie pods.
+	Tolerations []corev1.Toleration `json:"tolerations,omitempty"`
 }
 
 // BookkeeperImageSpec defines the fields needed for a BookKeeper Docker image

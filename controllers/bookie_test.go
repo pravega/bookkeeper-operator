@@ -105,6 +105,14 @@ var _ = Describe("Bookie", func() {
 						},
 					},
 					RunAsPrivilegedUser: &boolFalse,
+					Tolerations: []corev1.Toleration{
+						{
+							Key:      "bookie",
+							Operator: "Equal",
+							Value:    "val1",
+							Effect:   "NoSchedule",
+						},
+					},
 				}
 				bk.WithDefaults()
 			})
@@ -227,6 +235,13 @@ var _ = Describe("Bookie", func() {
 					Ω(fmt.Sprintf("%v", *podTemplate.Spec.SecurityContext.RunAsUser)).To(Equal("1000"))
 					Ω(fmt.Sprintf("%v", *podTemplate.Spec.SecurityContext.RunAsGroup)).To(Equal("1000"))
 					Ω(fmt.Sprintf("%v", *podTemplate.Spec.SecurityContext.FSGroup)).To(Equal("1000"))
+				})
+				It("should have pod tolerations", func() {
+					podTemplate := bookkeepercluster.MakeBookiePodTemplate(bk)
+					Ω(podTemplate.Spec.Tolerations[0].Key).Should(Equal("bookie"))
+					Ω(podTemplate.Spec.Tolerations[0].Operator).Should(Equal(corev1.TolerationOperator("Equal")))
+					Ω(podTemplate.Spec.Tolerations[0].Value).Should(Equal("val1"))
+					Ω(podTemplate.Spec.Tolerations[0].Effect).Should(Equal(corev1.TaintEffect("NoSchedule")))
 				})
 			})
 		})

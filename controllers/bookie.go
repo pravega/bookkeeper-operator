@@ -277,8 +277,9 @@ func makeBookiePodSpec(bk *v1alpha1.BookkeeperCluster) *corev1.PodSpec {
 				},
 			},
 		},
-		Affinity: bk.Spec.Affinity,
-		Volumes:  volumes,
+		Affinity:    bk.Spec.Affinity,
+		Volumes:     volumes,
+		Tolerations: bk.Spec.Tolerations,
 	}
 
 	if bk.Spec.ServiceAccountName != "" {
