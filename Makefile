@@ -11,7 +11,7 @@ CRD_OPTIONS ?= "crd:trivialVersions=true"
 
 PROJECT_NAME=bookkeeper-operator
 REPO=pravega/$(PROJECT_NAME)
-BASE_VERSION=0.1.8
+BASE_VERSION=0.1.9
 ID=$(shell git rev-list HEAD --count)
 GIT_SHA=$(shell git rev-parse --short HEAD)
 VERSION=$(BASE_VERSION)-$(ID)-$(GIT_SHA)

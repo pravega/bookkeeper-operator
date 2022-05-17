@@ -33,7 +33,7 @@ const (
 
 	// DefaultBookkeeperVersion is the default tag used for for the BookKeeper
 	// Docker image
-	DefaultBookkeeperVersion = "0.9.0"
+	DefaultBookkeeperVersion = "0.11.0"
 	// DefaultBookkeeperImageRepository is the default Docker repository for
 
 	// the BookKeeper image
