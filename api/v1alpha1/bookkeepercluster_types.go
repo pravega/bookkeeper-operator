@@ -259,6 +259,9 @@ type BookkeeperClusterSpec struct {
 
 	// Tolerations for the bookie pods.
 	Tolerations []corev1.Toleration `json:"tolerations,omitempty"`
+
+	// This is used to schedule the timeout value for rollback/upgrade
+	UpgradeTimeout int32 `json:"upgradeTimeout,omitempty"`
 }
 
 // BookkeeperImageSpec defines the fields needed for a BookKeeper Docker image
@@ -533,6 +536,10 @@ func (s *BookkeeperClusterSpec) withDefaults(bk *BookkeeperCluster) (changed boo
 	if s.HeadlessSvcNameSuffix == "" {
 		changed = true
 		s.HeadlessSvcNameSuffix = "bookie-headless"
+	}
+	if s.UpgradeTimeout < 1 {
+		changed = true
+		s.UpgradeTimeout = 10
 	}
 
 	return changed
