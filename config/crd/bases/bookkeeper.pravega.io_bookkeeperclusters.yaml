@@ -2825,6 +2825,11 @@ spec:
                       type: string
                   type: object
                 type: array
+              upgradeTimeout:
+                description: This is used to schedule the timeout value in minutes
+                  for rollback/upgrade
+                format: int32
+                type: integer
               version:
                 description: "Version is the expected version of the Bookkeeper cluster.
                   The bookkeeper-operator will eventually make the Bookkeeper cluster

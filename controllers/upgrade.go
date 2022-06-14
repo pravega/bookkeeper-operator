@@ -256,7 +256,7 @@ func (r *BookkeeperClusterReconciler) syncBookkeeperVersion(bk *bookkeeperv1alph
 
 	// Upgrade still in progress
 	// Check if bookkeeper fail to have progress
-	err = checkSyncTimeout(bk, bookkeeperv1alpha1.UpdatingBookkeeperReason, sts.Status.UpdatedReplicas)
+	err = checkSyncTimeout(bk, bookkeeperv1alpha1.UpdatingBookkeeperReason, sts.Status.UpdatedReplicas, bk.Spec.UpgradeTimeout)
 	if err != nil {
 		return false, fmt.Errorf("updating statefulset (%s) failed due to %v", sts.Name, err)
 	}
@@ -370,7 +370,7 @@ func (r *BookkeeperClusterReconciler) getPodsWithVersion(selector labels.Selecto
 	return pods, nil
 }
 
-func checkSyncTimeout(bk *bookkeeperv1alpha1.BookkeeperCluster, reason string, updatedReplicas int32) error {
+func checkSyncTimeout(bk *bookkeeperv1alpha1.BookkeeperCluster, reason string, updatedReplicas int32, upgradeTimeout int32) error {
 	lastCondition := bk.Status.GetLastCondition()
 	if lastCondition == nil {
 		return nil
@@ -379,7 +379,9 @@ func checkSyncTimeout(bk *bookkeeperv1alpha1.BookkeeperCluster, reason string, u
 		// if reason and message are the same as before, which means there is no progress since the last reconciling,
 		// then check if it reaches the timeout.
 		parsedTime, _ := time.Parse(time.RFC3339, lastCondition.LastUpdateTime)
-		if time.Now().After(parsedTime.Add(time.Duration(10 * time.Minute))) {
+		maxTime := time.Duration(upgradeTimeout)
+
+		if time.Now().After(parsedTime.Add(time.Duration(maxTime * time.Minute))) {
 			// timeout
 			return fmt.Errorf("progress deadline exceeded")
 		}
