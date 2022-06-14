@@ -370,7 +370,7 @@ func (r *BookkeeperClusterReconciler) getPodsWithVersion(selector labels.Selecto
 	return pods, nil
 }
 
-func checkSyncTimeout(bk *bookkeeperv1alpha1.BookkeeperCluster, reason string, updatedReplicas int32, t int32) error {
+func checkSyncTimeout(bk *bookkeeperv1alpha1.BookkeeperCluster, reason string, updatedReplicas int32, upgradeTimeout int32) error {
 	lastCondition := bk.Status.GetLastCondition()
 	if lastCondition == nil {
 		return nil
@@ -379,7 +379,7 @@ func checkSyncTimeout(bk *bookkeeperv1alpha1.BookkeeperCluster, reason string, u
 		// if reason and message are the same as before, which means there is no progress since the last reconciling,
 		// then check if it reaches the timeout.
 		parsedTime, _ := time.Parse(time.RFC3339, lastCondition.LastUpdateTime)
-		maxTime := time.Duration(t)
+		maxTime := time.Duration(upgradeTimeout)
 
 		if time.Now().After(parsedTime.Add(time.Duration(maxTime * time.Minute))) {
 			// timeout

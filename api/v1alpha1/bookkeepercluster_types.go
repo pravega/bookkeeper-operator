@@ -260,7 +260,7 @@ type BookkeeperClusterSpec struct {
 	// Tolerations for the bookie pods.
 	Tolerations []corev1.Toleration `json:"tolerations,omitempty"`
 
-	// This is used to schedule the timeout value for rollback/upgrade
+	// This is used to schedule the timeout value in minutes for rollback/upgrade
 	UpgradeTimeout int32 `json:"upgradeTimeout,omitempty"`
 }
 

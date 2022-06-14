@@ -2826,7 +2826,8 @@ spec:
                   type: object
                 type: array
               upgradeTimeout:
-                description: This is used to schedule the timeout value for rollback/upgrade
+                description: This is used to schedule the timeout value in minutes
+                  for rollback/upgrade
                 format: int32
                 type: integer
               version:
