@@ -181,6 +181,14 @@ var _ = Describe("Bookkeeper Cluster Version Sync", func() {
 					foundBookeeper.Status.Init()
 					foundBookeeper.Status.SetUpgradingConditionTrue(" ", " ")
 					r.Client.Update(context.TODO(), foundBookeeper)
+					sts := &appsv1.StatefulSet{}
+					name := util.StatefulSetNameForBookie(foundBookeeper.Name)
+					_ = r.Client.Get(context.TODO(), types.NamespacedName{Name: name, Namespace: foundBookeeper.Namespace}, sts)
+					sts.Status.UpdatedReplicas = sts.Status.Replicas - 1
+					*sts.Spec.Replicas = 0
+					sts.Status.Replicas = sts.Status.UpdatedReplicas
+					sts.Status.ReadyReplicas = sts.Status.UpdatedReplicas
+					r.Client.Update(context.TODO(), sts)
 					err = r.syncClusterVersion(foundBookeeper)
 				})
 				It("Error should be nil", func() {
@@ -216,7 +224,15 @@ var _ = Describe("Bookkeeper Cluster Version Sync", func() {
 					foundBookeeper.Status.Init()
 					foundBookeeper.Status.UpdateProgress("UpgradeErrorReason", "")
 					r.Client.Update(context.TODO(), foundBookeeper)
+					sts := &appsv1.StatefulSet{}
+					name := util.StatefulSetNameForBookie(foundBookeeper.Name)
+					_ = r.Client.Get(context.TODO(), types.NamespacedName{Name: name, Namespace: foundBookeeper.Namespace}, sts)
+					*sts.Spec.Replicas = 0
+					sts.Status.Replicas = sts.Status.UpdatedReplicas
+					sts.Status.ReadyReplicas = sts.Status.UpdatedReplicas
+					r.Client.Update(context.TODO(), sts)
 					err = r.rollbackClusterVersion(foundBookeeper, "0.6.1")
+
 				})
 				It("Error should be nil", func() {
 					Ω(err).Should(BeNil())
@@ -331,9 +347,15 @@ var _ = Describe("Bookkeeper Cluster Version Sync", func() {
 					b2, err1 = r.syncBookkeeperVersion(foundBookeeper)
 					foundBookeeper.Status.TargetVersion = foundBookeeper.Spec.Version
 					r.Client.Update(context.TODO(), foundBookeeper)
-					b3, err2 = r.syncBookkeeperVersion(foundBookeeper)
-					sts = &appsv1.StatefulSet{}
 					name := util.StatefulSetNameForBookie(foundBookeeper.Name)
+					sts = &appsv1.StatefulSet{}
+					_ = r.Client.Get(context.TODO(), types.NamespacedName{Name: name, Namespace: foundBookeeper.Namespace}, sts)
+					*sts.Spec.Replicas = 0
+					sts.Status.Replicas = sts.Status.UpdatedReplicas
+					sts.Status.ReadyReplicas = sts.Status.UpdatedReplicas
+					r.Client.Update(context.TODO(), sts)
+					b3, err2 = r.syncBookkeeperVersion(foundBookeeper)
+					name = util.StatefulSetNameForBookie(foundBookeeper.Name)
 					_ = r.Client.Get(context.TODO(), types.NamespacedName{Name: name, Namespace: foundBookeeper.Namespace}, sts)
 					sts.Status.UpdatedReplicas = sts.Status.Replicas - 1
 					r.Client.Update(context.TODO(), sts)
