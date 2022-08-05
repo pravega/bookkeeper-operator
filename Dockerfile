@@ -41,9 +41,10 @@ RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o /src/${PROJECT_NAME} \
 # =============================================================================
 FROM ${DOCKER_REGISTRY:+$DOCKER_REGISTRY/}alpine:${ALPINE_VERSION} AS final
 
-RUN apk add --update \
+RUN apk update && apk add --upgrade \
     sudo \
-    libcap
+    libcap \
+    busybox
 
 ARG PROJECT_NAME=bookkeeper-operator
 
