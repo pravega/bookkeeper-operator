@@ -184,10 +184,33 @@ func (r *BookkeeperClusterReconciler) deployBookie(p *bookkeeperv1alpha1.Bookkee
 		}
 	}
 	err = r.Client.Create(context.TODO(), statefulSet)
-	if err != nil && !errors.IsAlreadyExists(err) {
-		return err
+	if err != nil {
+		if !errors.IsAlreadyExists(err) {
+			return err
+		} else {
+			sts := &appsv1.StatefulSet{}
+			name := util.StatefulSetNameForBookie(p.Name)
+			err := r.Client.Get(context.TODO(),
+				types.NamespacedName{Name: name, Namespace: p.Namespace}, sts)
+			if err != nil {
+				return err
+			}
+			if !r.checkVersionUpgradeTriggered(p) && !r.isRollbackTriggered(p) {
+				originalsts := sts.DeepCopy()
+				sts.Spec.Template = statefulSet.Spec.Template
+				err = r.Client.Update(context.TODO(), sts)
+				if err != nil {
+					return fmt.Errorf("failed to update stateful set: %v", err)
+				}
+				if !reflect.DeepEqual(originalsts.Spec.Template, sts.Spec.Template) {
+					err = r.restartStsPod(p)
+					if err != nil {
+						return err
+					}
+				}
+			}
+		}
 	}
-
 	return nil
 }
 
@@ -413,8 +436,10 @@ func (r *BookkeeperClusterReconciler) restartStsPod(bk *bookkeeperv1alpha1.Bookk
 	if err != nil {
 		return err
 	}
+	labels := bk.LabelsForBookkeeperCluster()
+	labels["component"] = "bookie"
 	selector, err := metav1.LabelSelectorAsSelector(&metav1.LabelSelector{
-		MatchLabels: currentSts.Spec.Template.Labels,
+		MatchLabels: labels,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to convert label selector: %v", err)
