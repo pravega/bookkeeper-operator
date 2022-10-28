@@ -7,7 +7,7 @@
 # http://www.apache.org/licenses/LICENSE-2.0
 
 SHELL=/bin/bash -o pipefail
-CRD_OPTIONS ?= "crd:trivialVersions=true"
+CRD_OPTIONS ?= "crd"
 
 PROJECT_NAME=bookkeeper-operator
 REPO=pravega/$(PROJECT_NAME)
