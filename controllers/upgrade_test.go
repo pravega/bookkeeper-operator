@@ -374,9 +374,9 @@ var _ = Describe("Bookkeeper Cluster Version Sync", func() {
 					Ω(b3).Should(Equal(true))
 					Ω(err2).Should(BeNil())
 				})
-				It("Error should not be nil and b4 is false", func() {
+				It("Error should be nil and b4 is false", func() {
 					Ω(b4).Should(Equal(false))
-					Ω(err3).ShouldNot(BeNil())
+					Ω(err3).Should(BeNil())
 				})
 			})
 		})

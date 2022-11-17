@@ -274,7 +274,7 @@ func (r *BookkeeperClusterReconciler) syncBookkeeperVersion(bk *bookkeeperv1alph
 		return false, err
 	}
 
-	if ready {
+	if ready && *sts.Spec.Replicas != (int32)(len(pods)) {
 		labels := bk.LabelsForBookkeeperCluster()
 		pod, err := r.getOneOutdatedPod(sts, bk.Status.TargetVersion, labels)
 		if err != nil {
