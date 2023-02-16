@@ -19,7 +19,7 @@ import (
 	"github.com/pravega/bookkeeper-operator/pkg/util"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	policyv1beta1 "k8s.io/api/policy/v1beta1"
+	policyv1 "k8s.io/api/policy/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
@@ -466,18 +466,18 @@ func MakeBookieConfigMap(bk *v1alpha1.BookkeeperCluster) *corev1.ConfigMap {
 	}
 }
 
-func MakeBookiePodDisruptionBudget(bk *v1alpha1.BookkeeperCluster) *policyv1beta1.PodDisruptionBudget {
+func MakeBookiePodDisruptionBudget(bk *v1alpha1.BookkeeperCluster) *policyv1.PodDisruptionBudget {
 	maxUnavailable := intstr.FromInt(int(bk.Spec.MaxUnavailableBookkeeperReplicas))
-	return &policyv1beta1.PodDisruptionBudget{
+	return &policyv1.PodDisruptionBudget{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "PodDisruptionBudget",
-			APIVersion: "policy/v1beta1",
+			APIVersion: "policy/v1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      util.PdbNameForBookie(bk.Name),
 			Namespace: bk.Namespace,
 		},
-		Spec: policyv1beta1.PodDisruptionBudgetSpec{
+		Spec: policyv1.PodDisruptionBudgetSpec{
 			MaxUnavailable: &maxUnavailable,
 			Selector: &metav1.LabelSelector{
 				MatchLabels: bk.LabelsForBookie(),
