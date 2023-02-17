@@ -16,6 +16,7 @@ import (
 	"strings"
 
 	"github.com/pravega/bookkeeper-operator/pkg/controller/config"
+	policyv1 "k8s.io/api/policy/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 
 	. "github.com/onsi/ginkgo"
@@ -23,7 +24,6 @@ import (
 	"github.com/pravega/bookkeeper-operator/api/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	policyv1beta1 "k8s.io/api/policy/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes/scheme"
@@ -47,7 +47,7 @@ var _ = Describe("BookkeeperCluster Controller", func() {
 			req reconcile.Request
 			res reconcile.Result
 			b   *v1alpha1.BookkeeperCluster
-		//	ctx context.Context
+			//	ctx context.Context
 		)
 
 		BeforeEach(func() {
@@ -136,20 +136,20 @@ var _ = Describe("BookkeeperCluster Controller", func() {
 				)
 				BeforeEach(func() {
 					res, err = r.Reconcile(ctx, req)
-					currentpdb := &policyv1beta1.PodDisruptionBudget{}
+					currentpdb := &policyv1.PodDisruptionBudget{}
 					pdbname := fmt.Sprintf("%s-bookie", b.Name)
 					r.Client.Get(context.TODO(), types.NamespacedName{Name: pdbname, Namespace: b.Namespace}, currentpdb)
 					maxUnavailable := intstr.FromInt(3)
-					newpdb := &policyv1beta1.PodDisruptionBudget{
+					newpdb := &policyv1.PodDisruptionBudget{
 						TypeMeta: metav1.TypeMeta{
 							Kind:       "PodDisruptionBudget",
-							APIVersion: "policy/v1beta1",
+							APIVersion: "policy/v1",
 						},
 						ObjectMeta: metav1.ObjectMeta{
 							Name:      "test-name",
 							Namespace: b.Namespace,
 						},
-						Spec: policyv1beta1.PodDisruptionBudgetSpec{
+						Spec: policyv1.PodDisruptionBudgetSpec{
 							MaxUnavailable: &maxUnavailable,
 							Selector: &metav1.LabelSelector{
 								MatchLabels: b.LabelsForBookie(),
