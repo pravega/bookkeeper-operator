@@ -39,6 +39,7 @@ jobs:
     - name: Check out code into the Go module directory
       uses: actions/checkout@v2
     - name: Gofmt and License checks
+      run: go fmt ./api/v1alpha1/groupversion_info.go
       run: make check
     - name: unit tests
       run: make test-unit
