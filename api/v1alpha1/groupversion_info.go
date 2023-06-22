@@ -15,8 +15,8 @@ limitations under the License.
 */
 
 // Package v1alpha1 contains API Schema definitions for the bookkeeper v1alpha1 API group
-//+kubebuilder:object:generate=true
-//+groupName=bookkeeper.pravega.io
+// +kubebuilder:object:generate=true
+// +groupName=bookkeeper.pravega.io
 package v1alpha1
 
 import (
