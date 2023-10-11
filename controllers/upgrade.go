@@ -282,6 +282,14 @@ func (r *BookkeeperClusterReconciler) syncBookkeeperVersion(bk *bookkeeperv1alph
 		}
 
 		if pod == nil {
+			pods, err := r.getStsPodsWithVersion(sts, bk.Status.TargetVersion)
+			if err != nil {
+				return false, err
+			}
+			if *sts.Spec.Replicas == (int32)(len(pods)) {
+				log.Infof("All bookkeeper pods are updated")
+				return false, nil
+			}
 			return false, fmt.Errorf("could not obtain outdated pod")
 		}
 
